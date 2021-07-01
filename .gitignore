@@ -136,6 +136,5 @@ dmypy.json
 .dist/
 node_modules/
 .vscode/
+.pytest_cache/
 .addon
-package.json
-package-lock.json
