@@ -526,8 +526,6 @@ class FileName:
         file_contents = self.loadFileToStr()
         file_lines = file_contents.splitlines()
 
-        logger.info(file_contents)
-
         result={ }
         reader = csv.reader(file_lines, delimiter=str('='), quotechar=str('"'), quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
         for row in reader:

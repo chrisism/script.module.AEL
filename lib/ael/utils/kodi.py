@@ -11,7 +11,7 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
-from ael.utils import text
+from ael.utils import text, io
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +172,11 @@ def get_info_label(name):
 
 def translate(id):
     return xbmcaddon.Addon().getLocalizedString(id)
+
+def getAddonDir() -> io.FileName:
+    addon_id = xbmcaddon.Addon().getAddonInfo('id')
+    addon_data_dir = io.FileName('special://profile/addon_data/{}'.format(addon_id))
+    return addon_data_dir
 
 def toggle_fullscreen():
     jsonrpc_query('Input.ExecuteAction', {'action' : 'togglefullscreen'})
