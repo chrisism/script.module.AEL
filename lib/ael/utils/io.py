@@ -467,7 +467,7 @@ class FileName:
         # functions, not here!!!
         file_bytes = None
         try:
-            self.open('r', )
+            self.open('r')
             file_bytes = self.read()
             self.close()
         except OSError:
@@ -526,21 +526,19 @@ class FileName:
         file_contents = self.loadFileToStr()
         file_lines = file_contents.splitlines()
 
+        logger.info(file_contents)
+
         result={ }
-        reader = csv.reader(self._utf_8_encoder(file_lines), delimiter=str('='), quotechar=str('"'), quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
+        reader = csv.reader(file_lines, delimiter=str('='), quotechar=str('"'), quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
         for row in reader:
             if len(row) < 2:
                continue
             
-            key = str(row[0],'utf-8').strip()
-            value = str(row[1],'utf-8').strip().lstrip('"').rstrip('"')
+            key = row[0].strip()
+            value = row[1].strip().lstrip('"').rstrip('"')
             result[key] = value
 
         return result
-
-    def _utf_8_encoder(self, unicode_csv_data):
-        for line in unicode_csv_data:
-            yield line.encode('utf-8')
 
     # Opens JSON file and reads it
     def readJson(self) -> typing.Any:
