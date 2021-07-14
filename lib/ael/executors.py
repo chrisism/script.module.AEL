@@ -219,7 +219,7 @@ class WindowsExecutor(ExecutorABC):
         elif not self.windows_cd_apppath and self.windows_close_fds:
             retcode = subprocess.call(command, close_fds = True)
         elif not self.windows_cd_apppath and not self.windows_close_fds:
-            with open(self.logFile.getPath(), 'w') as f:
+            with open(self.logFile.getPathTranslated(), 'w') as f:
                 retcode = subprocess.call(command, close_fds = False, stdout = f, stderr = subprocess.STDOUT)
         else:
             raise Exception('Logical error')

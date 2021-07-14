@@ -356,8 +356,7 @@ class FileName:
         # open() is a built-in function.
         # See https://docs.python.org/3/library/functions.html#open
         self.fileHandle = open(self.path_tr, flags, encoding=encoding)
-
-        return self
+        return self.fileHandle
 
     def close_python(self):
         if self.fileHandle is None:
@@ -388,7 +387,7 @@ class FileName:
         logger.debug('FileName::open_kodivfs() flags   "{0}"'.format(flags))
 
         self.fileHandle = xbmcvfs.File(self.path_tr, flags)
-        return self
+        return self.fileHandle
     
     def read_kodivfs(self):
         if self.fileHandle is None: raise OSError('file not opened')
