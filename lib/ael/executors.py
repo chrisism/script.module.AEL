@@ -244,7 +244,7 @@ class ExecutorFactoryABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def create(self, launcher_settings: dict) -> ExecutorABC: pass
+    def create(self, application_str: str, launcher_settings: dict) -> ExecutorABC: pass
 
 # -------------------------------------------------------------------------------------------------
 # Abstract Factory Pattern
@@ -256,13 +256,9 @@ class ExecutorFactory(ExecutorFactoryABC):
         self.logFile  = reportFilePath
         super(ExecutorFactory).__init__()
 
-    def create(self, launcher_settings: dict) -> ExecutorABC:
+    def create(self, application_str: str, launcher_settings: dict) -> ExecutorABC:
         
-        if 'application' not in launcher_settings:
-            logger.error('ExecutorFactory::create() No application argument defined')            
-            return None
-        
-        application = io.FileName(launcher_settings['application'])
+        application = io.FileName(application_str)
         if application.getBase().lower().replace('.exe' , '') == 'xbmc' \
             or 'xbmc-fav-' in application.getPath() or 'xbmc-sea-' in application.getPath():
             return XbmcExecutor(self.logFile)

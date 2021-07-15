@@ -82,9 +82,6 @@ class LauncherABC(object):
 
     def get_launcher_settings(self) -> dict:
         return self.launcher_settings
-    
-    def get_application(self) -> str:
-        return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
 
     # --------------------------------------------------------------------------------------------
     # Launcher build wizard methods
@@ -177,42 +174,117 @@ class LauncherABC(object):
         }        
         kodi.event(sender='plugin.program.AEL',command='SET_LAUNCHER_SETTINGS', data=params)
            
-    # Execution methods
     # ---------------------------------------------------------------------------------------------
+    # Execution methods
     # ---------------------------------------------------------------------------------------------
     #
     # Launchs a custom launcher.
     # Arguments are those send through the URI.
     #
     @abc.abstractmethod
-    def launch(self, arguments: str):
+    def launch(self, rom_arguments: dict):
         logger.debug('LauncherABC::launch() Starting ...')
+
+        name                = self.get_name()
+        application         = self.get_application()
+        execution_arguments = self.get_execution_ready_arguments(rom_arguments)
+
+        logger.debug('Name        = "{}"'.format(name))
+        logger.debug('Application = "{}"'.format(application))
+        logger.debug('Arguments   = "{}"'.format(execution_arguments))
 
         # --- Create executor object ---
         if self.executorFactory is None:
             logger.error('LauncherABC::launch() self.executorFactory is None')
-            logger.error('Cannot create an executor for {}'.format(self.get_name()))
+            logger.error('Cannot create an executor for {}'.format(name))
             kodi.notify_error('LauncherABC::launch() self.executorFactory is None'
                               'This is a bug, please report it.')
             return
         
-        executor = self.executorFactory.create(self.launcher_settings)
+        executor = self.executorFactory.create(application, self.launcher_settings)
         
         if executor is None:
-            logger.error('Cannot create an executor for {}'.format(self.get_name()))
+            logger.error('Cannot create an executor for {}'.format(name))
             kodi.notify_error('Cannot execute application')
             return
-
-        logger.debug('Name        = "{}"'.format(self.get_name()))
-        logger.debug('Application = "{}"'.format(self.get_application()))
-        logger.debug('Arguments   = "{}"'.format(arguments))
+        
         logger.debug('Executor    = "{}"'.format(executor.__class__.__name__))
 
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
-        executor.execute(self.get_application(), arguments, self.execution_settings.is_non_blocking)
+        executor.execute(application, execution_arguments, self.execution_settings.is_non_blocking)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
+    @abc.abstractmethod
+    def get_application(self) -> str:
+        return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
+    
+    @abc.abstractmethod
+    def get_execution_ready_arguments(self, rom_arguments: dict) -> str:
+        arguments     = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
+        application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
+    
+        logger.info('launch(): Launcher          "{}"'.format(self.get_name()))
+        logger.info('launch(): raw arguments     "{}"'.format(arguments))
+
+        #Application based arguments replacements
+        if application:
+            app = io.FileName(application)
+            apppath = app.getDir()
+
+            logger.info('launch(): application  "{0}"'.format(app.getPath()))
+            logger.info('launch(): appbase      "{0}"'.format(app.getBase()))
+            logger.info('launch(): apppath      "{0}"'.format(apppath))
+
+            arguments = arguments.replace('$apppath$', apppath)
+            arguments = arguments.replace('$appbase$', app.getBase())
+            
+        # ROM based arguments replacements
+        rom_file_str = rom_arguments['file'] if 'file' in rom_arguments else None
+        if rom_file_str:
+            rom_file = io.FileName(rom_file_str)
+            # --- Escape quotes and double quotes in ROMFileName ---
+            # >> This maybe useful to Android users with complex command line arguments
+            if settings.getSettingAsBool('escape_romfile'):
+                logger.info("launch(): Escaping ROMFileName ' and \"")
+                rom_file.escapeQuotes()
+
+            rompath       = rom_file.getDir()
+            rombase       = rom_file.getBase()
+            rombase_noext = rom_file.getBaseNoExt()
+
+            logger.info('launch(): romfile      "{0}"'.format(rom_file.getPath()))
+            logger.info('launch(): rompath      "{0}"'.format(rompath))
+            logger.info('launch(): rombase      "{0}"'.format(rombase))
+            logger.info('launch(): rombasenoext "{0}"'.format(rombase_noext))
+
+            arguments = arguments.replace('$rom$',          rom_file.getPath())
+            arguments = arguments.replace('$romfile$',      rom_file.getPath())
+            arguments = arguments.replace('$rompath$',      rompath)
+            arguments = arguments.replace('$rombase$',      rombase)
+            arguments = arguments.replace('$rombasenoext$', rombase_noext)
+
+            # >> Legacy names for argument substitution
+            arguments = arguments.replace('%rom%', rom_file.getPath())
+            arguments = arguments.replace('%ROM%', rom_file.getPath())
+
+        # Default arguments replacements
+        arguments = arguments.replace('$romID$', rom_arguments['id'] if 'id' in rom_arguments else '')
+        arguments = arguments.replace('$romtitle$', rom_arguments['name'] if 'name' in rom_arguments else '')
+
+        # automatic substitution of rom values
+        for rom_key, rom_value in rom_arguments.items():
+            if isinstance(rom_value, str):
+                arguments = arguments.replace('${}$'.format(rom_key), rom_value)
+                
+        # automatic substitution of launcher setting values
+        for launcher_key, launcher_value in self.launcher_settings.items():
+            if isinstance(rom_value, str):
+                arguments = arguments.replace('${}$'.format(launcher_key), launcher_value)        
+
+        logger.debug('launch(): final arguments "{0}"'.format(arguments))        
+        return arguments
+        
     #
     # These two functions do things like stopping music before lunch, toggling full screen, etc.
     # Variables set in this function:
