@@ -507,7 +507,7 @@ def get_AEL_platform_index(platform):
 
     return platform_long_to_index_dic[PLATFORM_UNKNOWN_LONG]
 
-def get_AEL_platform(platform_long):
+def get_AEL_platform(platform_long) -> Platform:
     idx = get_AEL_platform_index(platform_long)
     return AEL_platform_list[idx]
 
