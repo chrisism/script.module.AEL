@@ -132,8 +132,8 @@ def dialog_yesno_custom(text, yeslabel_str, nolabel_str, title = 'Advanced Emula
 def dialog_yesno_timer(text, timer_ms = 30000, title = 'Advanced Emulator Launcher'):
     return xbmcgui.Dialog().yesno(title, text, autoclose = timer_ms)
 
-def browse(type = 1, text='Choose files', shares='files', mask=None, multiple=False):
-    return xbmcgui.Dialog().browse(type, text, shares, mask, enableMultiple = multiple)
+def browse(type = 1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
+    return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple,)
 
 # Show keyboard dialog for user input. Returns None if not confirmed.
 def dialog_keyboard(title, text='') -> str:
