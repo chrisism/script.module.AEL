@@ -11,17 +11,6 @@ import re
 
 logger = logging.getLogger(__name__)
 
-def createError(ex: Exception):
-    template = (
-        "EXCEPTION Thrown (PythonToCppException) : -->Python callback/script returned the following error<--\n"
-        " - NOTE: IGNORING THIS CAN LEAD TO MEMORY LEAKS!\n"
-        "Error Type: <type '{0}'>\n"
-        "Error Contents: {1!r}\n"
-        "{2}"
-        "-->End of Python script error report<--"
-    )
-    return template.format(type(ex).__name__, ex.args, traceback.format_exc())
-
 # -------------------------------------------------------------------------------------------------
 # Strings and text
 # -------------------------------------------------------------------------------------------------

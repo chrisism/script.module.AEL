@@ -509,7 +509,7 @@ def get_AEL_platform_index(platform):
 
 def get_AEL_platform(platform_long) -> Platform:
     idx = get_AEL_platform_index(platform_long)
-    return AEL_platform_list[idx]
+    return AEL_platforms[idx]
 
 # NOTE must take into account platform aliases.
 # '0' means any platform in TGDB and must be returned when there is no platform matching.
