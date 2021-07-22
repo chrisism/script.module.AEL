@@ -103,9 +103,9 @@ VLAUNCHER_FAVOURITES_ID     = 'vlauncher_favourites'
 VLAUNCHER_RECENT_ID         = 'vlauncher_recent'
 VLAUNCHER_MOST_PLAYED_ID    = 'vlauncher_most_played'
 
-VCOLLECTION_FAVOURITES_ID   = 'virtual_favourites'
-VCOLLECTION_RECENT_ID       = 'virtual_recently_played'
-VCOLLECTION_MOST_PLAYED_ID  = 'virtual_most_played'
+VCOLLECTION_FAVOURITES_ID   = 'favourites'
+VCOLLECTION_RECENT_ID       = 'recently_played'
+VCOLLECTION_MOST_PLAYED_ID  = 'most_played'
 
 VCOLLECTIONS = [
     VCOLLECTION_FAVOURITES_ID,
