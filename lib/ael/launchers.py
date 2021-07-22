@@ -161,13 +161,13 @@ class LauncherABC(object):
     
     #
     # This method will call the AEL event to store launcher settings for a 
-    # specific romset in the database.
+    # specific romcollection in the database.
     #
-    def store_launcher_settings(self, romset_id: str, launcher_id: str = None):
+    def store_launcher_settings(self, romcollection_id: str, launcher_id: str = None):
         
         launcher_settings = self.get_launcher_settings()
         params = {
-            'romset_id': romset_id,
+            'romcollection_id': romcollection_id,
             'launcher_id': launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings

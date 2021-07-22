@@ -189,22 +189,22 @@ class ScannerStrategyABC(object):
     
     #
     # This method will call the AEL event to store scanner settings for a 
-    # specific romset in the database.
+    # specific romcollection in the database.
     #
-    def store_scanner_settings(self, romset_id: str, scanner_id: str = None):        
+    def store_scanner_settings(self, romcollection_id: str, scanner_id: str = None):        
         scanner_settings = self.get_scanner_settings()
         params = {
-            'romset_id': romset_id,
+            'romcollection_id': romcollection_id,
             'scanner_id': scanner_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
         }        
         kodi.event(sender='plugin.program.AEL',command='SET_SCANNER_SETTINGS', data=params)
      
-    def store_scanned_roms(self, romset_id: str, scanner_id: str): 
+    def store_scanned_roms(self, romcollection_id: str, scanner_id: str): 
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
         params = {
-            'romset_id': romset_id,
+            'romcollection_id': romcollection_id,
             'scanner_id': scanner_id,
             'roms': roms
         }      
