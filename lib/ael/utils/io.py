@@ -453,6 +453,8 @@ class FileName:
             # >> If xbmcvfs.copy() fails what exceptions raise???
             xbmcvfs.copy(self.getPath(), to_FN.getPath())
 
+    def readAll(self) -> str:
+        return self.loadFileToStr()
     #
     # Loads a file into a Unicode string.
     # By default all files are assumed to be encoded in UTF-8.
@@ -489,6 +491,9 @@ class FileName:
             return file_bytes
 
         return file_bytes.decode(encoding)
+    
+    def writeAll(self, data: str):
+        return self.saveStrToFile(data)
     
     #
     # data_str is a Unicode string. Encode it in UTF-8 for file writing.
@@ -566,24 +571,6 @@ class FileName:
     def writeXml(self, xml_root):
         data = ET.tostring(xml_root)
         self.saveStrToFile(data)
-
-    def writeAll(self, bytes, flags = 'w'):
-         # --- Catch exceptions in the FilaName class ---
-        try:
-            self.open(flags)
-            self.write(bytes)
-            self.close()
-        except OSError:
-            logger.error('(OSError) Exception in writeAll()')
-            logger.error('(OSError) Cannot write {0} file'.format(self.path_tr))
-            raise constants.AddonError('(OSError) Cannot write {0} file'.format(self.path_tr))
-        except IOError as e:
-            logger.error('(IOError) Exception in writeAll()')
-            logger.error('(IOError) errno = {0}'.format(e.errno))
-            if e.errno == errno.ENOENT: logger.error('(IOError) No such file or directory.')
-            else:                       logger.error('(IOError) Unhandled errno value.')
-            logger.error('(IOError) Cannot write {0} file'.format(self.path_tr))
-            raise constants.AddonError('(IOError) Cannot write {0} file'.format(self.path_tr))
         
     # ---------------------------------------------------------------------------------------------
     # Scanner functions
