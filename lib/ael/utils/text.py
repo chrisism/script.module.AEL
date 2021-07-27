@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
 
-import traceback
 import string
 import logging
 import time
@@ -144,6 +143,66 @@ def misc_generate_random_SID() -> str:
     sid = base.hexdigest()
 
     return sid
+
+# -------------------------------------------------------------------------------------------------
+# ROM name cleaning and formatting
+# -------------------------------------------------------------------------------------------------
+#
+# This function is used to clean the ROM name to be used as search string for the scraper.
+#
+# 1) Cleans ROM tags: [BIOS], (Europe), (Rev A), ...
+# 2) Substitutes some characters by spaces
+#
+def format_ROM_name_for_scraping(title):
+    title = re.sub('\[.*?\]', '', title)
+    title = re.sub('\(.*?\)', '', title)
+    title = re.sub('\{.*?\}', '', title)
+    
+    title = title.replace('_', ' ')
+    title = title.replace('-', ' ')
+    title = title.replace(':', '')
+    title = title.replace('.', ' ')
+    title = title.strip()
+
+    return title
+
+#
+# Format ROM file name when scraping is disabled.
+# 1) Remove No-Intro/TOSEC tags (), [], {} at the end of the file
+#
+# title      -> Unicode string
+# clean_tags -> bool
+#
+# Returns a Unicode string.
+#
+def  format_ROM_title(title, clean_tags):
+    #
+    # Regexp to decompose a string in tokens
+    #
+    if clean_tags:
+        reg_exp = '\[.+?\]\s?|\(.+?\)\s?|\{.+?\}|[^\[\(\{]+'
+        tokens = re.findall(reg_exp, title)
+        str_list = []
+        for token in tokens:
+            stripped_token = token.strip()
+            if (stripped_token[0] == '[' or stripped_token[0] == '(' or stripped_token[0] == '{') and \
+               stripped_token != '[BIOS]':
+                continue
+            str_list.append(stripped_token)
+        cleaned_title = ' '.join(str_list)
+    else:
+        cleaned_title = title
+
+    # if format_title:
+    #     if (title.startswith("The ")): new_title = title.replace("The ","", 1)+", The"
+    #     if (title.startswith("A ")): new_title = title.replace("A ","", 1)+", A"
+    #     if (title.startswith("An ")): new_title = title.replace("An ","", 1)+", An"
+    # else:
+    #     if (title.endswith(", The")): new_title = "The "+"".join(title.rsplit(", The", 1))
+    #     if (title.endswith(", A")): new_title = "A "+"".join(title.rsplit(", A", 1))
+    #     if (title.endswith(", An")): new_title = "An "+"".join(title.rsplit(", An", 1))
+
+    return cleaned_title
 
 # -------------------------------------------------------------------------------------------------
 # Multidisc ROM support

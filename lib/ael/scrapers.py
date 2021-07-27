@@ -25,9 +25,11 @@ from __future__ import division
 import logging
 import collections
 import abc
-import datetime
+import datetime, time
+import os
+import json
 
-from ael.utils import kodi
+from ael.utils import kodi, io, net
 from ael import constants
 
 logger = logging.getLogger(__name__)
@@ -61,23 +63,23 @@ class ScraperSettings(object):
         return options
             
     @staticmethod
-    def from_settings(settings, launcher):
+    def from_settings(settings):#, launcher):
         
         scraper_settings = ScraperSettings()        
-        platform = launcher.get_platform()
+        #platform = launcher.get_platform()
         
         # --- Read addon settings and configure the scrapers selected -----------------------------
-        if platform == 'MAME':
-            logger.debug('ScraperSettings::from_settings() Platform is MAME.')
-            logger.debug('Using MAME scrapers from settings.xml')
-            scraper_settings.metadata_scraper_ID = settings['scraper_metadata_MAME']
-            scraper_settings.assets_scraper_ID   = settings['scraper_asset_MAME']
-        else:
-            logger.debug('ScraperSettings.from_settings() Platform is NON-MAME.')
-            logger.debug('Using standard scrapers from settings.xml')
-            scraper_settings.metadata_scraper_ID = settings['scraper_metadata']
-            scraper_settings.assets_scraper_ID   = settings['scraper_asset']
-                
+        # if platform == 'MAME':
+        #     logger.debug('ScraperSettings::from_settings() Platform is MAME.')
+        #     logger.debug('Using MAME scrapers from settings.xml')
+        #     scraper_settings.metadata_scraper_ID = settings['scraper_metadata_MAME']
+        #     scraper_settings.assets_scraper_ID   = settings['scraper_asset_MAME']
+        # else:
+        #logger.debug('ScraperSettings.from_settings() Platform is NON-MAME.')
+        logger.debug('Using standard scrapers from settings.xml')
+        scraper_settings.metadata_scraper_ID    = settings['scraper_metadata']
+        scraper_settings.assets_scraper_ID      = settings['scraper_asset']
+            
         scraper_settings.scrape_metadata_policy = settings['scan_metadata_policy']
         scraper_settings.scrape_assets_policy   = settings['scan_asset_policy']
         scraper_settings.game_selection_mode    = settings['game_selection_mode']
@@ -124,7 +126,7 @@ class Scraper(object):
 
     # --- Constructor ----------------------------------------------------------------------------
     # @param settings: [dict] Addon settings.
-    def __init__(self, settings, fallbackScraper = None):
+    def __init__(self, settings:dict, fallbackScraper = None):
         self.settings = settings
         self.verbose_flag = False
         self.dump_file_flag = False # Dump DEBUG files only if this is true.
@@ -159,10 +161,10 @@ class Scraper(object):
         self.global_disk_caches = {}
         self.global_disk_caches_loaded = {}
         self.global_disk_caches_dirty = {}
-        for cache_name in Scraper.GLOBAL_CACHE_LIST:
-            self.global_disk_caches[cache_name] = {}
-            self.global_disk_caches_loaded[cache_name] = False
-            self.global_disk_caches_dirty[cache_name] = False
+        # for cache_name in Scraper.GLOBAL_CACHE_LIST:
+        #     self.global_disk_caches[cache_name] = {}
+        #     self.global_disk_caches_loaded[cache_name] = False
+        #     self.global_disk_caches_dirty[cache_name] = False
 
     # --- Methods --------------------------------------------------------------------------------
     # Scraper is much more verbose (even more than AEL Debug level).
@@ -193,16 +195,16 @@ class Scraper(object):
     def _dump_json_debug(self, file_name, data_dic):
         if not self.dump_file_flag: return
         file_path = os.path.join(self.dump_dir, file_name)
-        if SCRAPER_CACHE_HUMAN_JSON:
+        if constants.SCRAPER_CACHE_HUMAN_JSON:
             json_str = json.dumps(data_dic, indent = 4, separators = (', ', ' : '))
         else:
             json_str = json.dumps(data_dic)
-        text.dump_str_to_file(file_path, json_str)
+        io.FileName(file_path).writeAll(json_str)
 
     def _dump_file_debug(self, file_name, page_data):
         if not self.dump_file_flag: return
         file_path = os.path.join(self.dump_dir, file_name)
-        text_dump_str_to_file(file_path, page_data)
+        io.FileName(file_path).writeAll(page_data)
 
     @abc.abstractmethod
     def get_id(self): pass
@@ -251,17 +253,17 @@ class Scraper(object):
 
     # Not necesary to lazy load the cache because before calling this function
     # check_candidates_cache() must be called.
-    def retrieve_from_candidates_cache(self, rom_FN, platform):
+    def retrieve_from_candidates_cache(self, rom_FN:io.FileName, platform):
         self.cache_key = rom_FN.getBase()
 
         return self._retrieve_from_disk_cache(Scraper.CACHE_CANDIDATES, self.cache_key)
 
-    def set_candidate_from_cache(self, rom_FN, platform):
+    def set_candidate_from_cache(self, rom_FN:io.FileName, platform):
         self.cache_key = rom_FN.getBase()
         self.platform  = platform
         self.candidate = self._retrieve_from_disk_cache(Scraper.CACHE_CANDIDATES, self.cache_key)
 
-    def set_candidate(self, rom_FN, platform, candidate):
+    def set_candidate(self, rom_FN:io.FileName, platform, candidate):
         self.cache_key = rom_FN.getBase()
         self.platform  = platform
         self.candidate = candidate
@@ -275,7 +277,7 @@ class Scraper(object):
 
     # When the user decides to rescrape an item that was in the cache make sure all
     # the caches are purged.
-    def clear_cache(self, rom_FN, platform):
+    def clear_cache(self, rom_FN:io.FileName, platform):
         self.cache_key = rom_FN.getBase()
         self.platform = platform
         logger.debug('Scraper.clear_cache() Clearing caches "{}" "{}"'.format(
@@ -286,7 +288,7 @@ class Scraper(object):
 
     # Only write to disk non-empty caches.
     # Only write to disk dirty caches. If cache has not been modified then do not write it.
-    def flush_disk_cache(self, pdialog = None):
+    def flush_disk_cache(self, pdialog:kodi.ProgressDialog = None):
         # If scraper does not use disk cache (notably AEL Offline) return.
         if not self.supports_disk_cache():
             logger.debug('Scraper.flush_disk_cache() Scraper {} does not use disk cache.'.format(
@@ -294,7 +296,7 @@ class Scraper(object):
             return
 
         # Create progress dialog.
-        num_steps = len(Scraper.CACHE_LIST) + len(Scraper.GLOBAL_CACHE_LIST)
+        num_steps = len(Scraper.CACHE_LIST) # + len(Scraper.GLOBAL_CACHE_LIST)
         step_count = 0
         if pdialog is not None:
             pdialog.startProgress('Flushing scraper disk caches...', num_steps)
@@ -327,9 +329,9 @@ class Scraper(object):
 
             # Write to disk
             json_file_path, json_fname = self._get_scraper_file_name(cache_type, self.platform)
-            file = io.open(json_file_path, 'w', encoding = 'utf-8')
-            file.write(unicode(json_data))
-            file.close()
+            file = io.FileName(json_file_path)
+            file.writeAll(json_data)
+            
             # logger.debug('Saved "{}"'.format(json_file_path))
             logger.debug('Saved "<SCRAPER_CACHE_DIR>/{}"'.format(json_fname))
 
@@ -337,41 +339,41 @@ class Scraper(object):
             self.disk_caches_dirty[cache_type] = False
 
         # --- Global caches ---
-        logger.debug('Scraper.flush_disk_cache() Saving scraper {} global disk cache...'.format(
-                self.get_name()))
-        for cache_type in Scraper.GLOBAL_CACHE_LIST:
-            if pdialog is not None:
-                pdialog.updateProgress(step_count)
-                step_count += 1
+        # logger.debug('Scraper.flush_disk_cache() Saving scraper {} global disk cache...'.format(
+        #         self.get_name()))
+        # for cache_type in Scraper.GLOBAL_CACHE_LIST:
+        #     if pdialog is not None:
+        #         pdialog.updateProgress(step_count)
+        #         step_count += 1
 
-            # Skip unloaded caches
-            if not self.global_disk_caches_loaded[cache_type]:
-                logger.debug('Skipping global {} (Unloaded)'.format(cache_type))
-                continue
-            # Skip empty caches
-            if not self.global_disk_caches[cache_type]:
-                logger.debug('Skipping global {} (Empty)'.format(cache_type))
-                continue
-            # Skip clean caches.
-            if not self.global_disk_caches_dirty[cache_type]:
-                logger.debug('Skipping global {} (Clean)'.format(cache_type))
-                continue
+        #     # Skip unloaded caches
+        #     if not self.global_disk_caches_loaded[cache_type]:
+        #         logger.debug('Skipping global {} (Unloaded)'.format(cache_type))
+        #         continue
+        #     # Skip empty caches
+        #     if not self.global_disk_caches[cache_type]:
+        #         logger.debug('Skipping global {} (Empty)'.format(cache_type))
+        #         continue
+        #     # Skip clean caches.
+        #     if not self.global_disk_caches_dirty[cache_type]:
+        #         logger.debug('Skipping global {} (Clean)'.format(cache_type))
+        #         continue
 
-            # Get JSON data.
-            json_data = json.dumps(
-                self.global_disk_caches[cache_type], ensure_ascii = False, sort_keys = True,
-                indent = Scraper.JSON_indent, separators = Scraper.JSON_separators)
+        #     # Get JSON data.
+        #     json_data = json.dumps(
+        #         self.global_disk_caches[cache_type], ensure_ascii = False, sort_keys = True,
+        #         indent = Scraper.JSON_indent, separators = Scraper.JSON_separators)
 
-            # Write to disk
-            json_file_path, json_fname = self._get_global_file_name(cache_type)
-            file = io.open(json_file_path, 'w', encoding = 'utf-8')
-            file.write(unicode(json_data))
-            file.close()
-            # logger.debug('Saved global "{}"'.format(json_file_path))
-            logger.debug('Saved global "<SCRAPER_CACHE_DIR>/{}"'.format(json_fname))
+        #     # Write to disk
+        #     json_file_path, json_fname = self._get_global_file_name(cache_type)
+        #     file = io.open(json_file_path, 'w', encoding = 'utf-8')
+        #     file.write(unicode(json_data))
+        #     file.close()
+        #     # logger.debug('Saved global "{}"'.format(json_file_path))
+        #     logger.debug('Saved global "<SCRAPER_CACHE_DIR>/{}"'.format(json_fname))
 
-            # Cache written to disk is clean gain.
-            self.global_disk_caches_dirty[cache_type] = False
+        #     # Cache written to disk is clean gain.
+        #     self.global_disk_caches_dirty[cache_type] = False
         if pdialog is not None: pdialog.endProgress()
 
     # Search for candidates and return a list of dictionaries _new_candidate_dic().
@@ -454,7 +456,7 @@ class Scraper(object):
     # request throttling.
     def download_image(self, image_url, image_local_path):
         # net_download_img() never prints URLs or paths.
-        net_download_img(image_url, image_local_path)
+        net.download_img(image_url, image_local_path)
         return image_local_path
 
     # Not used now. candidate['id'] is used as hash value for the whole candidate dictionary.
@@ -509,12 +511,12 @@ class Scraper(object):
     # All messages generated in the scrapers are KODI_MESSAGE_DIALOG.
     def _handle_error(self, status_dic, user_msg):
         # Print error message to the log.
-        log_error('Scraper._handle_error() user_msg "{}"'.format(user_msg))
+        logger.error('Scraper._handle_error() user_msg "{}"'.format(user_msg))
 
         # Fill in the status dictionary so the error message will be propagated up in the
         # stack and the error message printed in the GUI.
         status_dic['status'] = False
-        status_dic['dialog'] = KODI_MESSAGE_DIALOG
+        status_dic['dialog'] = kodi.KODI_MESSAGE_DIALOG
         status_dic['msg'] = user_msg
         
         # Record the number of error/exceptions produced in the scraper and disable the scraper
@@ -522,7 +524,7 @@ class Scraper(object):
         self.exception_counter += 1
         if self.exception_counter > Scraper.EXCEPTION_COUNTER_THRESHOLD:
             err_m = 'Maximum number of errors exceeded. Disabling scraper.'
-            log_error(err_m)
+            logger.error(err_m)
             self.scraper_disabled = True
             # Replace error message witht the one that the scraper is disabled.
             status_dic['msg'] = err_m
@@ -530,15 +532,15 @@ class Scraper(object):
     # This function is called when an exception in the scraper code happens.
     # All messages from the scrapers are KODI_MESSAGE_DIALOG.
     def _handle_exception(self, ex, status_dic, user_msg):
-        log_error('(Exception) Object type "{}"'.format(type(ex)))
-        log_error('(Exception) Message "{}"'.format(str(ex)))
+        logger.error('(Exception) Object type "{}"'.format(type(ex)))
+        logger.error('(Exception) Message "{}"'.format(str(ex)))
         self._handle_error(status_dic, user_msg)
 
     # --- Private disk cache functions -----------------------------------------------------------
     def _get_scraper_file_name(self, cache_type, platform):
         scraper_filename = self.get_filename()
         json_fname = scraper_filename + '__' + platform + '__' + cache_type + '.json'
-        json_full_path = os.path.join(self.scraper_cache_dir, json_fname).decode('utf-8')
+        json_full_path = os.path.join(self.scraper_cache_dir, json_fname)
 
         return json_full_path, json_fname
 

@@ -5,6 +5,7 @@ import json
 import pprint
 import abc
 import collections
+import os, sys, shutil
 from urllib.parse import urlencode
 
 import xbmc
@@ -608,4 +609,191 @@ class WizardDialog_Dummy(WizardDialog):
         logger.debug('WizardDialog_Dummy::show() {0} key = {0}'.format(self.property_key))
 
         return self.predefinedValue
-        
+
+# -------------------------------------------------------------------------------------------------
+# Kodi useful definition
+# -------------------------------------------------------------------------------------------------
+# https://codedocs.xyz/AlwinEsch/kodi/group__kodi__guilib__listitem__iconoverlay.html
+KODI_ICON_OVERLAY_NONE = 0
+KODI_ICON_OVERLAY_RAR = 1
+KODI_ICON_OVERLAY_ZIP = 2
+KODI_ICON_OVERLAY_LOCKED = 3
+KODI_ICON_OVERLAY_UNWATCHED = 4
+KODI_ICON_OVERLAY_WATCHED = 5
+KODI_ICON_OVERLAY_HD = 6
+
+# -------------------------------------------------------------------------------------------------
+# Kodi GUI error reporting.
+# * Errors can be reported up in the function backtrace with `if not st_dic['status']: return` after
+#   every function call.
+# * Warnings and non-fatal messages are printed in the callee function.
+# * If st_dic['status'] is True but st_dic['dialog'] is not KODI_MESSAGE_NONE then display
+#   the message but do not abort execution (success information message).
+# * When display_status_message() is used to display the last message on a chaing of
+#   function calls it is irrelevant its return value because addon always finishes.
+#
+# How to use:
+# def high_level_function():
+#     st_dic = new_status_dic()
+#     function_that_does_something_that_may_fail(..., st_dic)
+#     if display_status_message(st_dic): return # Display error message and abort addon execution.
+#     if not st_dic['status']: return # Alternative code to return to caller function.
+#
+# def function_that_does_something_that_may_fail(..., st_dic):
+#     code_that_fails
+#     kodi_set_error_status(st_dic, 'Message') # Or change st_dic manually.
+#     return
+# -------------------------------------------------------------------------------------------------
+KODI_MESSAGE_NONE        = 100
+# Kodi notifications must be short.
+KODI_MESSAGE_NOTIFY      = 200
+KODI_MESSAGE_NOTIFY_WARN = 300
+# Kodi OK dialog to display a message.
+KODI_MESSAGE_DIALOG      = 400
+
+# If st_dic['abort'] is False then everything is OK.
+# If st_dic['abort'] is True then execution must be aborted and error displayed.
+# Success message can also be displayed (st_dic['abort'] False and
+# st_dic['dialog'] is different from KODI_MESSAGE_NONE).
+def new_status_dic():
+    return {
+        'abort' : False,
+        'dialog' : KODI_MESSAGE_NONE,
+        'msg' : '',
+    }
+
+# Display an status/error message in the GUI.
+# Note that it is perfectly OK to display an error message and not abort execution.
+# Returns True in case of error and addon must abort/exit immediately.
+# Returns False if no error.
+#
+# Example of use: if kodi_display_user_message(st_dic): return
+def display_status_message(st_dic):
+    # Display (error) message and return status.
+    if st_dic['dialog'] == KODI_MESSAGE_NONE:
+        pass
+    elif st_dic['dialog'] == KODI_MESSAGE_NOTIFY:
+        notify(st_dic['msg'])
+    elif st_dic['dialog'] == KODI_MESSAGE_NOTIFY_WARN:
+        notify(st_dic['msg'])
+    elif st_dic['dialog'] == KODI_MESSAGE_DIALOG:
+        dialog_OK(st_dic['msg'])
+    else:
+        raise TypeError('st_dic["dialog"] = {}'.format(st_dic['dialog']))
+
+    return st_dic['abort']
+
+def kodi_is_error_status(st_dic): return st_dic['abort']
+
+# Utility function to write more compact code.
+# By default error messages are shown in modal OK dialogs.
+def kodi_set_error_status(st_dic, msg, dialog = KODI_MESSAGE_DIALOG):
+    st_dic['abort'] = True
+    st_dic['msg'] = msg
+    st_dic['dialog'] = dialog
+
+def kodi_reset_status(st_dic):
+    st_dic['abort'] = False
+    st_dic['msg'] = ''
+    st_dic['dialog'] = KODI_MESSAGE_NONE
+
+# -------------------------------------------------------------------------------------------------
+# Alternative Kodi GUI error reporting.
+# This is a more phytonic way of reporting errors than using st_dic.
+# -------------------------------------------------------------------------------------------------
+# Create a Exception-derived class and use that for reporting.
+#
+# Example code:
+# try:
+#     function_that_may_fail()
+# except KodiAddonError as ex:
+#     display_status_message(ex)
+# else:
+#     notify('Operation completed')
+#
+# def function_that_may_fail():
+#     raise KodiAddonError(msg, dialog)
+class KodiAddonError(Exception):
+    def __init__(self, msg, dialog = KODI_MESSAGE_DIALOG):
+        self.dialog = dialog
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+def kodi_display_exception(ex):
+    st_dic = new_status_dic()
+    st_dic['abort'] = True
+    st_dic['dialog'] = ex.dialog
+    st_dic['msg'] = ex.msg
+    display_status_message(st_dic)
+    
+# -------------------------------------------------------------------------------------------------
+# Kodi specific stuff
+# -------------------------------------------------------------------------------------------------
+# About Kodi image cache
+#
+# See http://kodi.wiki/view/Caches_explained
+# See http://kodi.wiki/view/Artwork
+# See http://kodi.wiki/view/HOW-TO:Reduce_disk_space_usage
+# See http://forum.kodi.tv/showthread.php?tid=139568 (What are .tbn files for?)
+#
+# Whenever Kodi downloads images from the internet, or even loads local images saved along
+# side your media, it caches these images inside of ~/.kodi/userdata/Thumbnails/. By default,
+# large images are scaled down to the default values shown below, but they can be sized
+# even smaller to save additional space.
+
+# Gets where in Kodi image cache an image is located.
+# image_path is a Unicode string.
+# cache_file_path is a Unicode string.
+def get_cached_image_FN(image_path):
+    THUMBS_CACHE_PATH = os.path.join(xbmc.translatePath('special://profile/'), 'Thumbnails')
+    # This function return the cache file base name
+    base_name = xbmc.getCacheThumbName(image_path)
+    cache_file_path = os.path.join(THUMBS_CACHE_PATH, base_name[0], base_name)
+    return cache_file_path
+
+# *** Experimental code not used for releases ***
+# Updates Kodi image cache for the image provided in img_path.
+# In other words, copies the image img_path into Kodi cache entry.
+# Needles to say, only update the image cache if the image already was on the cache.
+# img_path is a Unicode string
+def update_image_cache(img_path):
+    # What if image is not cached?
+    cached_thumb = get_cached_image_FN(img_path)
+    logger.debug('update_image_cache()       img_path {}'.format(img_path))
+    logger.debug('update_image_cache()   cached_thumb {}'.format(cached_thumb))
+
+    # For some reason Kodi xbmc.getCacheThumbName() returns a filename ending in TBN.
+    # However, images in the cache have the original extension. Replace TBN extension
+    # with that of the original image.
+    cached_thumb_root, cached_thumb_ext = os.path.splitext(cached_thumb)
+    if cached_thumb_ext == '.tbn':
+        img_path_root, img_path_ext = os.path.splitext(img_path)
+        cached_thumb = cached_thumb.replace('.tbn', img_path_ext)
+        logger.debug('update_image_cache() U cached_thumb {}'.format(cached_thumb))
+
+    # --- Check if file exists in the cache ---
+    # xbmc.getCacheThumbName() seems to return a filename even if the local file does not exist!
+    if not os.path.isfile(cached_thumb):
+        logger.debug('update_image_cache() Cached image not found. Doing nothing')
+        return
+
+    # --- Copy local image into Kodi image cache ---
+    # See https://docs.python.org/2/library/sys.html#sys.getfilesystemencoding
+    logger.debug('update_image_cache() Image found in cache. Updating Kodi image cache')
+    logger.debug('update_image_cache() copying {}'.format(img_path))
+    logger.debug('update_image_cache() into    {}'.format(cached_thumb))
+    fs_encoding = sys.getfilesystemencoding()
+    logger.debug('update_image_cache() fs_encoding = "{}"'.format(fs_encoding))
+    encoded_img_path = str(img_path, fs_encoding, 'ignore')
+    encoded_cached_thumb = cached_thumb.encode(fs_encoding, 'ignore')
+    try:
+        shutil.copy2(encoded_img_path, encoded_cached_thumb)
+    except OSError:
+        notify_warn(title='AEL warning', text='Cannot update cached image (OSError)')
+        logger.error('Exception in update_image_cache()')
+        logger.error('(OSError) Cannot update cached image')
+
+    # Is this really needed?
+    # xbmc.executebuiltin('ReloadSkin()')
