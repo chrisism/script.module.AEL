@@ -89,6 +89,18 @@ def execute_uri(uri, args:dict=None):
         uri = '{}?{}'.format(uri, urlencode(args))
     logger.debug('Executing RunPlugin(%s)...', uri)
     xbmc.executebuiltin('RunPlugin({})'.format(uri))
+    
+def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
+    script_cmd = None
+    if args is None: script_cmd = 'RunScript({})'.format(script)
+    else:
+        args_list = []
+        for key, value in args.items():
+            args_list.append('{}={}'.format(key,value))
+        script_cmd = 'RunScript({},{})'.format(script, ','.join(args_list))
+        
+    logger.debug('Executing {}...'.format(script_cmd))
+    xbmc.executebuiltin(script_cmd, wait_for_execution)
 
 #
 # Displays a small box in the low right corner
