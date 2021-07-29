@@ -1,2 +1,2 @@
-# script.module.AEL
+# script.module.ael
 AEL Module

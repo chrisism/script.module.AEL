@@ -1,5 +1,5 @@
 {
-    "name": "script.module.AEL",
+    "name": "script.module.ael",
     "version": "0.10.0",
     "scripts": {
         "build": "addon build",
@@ -24,7 +24,7 @@
         "build-install-patch": "npm run build-patch && addon install",
         "build-install-minor": "npm run build-minor && addon install",
         "build-install-major": "npm run build-major && addon install",
-        "build-install-copy": "npm run build && addon install && rm -rf /mnt/chromeos/MyFiles/Downloads/shared/script.module.AEL || true && cp -r /home/cwjungerius/projects/addons/script.module.AEL /mnt/chromeos/MyFiles/Downloads/shared/"
+        "build-install-copy": "npm run build && addon install && rm -rf /mnt/chromeos/MyFiles/Downloads/shared/script.module.ael || true && cp -r /home/cwjungerius/projects/addons/script.module.ael /mnt/chromeos/MyFiles/Downloads/shared/"
     },
     "devDependencies": {
         "kodi-addon-builder": "^1.2.3"
@@ -32,7 +32,7 @@
     "dependencies": {},
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/chrisism/script.module.AEL.git"
+        "url": "git+https://github.com/chrisism/script.module.ael.git"
     },
     "keywords": [
         "kodi",
@@ -41,5 +41,5 @@
     ],
     "author": "chrisism",
     "license": "GPL-2.0",
-    "homepage": "https://github.com/chrisism/script.module.AEL#readme"
+    "homepage": "https://github.com/chrisism/script.module.ael#readme"
 }
