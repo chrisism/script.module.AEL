@@ -227,13 +227,11 @@ class RomScannerStrategy(ScannerStrategyABC):
 
     def __init__(self, 
                  reports_dir: io.FileName, 
-                 addon_dir: io.FileName, 
                  scanner_settings: dict, 
                  default_launcher_settings: dict,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
-        self.addon_dir = addon_dir
 
         super(RomScannerStrategy, self).__init__(scanner_settings, default_launcher_settings, progress_dialog)
 

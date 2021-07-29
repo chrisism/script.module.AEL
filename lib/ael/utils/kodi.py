@@ -96,7 +96,7 @@ def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
     else:
         args_list = []
         for key, value in args.items():
-            args_list.append('{}={}'.format(key,value))
+            args_list.append('{} {}'.format(key,value))
         script_cmd = 'RunScript({},{})'.format(script, ','.join(args_list))
         
     logger.debug('Executing {}...'.format(script_cmd))
@@ -190,6 +190,10 @@ def getAddonDir() -> io.FileName:
     addon_id = xbmcaddon.Addon().getAddonInfo('id')
     addon_data_dir = io.FileName('special://profile/addon_data/{}'.format(addon_id))
     return addon_data_dir
+
+def get_addon_id() -> str:
+    addon_id = xbmcaddon.Addon().getAddonInfo('id')
+    return addon_id
 
 def toggle_fullscreen():
     jsonrpc_query('Input.ExecuteAction', {'action' : 'togglefullscreen'})

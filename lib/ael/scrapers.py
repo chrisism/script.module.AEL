@@ -1492,4 +1492,46 @@ class Scraper(object):
         if (now - self.last_http_call).total_seconds() * 1000 < wait_time_in_miliseconds:
             logger.debug('Scraper._wait_for_API_request() Sleeping {}ms to avoid overloading...'.format(wait_time_in_miliseconds))
             time.sleep(wait_time_in_miliseconds / 1000)
-  
+             
+# ------------------------------------------------------------------------------------------------
+# NULL scraper, does nothing.
+# ------------------------------------------------------------------------------------------------
+class Null_Scraper(Scraper):
+    # @param settings: [dict] Addon settings. Particular scraper settings taken from here.
+    def __init__(self, settings): super(Null_Scraper, self).__init__(settings)
+
+    def get_id(self):
+        return constants.SCRAPER_NULL_ID
+
+    def get_name(self): return 'Null'
+
+    def get_filename(self): return 'Null'
+
+    def supports_disk_cache(self): return False
+
+    def supports_search_string(self): return True
+
+    def supports_metadata_ID(self, metadata_ID): return False
+
+    def supports_metadata(self): return False
+
+    def supports_asset_ID(self, asset_ID): return False
+
+    def supports_assets(self): return False
+
+    def check_before_scraping(self, status_dic): return status_dic
+
+    # Null scraper never finds candidates.
+    def get_candidates(self, search_term, rom_FN, rom_checksums_FN, platform, status_dic): return []
+
+    # Null scraper never returns valid scraped metadata.
+    def get_metadata(self, status_dic): return self._new_gamedata_dic()
+
+    def get_assets(self, asset_info, status_dic): return []
+
+    def resolve_asset_URL(self, selected_asset, status_dic): return ('', '')
+
+    def resolve_asset_URL_extension(self, selected_asset, image_url, status_dic): return ''
+
+    def download_image(self, image_url, image_local_path): return None
+    
