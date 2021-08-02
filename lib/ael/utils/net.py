@@ -226,7 +226,7 @@ def post_URL(url, data):
     return page_data
     
 def get_URL_as_json(url, url_log = None):
-    page_data = get_URL(url, url_log)
+    page_data, http_code = get_URL(url, url_log)
     return json.loads(page_data)
 
 def get_URL_using_handler(url, handler = None):

@@ -98,7 +98,7 @@ def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
         for key, value in args.items():
             if value:
                 args_list.append(key)
-                args_list.append(value)
+                args_list.append(str(value))
         script_cmd = 'RunScript({},{})'.format(script, ','.join(args_list))
         
     logger.debug('Executing {}...'.format(script_cmd))
