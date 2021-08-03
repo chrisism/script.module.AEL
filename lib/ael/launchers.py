@@ -23,7 +23,7 @@ import logging
 import xbmc
 
 # --- AEL packages ---
-from ael import settings
+from ael import settings, api
 from ael.utils import io, kodi
 from ael.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC
 
@@ -65,15 +65,19 @@ class LauncherABC(object):
     def __init__(self, 
         executorFactory: ExecutorFactoryABC, 
         execution_settings: ExecutionSettings,
-        launcher_settings):
+        webservice_host:str,
+        webservice_port:int):
+        
         self.executorFactory    = executorFactory
         self.execution_settings = execution_settings
+        self.launcher_settings  = {}
         
-        self.launcher_settings  = launcher_settings
+        self.webservice_host = webservice_host
+        self.webservice_port = webservice_port
 
     # --------------------------------------------------------------------------------------------
     # Core methods
-    # --------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------    
     @abc.abstractmethod
     def get_name(self) -> str: return ''
     
@@ -159,20 +163,36 @@ class LauncherABC(object):
     def _builder_user_selected_custom_browsing(self, item_key, launcher):
         return launcher[item_key] == 'BROWSE'
     
+    
     #
-    # This method will call the AEL event to store launcher settings for a 
-    # specific romcollection in the database.
+    # This method will call the AEL webservice to retrieve previously stored launcher settings for a 
+    # specific romcollection or rom in the database depending which id is specified.
     #
-    def store_launcher_settings(self, romcollection_id: str, launcher_id: str = None):
+    def load_launcher_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
+        launcher_settings = None
+        if rom_id is not None:
+            launcher_settings = api.client_get_rom_launcher_settings(self.webservice_host, self.webservice_port, 
+                                                                     rom_id, launcher_id)
+        else:
+            launcher_settings = api.client_get_collection_launcher_settings(self.webservice_host, self.webservice_port, 
+                                                                            romcollection_id, launcher_id)
+        self.launcher_settings = launcher_settings
         
+    #
+    # This method will call the AEL webservice to store launcher settings for a 
+    # specific romcollection or rom in the database depending which id is specified.
+    #
+    def store_launcher_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
         launcher_settings = self.get_launcher_settings()
-        params = {
+        post_data = {
             'romcollection_id': romcollection_id,
             'launcher_id': launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings
         }        
-        kodi.event(sender='plugin.program.AEL',command='SET_LAUNCHER_SETTINGS', data=params)
+        is_stored = api.client_post_launcher_settings(self.webservice_host, self.webservice_port, post_data)
+        if not is_stored:
+            kodi.notify_error('Failed to store launchers settings')
            
     # ---------------------------------------------------------------------------------------------
     # Execution methods

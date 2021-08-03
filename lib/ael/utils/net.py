@@ -199,6 +199,7 @@ def get_URL_oneline(url, url_log = None):
 # If an exception happens return empty data.
 def post_URL(url, data):
     page_data = ''
+    http_code = 500
     try:
         req = Request(url, data)
         req.add_unredirected_header('User-Agent', USER_AGENT)
@@ -208,23 +209,78 @@ def post_URL(url, data):
         response = urlopen(req, timeout = 120)
         page_bytes = response.read()
         encoding = response.headers['content-type'].split('charset=')[-1]
+        http_code = response.getcode()
         response.close()
+    except HTTPError as ex:
+        http_code = ex.code
+        try:
+            page_bytes = ex.read()
+            ex.close()
+        except:
+            page_bytes = str(ex.reason)
+        logger.error('(HTTPError) In post_URL()')
+        logger.error('(HTTPError) Object type "{}"'.format(type(ex)))
+        logger.error('(HTTPError) Message "{}"'.format(str(ex)))
+        logger.error('(HTTPError) Code {}'.format(http_code))
+        return page_bytes, http_code
     except IOError as ex:
         logger.error('(IOError exception) In get_URL()')
         logger.error('Message: {0}'.format(str(ex)))
-        return page_data
+        return page_data, http_code
     except Exception as ex:
         logger.error('(General exception) In get_URL()')
         logger.error('Message: {0}'.format(str(ex)))
-        return page_data
+        return page_data, http_code
 
     num_bytes = len(page_bytes)
     logger.debug('post_URL() Read {0} bytes'.format(num_bytes))
     # --- Convert page data to Unicode ---
     page_data = decode_URL_data(page_bytes, encoding)
 
-    return page_data
-    
+    return page_data, http_code
+
+def post_JSON_URL(url, data_obj: any):
+    page_data = ''
+    http_code = 500
+    try:
+        data_str = json.dumps(data_obj)
+        req = Request(url, data_str.encode('utf-8'))
+        req.add_unredirected_header('User-Agent', USER_AGENT)
+        req.add_header("Content-type", "application/json")
+        req.add_header("Acept", "text/plain")
+        logger.debug('post_JSON_URL() POST URL "{}"'.format(req.get_full_url()))
+        response = urlopen(req, timeout = 120)
+        page_bytes = response.read()
+        encoding = response.headers['content-type'].split('charset=')[-1]
+        response.close()
+    except HTTPError as ex:
+        http_code = ex.code
+        try:
+            page_bytes = ex.read()
+            ex.close()
+        except:
+            page_bytes = str(ex.reason)
+        logger.error('(HTTPError) In post_JSON_URL()')
+        logger.error('(HTTPError) Object type "{}"'.format(type(ex)))
+        logger.error('(HTTPError) Message "{}"'.format(str(ex)))
+        logger.error('(HTTPError) Code {}'.format(http_code))
+        return page_bytes, http_code
+    except IOError as ex:
+        logger.error('(IOError exception) In get_URL()')
+        logger.error('Message: {0}'.format(str(ex)))
+        return page_data, http_code
+    except Exception as ex:
+        logger.error('(General exception) In get_URL()')
+        logger.error('Message: {0}'.format(str(ex)))
+        return page_data, http_code
+
+    num_bytes = len(page_bytes)
+    logger.debug('post_JSON_URL() Read {0} bytes'.format(num_bytes))
+    # --- Convert page data to Unicode ---
+    page_data = decode_URL_data(page_bytes, encoding)
+
+    return page_data, http_code
+
 def get_URL_as_json(url, url_log = None):
     page_data, http_code = get_URL(url, url_log)
     return json.loads(page_data)

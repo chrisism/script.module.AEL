@@ -228,12 +228,12 @@ class RomScannerStrategy(ScannerStrategyABC):
     def __init__(self, 
                  reports_dir: io.FileName, 
                  scanner_settings: dict, 
-                 default_launcher_settings: dict,
+                 webservice_host:str,
+                 webservice_port:int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
-
-        super(RomScannerStrategy, self).__init__(scanner_settings, default_launcher_settings, progress_dialog)
+        super(RomScannerStrategy, self).__init__(scanner_settings, webservice_host, webservice_port, progress_dialog)
 
     # --------------------------------------------------------------------------------------------
     # Scanner configuration wizard methods

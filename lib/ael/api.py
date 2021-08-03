@@ -35,6 +35,21 @@ def client_get_rom(host: str, port:int, rom_id:str) -> MetaDataObj:
     rom_data = net.get_URL_as_json(uri)    
     return MetaDataObj(rom_data)
 
+def client_get_rom_launcher_settings(host: str, port:int, rom_id: str, launcher_id:str) -> dict:
+    uri = 'http://{}:{}/query/rom/launcher/settings/?id={}&launcher_id={}'.format(host, port, rom_id, launcher_id)
+    launcher_settings = net.get_URL_as_json(uri)    
+    return launcher_settings
+
+def client_get_collection_launcher_settings(host: str, port:int, rom_collection_id: str, launcher_id:str) -> dict:
+    uri = 'http://{}:{}/query/romcollection/launcher/settings/?id={}&launcher_id={}'.format(host, port, rom_collection_id, launcher_id)
+    launcher_settings = net.get_URL_as_json(uri)    
+    return launcher_settings
+
+def client_post_launcher_settings(host: str, port:int, data: dict) -> bool:
+    uri = 'http://{}:{}/store/launcher/'.format(host, port)
+    response_data, code = net.post_JSON_URL(uri, data)
+    return code == 200
+
 ###############################################################
 # CLIENT OBJECTS
 ###############################################################
