@@ -168,7 +168,9 @@ class LauncherABC(object):
     # This method will call the AEL webservice to retrieve previously stored launcher settings for a 
     # specific romcollection or rom in the database depending which id is specified.
     #
-    def load_launcher_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
+    def load_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
+        if launcher_id is None: return
+        
         launcher_settings = None
         if rom_id is not None:
             launcher_settings = api.client_get_rom_launcher_settings(self.webservice_host, self.webservice_port, 
@@ -182,7 +184,7 @@ class LauncherABC(object):
     # This method will call the AEL webservice to store launcher settings for a 
     # specific romcollection or rom in the database depending which id is specified.
     #
-    def store_launcher_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
+    def store_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
         launcher_settings = self.get_launcher_settings()
         post_data = {
             'romcollection_id': romcollection_id,

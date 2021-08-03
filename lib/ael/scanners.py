@@ -25,7 +25,7 @@ import typing
 
 # --- AEL packages ---
 from ael.utils import io, kodi, text
-from ael import report, settings, constants
+from ael import report, settings, constants, api
 
 logger = logging.getLogger(__name__)
 
@@ -142,15 +142,17 @@ class MultiDiscInfo:
 class ScannerStrategyABC(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self,
-                 scanner_settings: dict, 
-                 default_launcher_settings: dict,
+    def __init__(self, 
+                 webservice_host:str,
+                 webservice_port:int,
                  progress_dialog: kodi.ProgressDialog):
         
-        self.scanner_settings = scanner_settings if scanner_settings else {}
-        self.default_launcher_settings = default_launcher_settings
+        self.scanner_settings = {}
         self.progress_dialog = progress_dialog
         self.scanned_roms: typing.List[ROMData] = []
+        
+        self.webservice_host = webservice_host
+        self.webservice_port = webservice_port
         
         super(ScannerStrategyABC, self).__init__()
   
@@ -186,20 +188,32 @@ class ScannerStrategyABC(object):
     #
     @abc.abstractmethod
     def cleanup(self): pass
-    
+        
     #
-    # This method will call the AEL event to store scanner settings for a 
+    # This method will call the AEL webservice to retrieve previously stored scanner settings for a 
     # specific romcollection in the database.
     #
-    def store_scanner_settings(self, romcollection_id: str, scanner_id: str = None):        
+    def load_settings(self, romcollection_id: str, scanner_id: str = None):
+        if scanner_id is None: return        
+        scanner_settings = api.client_get_collection_scanner_settings(self.webservice_host, self.webservice_port, 
+                                                                      romcollection_id, scanner_id)
+        self.scanner_settings = scanner_settings
+        
+    #
+    # This method will call the AEL webservice to store scanner settings for a 
+    # specific romcollection in the database.
+    #
+    def store_settings(self, romcollection_id: str, scanner_id: str = None):        
         scanner_settings = self.get_scanner_settings()
-        params = {
+        post_data = {
             'romcollection_id': romcollection_id,
             'scanner_id': scanner_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
         }        
-        kodi.event(sender='plugin.program.AEL',command='SET_SCANNER_SETTINGS', data=params)
+        is_stored = api.client_post_scanner_settings(self.webservice_host, self.webservice_port, post_data)
+        if not is_stored:
+            kodi.notify_error('Failed to store scanner settings')
      
     def store_scanned_roms(self, romcollection_id: str, scanner_id: str): 
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
@@ -208,6 +222,9 @@ class ScannerStrategyABC(object):
             'scanner_id': scanner_id,
             'roms': roms
         }      
+        is_stored = api.client_post_launcher_settings(self.webservice_host, self.webservice_port, post_data)
+        if not is_stored:
+            kodi.notify_error('Failed to store launchers settings')
         kodi.event(sender='plugin.program.AEL',command='STORE_SCANNED_ROMS', data=params)
 
 class NullScanner(ScannerStrategyABC):
@@ -227,13 +244,12 @@ class RomScannerStrategy(ScannerStrategyABC):
 
     def __init__(self, 
                  reports_dir: io.FileName, 
-                 scanner_settings: dict, 
                  webservice_host:str,
                  webservice_port:int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
-        super(RomScannerStrategy, self).__init__(scanner_settings, webservice_host, webservice_port, progress_dialog)
+        super(RomScannerStrategy, self).__init__(webservice_host, webservice_port, progress_dialog)
 
     # --------------------------------------------------------------------------------------------
     # Scanner configuration wizard methods
