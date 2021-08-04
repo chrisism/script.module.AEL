@@ -24,8 +24,10 @@ import re
 import typing
 
 # --- AEL packages ---
+from ael import report, constants, api
 from ael.utils import io, kodi, text
-from ael import report, settings, constants, api
+
+from ael.api import ROMObj
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class ROMCandidateABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def get_ROM(self) -> ROMData: return None
+    def get_ROM(self) -> ROMObj: return None
     
     @abc.abstractmethod
     def get_sort_value(self) -> str: return None
@@ -44,34 +46,14 @@ class ROMFileCandidate(ROMCandidateABC):
         self.file = file
         super(ROMFileCandidate, self).__init__()
         
-    def get_ROM(self) -> ROMData:
-        rom = ROMData()
+    def get_ROM(self) -> ROMObj:
+        rom = ROMObj()
         rom.set_file(self.file)
         return rom
         
     def get_sort_value(self):
         return self.file.getBase()
     
-class ROMData(object):
-        
-    def __init__(self, rom_data: dict = None):
-        if rom_data is None:
-            rom_data = settings.get_default_ROM_data_model()
-        self.rom_data = rom_data
-   
-    def set_file(self, file: io.FileName):
-        self.rom_data['filename'] = file.getPath()     
-
-    def get_file(self):
-        if not 'filename' in self.rom_data: return None
-        path = self.rom_data['filename']
-        if path == '': return None
-
-        return io.FileName(path)
-    
-    def get_data_dic(self):
-        return self.rom_data
-
 class MultiDiscInfo:
     def __init__(self, ROM_FN: io.FileName):
         self.ROM_FN      = ROM_FN
@@ -143,17 +125,23 @@ class ScannerStrategyABC(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, 
+                 scanner_id: str,
+                 romcollection_id: str,
                  webservice_host:str,
                  webservice_port:int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.scanner_settings = {}
         self.progress_dialog = progress_dialog
-        self.scanned_roms: typing.List[ROMData] = []
+        self.scanned_roms: typing.List[ROMObj] = []
+        
+        self.scanner_id       = scanner_id
+        self.romcollection_id = romcollection_id
         
         self.webservice_host = webservice_host
         self.webservice_port = webservice_port
         
+        self.load_settings()
         super(ScannerStrategyABC, self).__init__()
   
     # --------------------------------------------------------------------------------------------
@@ -193,21 +181,29 @@ class ScannerStrategyABC(object):
     # This method will call the AEL webservice to retrieve previously stored scanner settings for a 
     # specific romcollection in the database.
     #
-    def load_settings(self, romcollection_id: str, scanner_id: str = None):
-        if scanner_id is None: return        
-        scanner_settings = api.client_get_collection_scanner_settings(self.webservice_host, self.webservice_port, 
-                                                                      romcollection_id, scanner_id)
-        self.scanner_settings = scanner_settings
+    def load_settings(self):
+        if self.scanner_id is None: return        
+        try:
+            scanner_settings = api.client_get_collection_scanner_settings(
+                    self.webservice_host, 
+                    self.webservice_port, 
+                    self.romcollection_id, 
+                    self.scanner_id)
+            
+            self.scanner_settings = scanner_settings
+        except Exception as ex:
+            logger.error('Failure while loading scanner settings', exc_info=ex)
+            self.scanner_settings = {}
         
     #
     # This method will call the AEL webservice to store scanner settings for a 
     # specific romcollection in the database.
     #
-    def store_settings(self, romcollection_id: str, scanner_id: str = None):        
+    def store_settings(self):        
         scanner_settings = self.get_scanner_settings()
         post_data = {
-            'romcollection_id': romcollection_id,
-            'scanner_id': scanner_id,
+            'romcollection_id': self.romcollection_id,
+            'scanner_id': self.scanner_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
         }        
@@ -215,17 +211,24 @@ class ScannerStrategyABC(object):
         if not is_stored:
             kodi.notify_error('Failed to store scanner settings')
      
-    def store_scanned_roms(self, romcollection_id: str, scanner_id: str): 
+    def store_scanned_roms(self): 
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
-        params = {
-            'romcollection_id': romcollection_id,
-            'scanner_id': scanner_id,
+        post_data = {
+            'romcollection_id': self.romcollection_id,
+            'scanner_id': self.scanner_id,
             'roms': roms
         }      
-        is_stored = api.client_post_launcher_settings(self.webservice_host, self.webservice_port, post_data)
+        is_stored = api.client_post_scanned_roms(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
-            kodi.notify_error('Failed to store launchers settings')
-        kodi.event(sender='plugin.program.AEL',command='STORE_SCANNED_ROMS', data=params)
+            kodi.notify_error('Failed to store scanned ROMs')
+
+    def get_stored_roms(self) -> typing.List[ROMObj]:
+        roms = []
+        try:
+            roms = api.client_get_roms_in_collection(self.romcollection_id)
+        except Exception as ex:
+            logger.error('Failure while retrieving currently stored ROMs', exc_info=ex)
+        return roms
 
 class NullScanner(ScannerStrategyABC):
     
@@ -244,12 +247,14 @@ class RomScannerStrategy(ScannerStrategyABC):
 
     def __init__(self, 
                  reports_dir: io.FileName, 
+                 scanner_id: str,
+                 romcollection_id: str,
                  webservice_host:str,
                  webservice_port:int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
-        super(RomScannerStrategy, self).__init__(webservice_host, webservice_port, progress_dialog)
+        super(RomScannerStrategy, self).__init__(scanner_id, romcollection_id, webservice_host, webservice_port, progress_dialog)
 
     # --------------------------------------------------------------------------------------------
     # Scanner configuration wizard methods
@@ -399,7 +404,7 @@ class RomScannerStrategy(ScannerStrategyABC):
 
     # ~~~ Now go processing item by item ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod
-    def _processFoundItems(self, candidates:typing.List[ROMCandidateABC], roms:typing.List[ROMData], launcher_report: report.Reporter) -> typing.List[ROMData]:
+    def _processFoundItems(self, candidates:typing.List[ROMCandidateABC], roms:typing.List[ROMObj], launcher_report: report.Reporter) -> typing.List[ROMObj]:
         return []
 
 class SteamScanner(RomScannerStrategy):

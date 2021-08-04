@@ -63,18 +63,28 @@ class LauncherABC(object):
     # In an abstract class launcher_data is mandatory.
     #
     def __init__(self, 
-        executorFactory: ExecutorFactoryABC, 
-        execution_settings: ExecutionSettings,
+        launcher_id: str,
+        romcollection_id: str,
+        rom_id: str,
         webservice_host:str,
-        webservice_port:int):
+        webservice_port:int,
+        executorFactory: ExecutorFactoryABC = None, 
+        execution_settings: ExecutionSettings = None):
         
-        self.executorFactory    = executorFactory
-        self.execution_settings = execution_settings
         self.launcher_settings  = {}
+        
+        self.launcher_id = launcher_id
+        self.romcollection_id = romcollection_id
+        self.rom_id = rom_id
         
         self.webservice_host = webservice_host
         self.webservice_port = webservice_port
 
+        self.executorFactory    = executorFactory
+        self.execution_settings = execution_settings
+        
+        self.load_settings()
+        
     # --------------------------------------------------------------------------------------------
     # Core methods
     # --------------------------------------------------------------------------------------------    
@@ -87,11 +97,17 @@ class LauncherABC(object):
     def get_launcher_settings(self) -> dict:
         return self.launcher_settings
 
+    def configure_executor(self, 
+        executorFactory: ExecutorFactoryABC, 
+        execution_settings: ExecutionSettings):
+        self.executorFactory    = executorFactory
+        self.execution_settings = execution_settings
+
     # --------------------------------------------------------------------------------------------
     # Launcher build wizard methods
     # --------------------------------------------------------------------------------------------
     #
-    # Builds a new Launcher.
+    # Builds a new Launcher or edits an existing one.
     # Returns True if Launcher  was sucesfully built.
     # Returns False if Launcher was not built (user canceled the dialogs or some other
     # error happened).
@@ -104,25 +120,12 @@ class LauncherABC(object):
 
         # --- Launcher build code (ask user about launcher stuff) ---
         wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_launcher_addon_id())
-        # >> Call Child class wizard builder method
-        wizard = self._builder_get_wizard(wizard)
-        # >> Run wizard
-        self.launcher_args = wizard.runWizard(self.launcher_settings)
-        if not self.launcher_settings: return False
-
-        # --- Call hook after wizard ---
-        if not self._build_post_wizard_hook(): return False
-
-        return True
-
-    def edit(self) -> bool:
-        logger.debug('LauncherABC::edit() Starting ...')
         
-        # --- Call hook before wizard ---
-        if not self._build_pre_wizard_hook(): return False
-
-        # --- Launcher edit code (ask user about launcher stuff) ---
-        wizard = self._editor_get_wizard(None)
+        # >> Call Child class wizard builder method
+        if self.launcher_id is None:
+            wizard = self._builder_get_wizard(wizard) 
+        else:
+            wizard = self._editor_get_wizard(wizard)
         
         # >> Run wizard
         self.launcher_args = wizard.runWizard(self.launcher_settings)
@@ -163,32 +166,36 @@ class LauncherABC(object):
     def _builder_user_selected_custom_browsing(self, item_key, launcher):
         return launcher[item_key] == 'BROWSE'
     
-    
     #
     # This method will call the AEL webservice to retrieve previously stored launcher settings for a 
     # specific romcollection or rom in the database depending which id is specified.
+    # If ROM id is specified, it will choose that above the collection id.
     #
-    def load_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
-        if launcher_id is None: return
-        
-        launcher_settings = None
-        if rom_id is not None:
-            launcher_settings = api.client_get_rom_launcher_settings(self.webservice_host, self.webservice_port, 
-                                                                     rom_id, launcher_id)
-        else:
-            launcher_settings = api.client_get_collection_launcher_settings(self.webservice_host, self.webservice_port, 
-                                                                            romcollection_id, launcher_id)
-        self.launcher_settings = launcher_settings
+    def load_settings(self):
+        if self.launcher_id is None: return        
+        try:
+            launcher_settings = None
+            if self.rom_id is not None:
+                launcher_settings = api.client_get_rom_launcher_settings(self.webservice_host, self.webservice_port, 
+                                                                        self.rom_id, self.launcher_id)
+            else:
+                launcher_settings = api.client_get_collection_launcher_settings(self.webservice_host, self.webservice_port, 
+                                                                                self.romcollection_id, self.launcher_id)
+            self.launcher_settings = launcher_settings
+        except Exception as ex:
+            logger.error('Failure while loading launcher settings', exc_info=ex)
+            self.launcher_settings = {}
         
     #
     # This method will call the AEL webservice to store launcher settings for a 
     # specific romcollection or rom in the database depending which id is specified.
+    # If ROM id is specified, it will choose that above the collection id.
     #
-    def store_settings(self, romcollection_id: str, rom_id: str, launcher_id: str = None):
+    def store_settings(self):
         launcher_settings = self.get_launcher_settings()
         post_data = {
-            'romcollection_id': romcollection_id,
-            'launcher_id': launcher_id,
+            'romcollection_id': self.romcollection_id,
+            'ael_addon_id': self.launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings
         }        
@@ -204,16 +211,16 @@ class LauncherABC(object):
     # Arguments are those send through the URI.
     #
     @abc.abstractmethod
-    def launch(self, rom_arguments: dict):
+    def launch(self):
         logger.debug('LauncherABC::launch() Starting ...')
 
-        name                = self.get_name()
-        application         = self.get_application()
-        execution_arguments = self.get_execution_ready_arguments(rom_arguments)
+        name        = self.get_name()
+        application = self.get_application()
+        arguments   = self.get_arguments()
 
         logger.debug('Name        = "{}"'.format(name))
         logger.debug('Application = "{}"'.format(application))
-        logger.debug('Arguments   = "{}"'.format(execution_arguments))
+        logger.debug('Arguments   = "{}"'.format(arguments))
 
         # --- Create executor object ---
         if self.executorFactory is None:
@@ -234,7 +241,7 @@ class LauncherABC(object):
 
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
-        executor.execute(application, execution_arguments, self.execution_settings.is_non_blocking)
+        executor.execute(application, arguments, self.execution_settings.is_non_blocking)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
     @abc.abstractmethod
@@ -242,10 +249,10 @@ class LauncherABC(object):
         return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
     
     @abc.abstractmethod
-    def get_execution_ready_arguments(self, rom_arguments: dict) -> str:
+    def get_arguments(self) -> str:
         arguments     = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
         application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
-    
+        
         logger.info('launch(): Launcher          "{}"'.format(self.get_name()))
         logger.info('launch(): raw arguments     "{}"'.format(arguments))
 
@@ -262,9 +269,9 @@ class LauncherABC(object):
             arguments = arguments.replace('$appbase$', app.getBase())
             
         # ROM based arguments replacements
-        rom_file_str = rom_arguments['file'] if 'file' in rom_arguments else None
-        if rom_file_str:
-            rom_file = io.FileName(rom_file_str)
+        rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
+        rom_file = rom.get_file()
+        if rom_file:
             # --- Escape quotes and double quotes in ROMFileName ---
             # >> This maybe useful to Android users with complex command line arguments
             if settings.getSettingAsBool('escape_romfile'):
@@ -291,11 +298,12 @@ class LauncherABC(object):
             arguments = arguments.replace('%ROM%', rom_file.getPath())
 
         # Default arguments replacements
-        arguments = arguments.replace('$romID$', rom_arguments['id'] if 'id' in rom_arguments else '')
-        arguments = arguments.replace('$romtitle$', rom_arguments['name'] if 'name' in rom_arguments else '')
+        arguments = arguments.replace('$romID$', rom.get_id())
+        arguments = arguments.replace('$romtitle$', rom.get_name())
 
         # automatic substitution of rom values
-        for rom_key, rom_value in rom_arguments.items():
+        rom_data = rom.get_data_dic()
+        for rom_key, rom_value in rom_data.items():
             if isinstance(rom_value, str):
                 arguments = arguments.replace('${}$'.format(rom_key), rom_value)
                 

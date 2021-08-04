@@ -252,6 +252,7 @@ def post_JSON_URL(url, data_obj: any):
         response = urlopen(req, timeout = 120)
         page_bytes = response.read()
         encoding = response.headers['content-type'].split('charset=')[-1]
+        http_code = response.getcode()
         response.close()
     except HTTPError as ex:
         http_code = ex.code
@@ -276,9 +277,11 @@ def post_JSON_URL(url, data_obj: any):
 
     num_bytes = len(page_bytes)
     logger.debug('post_JSON_URL() Read {0} bytes'.format(num_bytes))
+    
+    if num_bytes == 0: return '', http_code
+    
     # --- Convert page data to Unicode ---
     page_data = decode_URL_data(page_bytes, encoding)
-
     return page_data, http_code
 
 def get_URL_as_json(url, url_log = None):
