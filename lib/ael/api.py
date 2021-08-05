@@ -45,6 +45,11 @@ def client_get_roms_in_collection(host: str, port:int, rom_collection_id:str) ->
         roms.append(ROMObj(rom_entry))
     return roms
 
+def client_get_collection_launchers(host:str, port:int, rom_collection_id:str) -> dict:
+    uri = 'http://{}:{}/query/romcollection/launchers/?id={}'.format(host, port, rom_collection_id)
+    launchers = net.get_URL_as_json(uri)
+    return launchers
+
 def client_get_rom_launcher_settings(host: str, port:int, rom_id: str, launcher_id:str) -> dict:
     uri = 'http://{}:{}/query/rom/launcher/settings/?id={}&launcher_id={}'.format(host, port, rom_id, launcher_id)
     launcher_settings = net.get_URL_as_json(uri)    
