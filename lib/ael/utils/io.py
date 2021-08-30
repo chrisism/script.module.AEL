@@ -32,6 +32,7 @@
 # --- Python standard library ---
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import annotations
 
 import logging
 import errno
@@ -237,12 +238,12 @@ class FileName:
 
         return root
 
-    def getDir(self):
+    def getDir(self) -> str:
         path_dir = os.path.dirname(self.path_str)
         return os.path.join(path_dir, '')
 
     # Returns a new FileName object.
-    def getDirAsFileName(self):
+    def getDirAsFileName(self) -> FileName:
         return FileName(self.getDir())
 
     def getBase(self) -> str:

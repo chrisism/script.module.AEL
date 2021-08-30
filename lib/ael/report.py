@@ -71,6 +71,9 @@ class FileReporter(Reporter):
 
     def open(self):
         logger.info('Report file path "{0}"'.format(self.report_file.getPath()))
+        report_folder = self.report_file.getDirAsFileName()
+        
+        report_folder.makedirs()
         self.report_file.open('w')
         
         self.write('******************** Report: {} ...  ********************'.format(self.scanner_name))

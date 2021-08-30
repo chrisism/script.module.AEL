@@ -24,7 +24,7 @@ import re
 import typing
 
 # --- AEL packages ---
-from ael import report, constants, api
+from ael import report, api
 from ael.utils import io, kodi, text
 
 from ael.api import ROMObj
@@ -142,6 +142,9 @@ class ScannerStrategyABC(object):
         self.webservice_port = webservice_port
         
         self.load_settings()
+
+        self.scanned_roms = []
+        self.removed_roms = []
         super(ScannerStrategyABC, self).__init__()
   
     # --------------------------------------------------------------------------------------------
@@ -203,7 +206,7 @@ class ScannerStrategyABC(object):
         scanner_settings = self.get_scanner_settings()
         post_data = {
             'romcollection_id': self.romcollection_id,
-            'scanner_id': self.scanner_id,
+            'ael_addon_id': self.scanner_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
         }        
@@ -215,7 +218,7 @@ class ScannerStrategyABC(object):
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
         post_data = {
             'romcollection_id': self.romcollection_id,
-            'scanner_id': self.scanner_id,
+            'ael_addon_id': self.scanner_id,
             'roms': roms
         }      
         is_stored = api.client_post_scanned_roms(self.webservice_host, self.webservice_port, post_data)
@@ -290,16 +293,22 @@ class RomScannerStrategy(ScannerStrategyABC):
         launcher_report = report.FileReporter(self.reports_dir, self.get_name(), report.LogReporter())
         launcher_report.open()
         
-        # >> Check if there is an XML for this launcher. If so, load it.
-        # >> If file does not exist or is empty then return an empty dictionary.
+        # >> Check if we already have existing ROMs
         launcher_report.write('Loading existing ROMs ...')
-        roms = None #self.launcher.get_roms()
-
-        if roms is None:
+        roms = []
+        try:
+            roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
+        except Exception as ex:
+            logger.error('Failure retrieving existing ROMs', exc_info=ex)
             roms = []
         
+        roms_by_scanner = [rom for rom in roms if rom.get_scanned_by() == self.scanner_id]
+
         num_roms = len(roms)
+        num_roms_by_scanner = len(roms_by_scanner)
+
         launcher_report.write('{} ROMs currently in database'.format(num_roms))
+        launcher_report.write('{} ROMs previously scanned by this scanner'.format(num_roms_by_scanner))
         
         launcher_report.write('Collecting candidates ...')
         candidates = self._getCandidates(launcher_report)
@@ -307,7 +316,7 @@ class RomScannerStrategy(ScannerStrategyABC):
         launcher_report.write('{} candidates found'.format(num_candidates))
         
         launcher_report.write('Removing dead ROMs ...')
-        num_removed_roms = self._removeDeadRoms(candidates, roms)        
+        num_removed_roms = self._removeDeadRoms(candidates, roms_by_scanner)        
 
         if num_removed_roms > 0:
             kodi.notify('{0} dead ROMs removed successfully'.format(num_removed_roms))
