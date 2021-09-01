@@ -125,6 +125,10 @@ class MetaDataObj(object):
     def get_plot(self):
         return self.entity_data['m_plot'] if 'm_plot' in self.entity_data else ''
     
+    def has_asset(self, asset_id:str) -> bool:
+        if 'assets' in self.entity_data: return False
+        return asset_id in self.entity_data['assets']
+
     def get_data_dic(self):
         return self.entity_data
     
@@ -154,7 +158,10 @@ class MetaDataObj(object):
         
     def set_esrb_rating(self, esrb):
         self.entity_data['m_esrb'] = esrb
-        
+
+    def set_asset(self, asset_id:str, asset_path:str):
+        self.entity_data['assets'][asset_id] = asset_path
+    
 class ROMObj(MetaDataObj):
 
     def get_scanned_by(self) -> str:

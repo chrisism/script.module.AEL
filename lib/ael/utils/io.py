@@ -618,7 +618,46 @@ def is_android():
 
 def is_linux():
     return is_linux_bool
+# -------------------------------------------------------------------------------------------------
+# File cache
+# -------------------------------------------------------------------------------------------------
+file_cache = {}
+def misc_add_file_cache(dir_FN:FileName):
+    global file_cache
+    # >> Create a set with all the files in the directory
+    if not dir_FN:
+        logger.debug('misc_add_file_cache() Empty dir_str. Exiting')
+        return
 
+    logger.debug('misc_add_file_cache() Scanning path "{0}"'.format(dir_FN.getPath()))
+
+    file_list = dir_FN.scanFilesInPath()
+    # lower all filenames for easier matching
+    file_set = [file.getBase().lower() for file in file_list]
+
+    logger.debug('misc_add_file_cache() Adding {0} files to cache'.format(len(file_set)))
+    file_cache[dir_FN.getPath()] = file_set
+
+#
+# See misc_look_for_file() documentation below.
+#
+def misc_search_file_cache(dir_path:FileName, filename_noext:str, file_exts):
+    # log_debug('misc_search_file_cache() Searching in  "{0}"'.format(dir_str))
+    dir_str = dir_path.getPath()
+    if dir_str not in file_cache:
+        logger.warning('Directory {0} not in file_cache'.format(dir_str))
+        return None
+
+    current_cache_set = file_cache[dir_str]
+    for ext in file_exts:
+        file_base = filename_noext + '.' + ext
+        file_base_as_cached = file_base.lower()
+        #log_debug('misc_search_file_cache() file_Base = "{0}"'.format(file_base))
+        if file_base_as_cached in current_cache_set:
+            # log_debug('misc_search_file_cache() Found in cache')
+            return dir_path.pjoin(file_base)
+
+    return None
 
 # -------------------------------------------------------------------------------------------------
 # Misc stuff

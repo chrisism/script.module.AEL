@@ -420,8 +420,8 @@ class ScrapeStrategy(object):
 
     # Called by the ROM scanner. Fills in the ROM assets.
     #
-    # @param ROM: [ROM] ROM data object. Mutable and edited by assignment.
-    def _process_ROM_assets(self, ROM:ROMObj):
+    # @param rom: [ROM] ROM data object. Mutable and edited by assignment.
+    def _process_ROM_assets(self, rom:ROMObj):
         logger.debug('ScrapeStrategy.scanner_process_ROM_assets() Processing asset actions...')
         
         if all(asset_action == ScrapeStrategy.ACTION_ASSET_NONE for asset_action in self.asset_action_list.values()):
@@ -429,30 +429,31 @@ class ScrapeStrategy(object):
         
         # --- Process asset by asset actions ---
         # --- Asset scraping ---
-        for AInfo_ID in self.scraper_settings.asset_IDs_to_scrape:
-            if self.asset_action_list[AInfo.id] == ScrapeStrategy.ACTION_ASSET_NONE:
-                logger.debug('Skipping asset scraping for {}'.format(AInfo.name))
+        for asset_id in self.scraper_settings.asset_IDs_to_scrape:
+            asset_name = asset_id.capitalize() 
+            if self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_NONE:
+                logger.debug('Skipping asset scraping for {}'.format(asset_name))
                 continue    
-            elif not self.scraper_settings.overwrite_existing and ROM.has_asset(AInfo):
-                logger.debug('Asset {} already exists. Skipping (no overwrite)'.format(AInfo.name))
+            elif not self.scraper_settings.overwrite_existing and rom.has_asset(asset_id):
+                logger.debug('Asset {} already exists. Skipping (no overwrite)'.format(asset_name))
                 continue
-            elif self.asset_action_list[AInfo.id] == ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET:
-                logger.debug('Using local asset for {}'.format(AInfo.name))
-                ROM.set_asset(AInfo, self.local_asset_list[AInfo.id])
-            elif self.asset_action_list[AInfo.id] == ScrapeStrategy.ACTION_ASSET_SCRAPER:
-                asset_path = self._scrap_ROM_asset(AInfo, self.local_asset_list[AInfo.id], ROM)
+            elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET:
+                logger.debug('Using local asset for {}'.format(asset_name))
+                rom.set_asset(asset_id, self.local_asset_list[asset_id])
+            elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_SCRAPER:
+                asset_path = self._scrap_ROM_asset(asset_id, self.local_asset_list[asset_id], rom)
                 if asset_path is None:
-                    logger.debug('No asset scraped. Skipping {}'.format(AInfo.name))
+                    logger.debug('No asset scraped. Skipping {}'.format(asset_name))
                     continue      
-                if AInfo.id == constants.ASSET_TRAILER_ID:
-                    ROM.set_trailer(asset_path)
+                if asset_id == constants.ASSET_TRAILER_ID:
+                    rom.set_trailer(asset_path)
                 else:                       
-                    ROM.set_asset(AInfo, asset_path)
+                    rom.set_asset(asset_id, asset_path.getPath())
             else:
-                raise ValueError('Asset {} index {} ID {} unknown action {}'.format(
-                    AInfo.name, i, AInfo.id, self.asset_action_list[AInfo.id]))
+                raise ValueError('Asset ID {} unknown action {}'.format(
+                    asset_id, self.asset_action_list[asset_id]))
 
-        romdata = ROM.get_data_dic()
+        romdata = rom.get_data_dic()
         # --- Print some debug info ---
         logger.debug('Set Title     file "{}"'.format(romdata['s_title']))
         logger.debug('Set Snap      file "{}"'.format(romdata['s_snap']))
@@ -467,10 +468,10 @@ class ScrapeStrategy(object):
         logger.debug('Set Manual    file "{}"'.format(romdata['s_manual']))
         logger.debug('Set Trailer   file "{}"'.format(romdata['s_trailer']))
 
-        return ROM
+        return rom
 
     # Determine the actions to be carried out by process_ROM_metadata()
-    def _process_ROM_metadata_begin(self, ROM: ROMObj):
+    def _process_ROM_metadata_begin(self, rom: ROMObj):
         logger.debug('ScrapeStrategy._process_ROM_metadata_begin() Determining metadata actions...')
   
         if self.meta_scraper_obj is None:
@@ -480,7 +481,7 @@ class ScrapeStrategy(object):
         
         # --- Determine metadata action ----------------------------------------------------------
         # --- Test if NFO file exists ---        
-        ROM_path = ROM.get_file()
+        ROM_path = rom.get_file()
         self.NFO_file = io.FileName(ROM_path.getPathNoExt() + '.nfo')
         NFO_file_found = True if self.NFO_file.exists() else False
         if NFO_file_found:
@@ -521,19 +522,19 @@ class ScrapeStrategy(object):
             raise ValueError('Invalid scrape_metadata_policy value {0}'.format(self.scraper_settings.scrape_metadata_policy))
   
     # Determine the actions to be carried out by scanner_process_ROM_assets()
-    def _process_ROM_assets_begin(self, ROM: ROMObj):
+    def _process_ROM_assets_begin(self, rom: ROMObj):
         logger.debug('ScrapeStrategy._scanner_process_ROM_assets_begin() Determining asset actions...')
         
         if self.asset_scraper_obj is None:
             logger.debug('ScrapeStrategy::_scanner_process_ROM_assets_begin() No asset scraper set, disabling asset scraping.')
-            self.asset_action_list = { key.id:ScrapeStrategy.ACTION_ASSET_NONE for (key, value) in self.enabled_asset_list }
+            self.asset_action_list = { asset_id:ScrapeStrategy.ACTION_ASSET_NONE for asset_id in self.scraper_settings.asset_IDs_to_scrape }
             return
         
         # --- Determine Asset action -------------------------------------------------------------
         # --- Search for local artwork/assets ---
         # Always look for local assets whatever the scanner settings. For unconfigured assets
         # local_asset_list will have the default database value empty string ''.
-        self.local_asset_list = self.launcher.get_local_assets(ROM, self.enabled_asset_list) 
+        self.local_asset_list = self._get_local_assets(rom, self.scraper_settings.asset_IDs_to_scrape) 
         self.asset_action_list = {}
         
         # Print information to the log
@@ -546,7 +547,7 @@ class ScrapeStrategy(object):
         else:
             raise ValueError('Invalid scrape_assets_policy value {0}'.format(self.scraper_settings.scrape_assets_policy))
         # Process asset by asset (only enabled ones)
-        for AInfo in self.enabled_asset_list:
+        for AInfo in self.scraper_settings.asset_IDs_to_scrape:
             # Local artwork.
             if self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
                 if self.local_asset_list[AInfo.id]:
@@ -907,6 +908,31 @@ class ScrapeStrategy(object):
 
         return True
         
+ #
+    # Search for local assets and place found files into a list.
+    # Returned list all has assets as defined in ROM_ASSET_LIST.
+    # This function is used in the Scraper.
+    #
+    # ROM         -> Rom object
+    # asset_infos -> list of assets to request
+    #
+    def _get_local_assets(self, rom:ROMObj, asset_info_ids:list):
+        logger.debug('get_local_assets() Searching for ROM local assets...')
+        ROMFile = rom.get_file()
+        rom_basename_noext = ROMFile.getBaseNoExt()
+        local_assets = {}
+        for asset_info_id in asset_info_ids:
+            local_asset = io.misc_search_file_cache(rom.get_asset_path(asset_info_id), rom_basename_noext, asset_info.exts)
+            if local_asset:
+                local_assets[asset_info_id] = local_asset
+                logger.debug('get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
+            else:
+                local_assets[asset_info_id] = None
+                logger.debug('get_local_assets() Missing  {0:<9}'.format(asset_info_id))
+
+        return local_assets
+
+
     def store_scraped_rom(self, rom_id: str, rom_data: dict):
         params = {
             'rom_id': rom_id,
