@@ -128,6 +128,33 @@ class MetaDataObj(object):
     def get_data_dic(self):
         return self.entity_data
     
+    def set_name(self, name):
+        self.entity_data['m_name'] = name
+
+    def set_releaseyear(self, releaseyear):
+        self.entity_data['m_year'] = releaseyear
+
+    def set_genre(self, genre):
+        self.entity_data['m_genre'] = genre
+
+    def set_developer(self, developer):
+        self.entity_data['m_developer'] = developer
+
+    def set_rating(self, rating):
+        try:
+            self.entity_data['m_rating'] = int(rating)
+        except:
+            self.entity_data['m_rating'] = ''
+
+    def set_plot(self, plot):
+        self.entity_data['m_plot'] = plot
+    
+    def set_number_of_players(self, amount):
+        self.entity_data['m_nplayers'] = amount
+        
+    def set_esrb_rating(self, esrb):
+        self.entity_data['m_esrb'] = esrb
+        
 class ROMObj(MetaDataObj):
 
     def get_scanned_by(self) -> str:
@@ -142,3 +169,17 @@ class ROMObj(MetaDataObj):
         if path == '': return None
 
         return io.FileName(path)
+
+    def set_platform(self, platform): 
+        self.entity_data['platform'] = platform   
+
+    def get_platform(self): 
+        return self.entity_data['platform']
+    
+    def get_asset_path(self, assetinfo_id: str) -> io.FileName:
+        asset_paths = self.entity_data['asset_paths'] if 'asset_paths' in self.entity_data else {}
+        return asset_paths[assetinfo_id] if assetinfo_id in asset_paths else None
+     
+class AssetInfoObj(object):
+    id              = ''
+    name            = ''

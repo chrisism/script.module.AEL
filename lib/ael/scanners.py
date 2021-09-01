@@ -239,14 +239,6 @@ class ScannerStrategyABC(object):
         if not is_removed:
             kodi.notify_error('Failed to remove dead ROMs')        
 
-    def get_stored_roms(self) -> typing.List[ROMObj]:
-        roms = []
-        try:
-            roms = api.client_get_roms_in_collection(self.romcollection_id)
-        except Exception as ex:
-            logger.error('Failure while retrieving currently stored ROMs', exc_info=ex)
-        return roms
-
 class NullScanner(ScannerStrategyABC):
     
     def get_name(self) -> str: return 'NULL'
