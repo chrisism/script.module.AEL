@@ -133,7 +133,9 @@ class ScannerStrategyABC(object):
         
         self.scanner_settings = {}
         self.progress_dialog = progress_dialog
+        
         self.scanned_roms: typing.List[ROMObj] = []
+        self.marked_dead_roms: typing.List[ROMObj] = []
         
         self.scanner_id       = scanner_id
         self.romcollection_id = romcollection_id
@@ -143,8 +145,6 @@ class ScannerStrategyABC(object):
         
         self.load_settings()
 
-        self.scanned_roms = []
-        self.removed_roms = []
         super(ScannerStrategyABC, self).__init__()
   
     # --------------------------------------------------------------------------------------------
@@ -160,6 +160,9 @@ class ScannerStrategyABC(object):
     
     def amount_of_scanned_roms(self) -> int:
         return len(self.scanned_roms)
+  
+    def amount_of_dead_roms(self) -> int:
+        return len(self.marked_dead_roms)
 
     #
     # Configure this scanner.
@@ -224,6 +227,17 @@ class ScannerStrategyABC(object):
         is_stored = api.client_post_scanned_roms(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
             kodi.notify_error('Failed to store scanned ROMs')
+
+    def remove_dead_roms(self):
+        dead_rom_ids = [*(r.get_id() for r in self.marked_dead_roms)]
+        post_data = {
+            'romcollection_id': self.romcollection_id,
+            'ael_addon_id': self.scanner_id,
+            'rom_ids': dead_rom_ids
+        }      
+        is_removed = api.client_post_dead_roms(self.webservice_host, self.webservice_port, post_data)
+        if not is_removed:
+            kodi.notify_error('Failed to remove dead ROMs')        
 
     def get_stored_roms(self) -> typing.List[ROMObj]:
         roms = []
@@ -295,7 +309,6 @@ class RomScannerStrategy(ScannerStrategyABC):
         
         # >> Check if we already have existing ROMs
         launcher_report.write('Loading existing ROMs ...')
-        roms = []
         try:
             roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
         except Exception as ex:
@@ -315,21 +328,24 @@ class RomScannerStrategy(ScannerStrategyABC):
         num_candidates = len(candidates) if candidates else 0
         launcher_report.write('{} candidates found'.format(num_candidates))
         
-        launcher_report.write('Removing dead ROMs ...')
-        num_removed_roms = self._removeDeadRoms(candidates, roms_by_scanner)        
+        launcher_report.write('Checking for dead ROMs ...') 
+        dead_roms = self._getDeadRoms(candidates, roms_by_scanner)
+        num_dead_roms = len(dead_roms) 
 
-        if num_removed_roms > 0:
-            kodi.notify('{0} dead ROMs removed successfully'.format(num_removed_roms))
-            logger.info('{0} dead ROMs removed successfully'.format(num_removed_roms))
+        if num_dead_roms > 0:
+            kodi.notify('{0} dead ROMs found'.format(num_dead_roms))
+            logger.info('{0} dead ROMs found'.format(num_dead_roms))
         else:
             logger.info('No dead ROMs found')
+        
+        self.marked_dead_roms = dead_roms
         
         # --- Prepare list of candidates to be processed ----------------------------------------------
         # List has candidates. List already sorted alphabetically.
         candidates = sorted(candidates, key=lambda c: c.get_sort_value())
-        new_roms = self._processFoundItems(candidates, roms, launcher_report)
+        new_roms = self._processFoundItems(candidates, roms_by_scanner, launcher_report)
         
-        if not new_roms:
+        if not new_roms and not dead_roms:
             return
 
         num_new_roms = len(new_roms)
@@ -337,9 +353,9 @@ class RomScannerStrategy(ScannerStrategyABC):
         self.scanned_roms = new_roms
 
         launcher_report.write('******************** ROM scanner finished. Report ********************')
-        launcher_report.write('Removed dead ROMs   {0:6d}'.format(num_removed_roms))
         launcher_report.write('Files checked       {0:6d}'.format(num_candidates))
-        launcher_report.write('New added ROMs      {0:6d}'.format(num_new_roms))
+        launcher_report.write('Dead ROMs           {0:6d}'.format(num_dead_roms))
+        launcher_report.write('New ROMs            {0:6d}'.format(num_new_roms))
         
         if len(roms) == 0:
             launcher_report.write('WARNING ROMs has no ROMs!')
@@ -357,33 +373,48 @@ class RomScannerStrategy(ScannerStrategyABC):
         launcher_report.close()
 
     def cleanup(self):
-        launcher_report = report.LogReporter(self.launcher.get_data_dic())
-        launcher_report.open('RomScanner() Starting Dead ROM cleaning')
-        logger.debug('RomScanner() Starting Dead ROM cleaning')
-
-        roms = self.launcher.get_roms()
+        launcher_report = report.FileReporter(self.reports_dir, self.get_name(), report.LogReporter())
+        launcher_report.open()
+        launcher_report.write('Dead ROM Cleaning operation')
+        
+        try:
+            roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
+        except Exception as ex:
+            logger.error('Failure retrieving existing ROMs', exc_info=ex)
+            roms = []
+        
         if roms is None:
             launcher_report.close()
-            logger.info('RomScanner() No roms available to cleanup')
+            logger.info('No roms available to cleanup')
+            return {}
+        
+        roms_by_scanner = [rom for rom in roms if rom.get_scanned_by() == self.scanner_id]
+        if roms_by_scanner is None:
+            launcher_report.close()
+            logger.info('No roms for this scanner available to cleanup')
             return {}
         
         num_roms = len(roms)
+        num_roms_by_scanner = len(roms_by_scanner)
         launcher_report.write('{0} ROMs currently in database'.format(num_roms))
+        launcher_report.write('{0} ROMs currently in database associated with this scanner'.format(num_roms_by_scanner))
         
         launcher_report.write('Collecting candidates ...')
         candidates = self._getCandidates(launcher_report)
         num_candidates = len(candidates)
         logger.info('{0} candidates found'.format(num_candidates))
 
-        launcher_report.write('Removing dead ROMs ...')
-        num_removed_roms = self._removeDeadRoms(candidates, roms)        
+        launcher_report.write('Checking for dead ROMs ...')
+        dead_roms = self._getDeadRoms(candidates, roms_by_scanner)
+        num_dead_roms = len(dead_roms)
 
-        if num_removed_roms > 0:
-            kodi.notify('{0} dead ROMs removed successfully'.format(num_removed_roms))
-            logger.info('{0} dead ROMs removed successfully'.format(num_removed_roms))
+        if num_dead_roms > 0:
+            kodi.notify('{0} dead ROMs found'.format(num_dead_roms))
+            logger.info('{0} dead ROMs found'.format(num_dead_roms))
         else:
             logger.info('No dead ROMs found')
 
+        self.marked_dead_roms = dead_roms
         launcher_report.close()
         return roms
     
@@ -406,10 +437,10 @@ class RomScannerStrategy(ScannerStrategyABC):
     def _getCandidates(self, launcher_report: report.Reporter) -> typing.List[ROMCandidateABC]:
         return []
 
-    # --- Remove dead entries -----------------------------------------------------------------
+    # --- Get dead entries -----------------------------------------------------------------
     @abc.abstractmethod
-    def _removeDeadRoms(self, candidates:typing.List[ROMCandidateABC], roms):
-        return 0
+    def _getDeadRoms(self, candidates:typing.List[ROMCandidateABC], roms: typing.List[ROMObj]) -> typing.List[ROMObj]:
+        return []
 
     # ~~~ Now go processing item by item ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod

@@ -64,7 +64,8 @@ class LogReporter(Reporter):
 class FileReporter(Reporter):
     def __init__(self, reports_dir:io.FileName, scanner_name:str, decoratorReporter = None):
         now = datetime.now()
-        self.report_file = reports_dir.pjoin('{}_{}_report.txt'.format(scanner_name, now.strftime("%Y%m%d%H%M%S")))
+        scanner_file_name = scanner_name.replace(' ', '_')
+        self.report_file = reports_dir.pjoin('{}_{}_report.txt'.format(scanner_file_name, now.strftime("%Y%m%d%H%M%S")))
         self.scanner_name = scanner_name
         
         super(FileReporter, self).__init__(decoratorReporter)

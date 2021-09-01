@@ -581,7 +581,7 @@ class WizardDialog_YesNo(WizardDialog):
 
     def show(self, properties):
         logger.debug('WizardDialog_YesNo::show() key = {}'.format(self.property_key))
-        output = xbmcgui.Dialog().yesno(self.title, self.message, self.yes_label, self.no_label)
+        output = xbmcgui.Dialog().yesno(self.title, self.message, self.no_label, self.yes_label)
         return output
 #
 # Wizard dialog which shows you a message formatted with a value from the dictionary.

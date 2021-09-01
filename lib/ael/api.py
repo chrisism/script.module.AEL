@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import abc
 import logging
+import typing
 
 # AEL modules
 from ael.utils import net, io
@@ -37,7 +38,7 @@ def client_get_rom(host: str, port:int, rom_id:str) -> ROMObj:
     rom_data = net.get_URL_as_json(uri)    
     return ROMObj(rom_data)
 
-def client_get_roms_in_collection(host: str, port:int, rom_collection_id:str) -> ROMObj:
+def client_get_roms_in_collection(host: str, port:int, rom_collection_id:str) -> typing.List[ROMObj]:
     uri = 'http://{}:{}/query/romcollection/roms/?id={}'.format(host, port, rom_collection_id)
     rom_data = net.get_URL_as_json(uri)
     roms = []
@@ -77,6 +78,11 @@ def client_post_scanner_settings(host: str, port:int, data: dict) -> bool:
 
 def client_post_scanned_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/'.format(host, port)
+    response_data, code = net.post_JSON_URL(uri, data)
+    return code == 200
+
+def client_post_dead_roms(host: str, port:int, data: dict) -> bool:
+    uri = 'http://{}:{}/remove/roms/'.format(host, port)
     response_data, code = net.post_JSON_URL(uri, data)
     return code == 200
 
