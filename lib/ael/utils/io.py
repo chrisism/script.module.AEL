@@ -618,6 +618,7 @@ def is_android():
 
 def is_linux():
     return is_linux_bool
+
 # -------------------------------------------------------------------------------------------------
 # File cache
 # -------------------------------------------------------------------------------------------------
@@ -642,7 +643,7 @@ def misc_add_file_cache(dir_FN:FileName):
 # See misc_look_for_file() documentation below.
 #
 def misc_search_file_cache(dir_path:FileName, filename_noext:str, file_exts):
-    # log_debug('misc_search_file_cache() Searching in  "{0}"'.format(dir_str))
+    # logger.debug('misc_search_file_cache() Searching in  "{0}"'.format(dir_str))
     dir_str = dir_path.getPath()
     if dir_str not in file_cache:
         logger.warning('Directory {0} not in file_cache'.format(dir_str))
@@ -652,9 +653,9 @@ def misc_search_file_cache(dir_path:FileName, filename_noext:str, file_exts):
     for ext in file_exts:
         file_base = filename_noext + '.' + ext
         file_base_as_cached = file_base.lower()
-        #log_debug('misc_search_file_cache() file_Base = "{0}"'.format(file_base))
+        #logger.debug('misc_search_file_cache() file_Base = "{0}"'.format(file_base))
         if file_base_as_cached in current_cache_set:
-            # log_debug('misc_search_file_cache() Found in cache')
+            # logger.debug('misc_search_file_cache() Found in cache')
             return dir_path.pjoin(file_base)
 
     return None
@@ -680,6 +681,18 @@ def misc_look_for_file(rootPath, filename_noext, file_exts):
             return file_path
 
     return None
+
+#
+# Get extensions to search for files
+# Input : ['png', 'jpg']
+# Output: ['png', 'jpg', 'PNG', 'JPG']
+#
+def get_filesearch_extension_list(exts):
+    ext_list = list(exts)
+    for ext in exts:
+        ext_list.append(ext.upper())
+
+    return ext_list
 
 def parse_to_json_arg(obj) -> str:
     arg = '"{}"'.format(json.dumps(obj))

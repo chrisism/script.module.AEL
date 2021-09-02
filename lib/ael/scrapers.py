@@ -41,7 +41,7 @@ from ael.utils import kodi, io, net, text
 from ael import constants, platforms
 from ael import api
 
-from ael.api import ROMObj, AssetInfoObj
+from ael.api import ROMObj
 
 logger = logging.getLogger(__name__)
 
@@ -145,27 +145,14 @@ class ScraperSettings(object):
     
     def get_data_dic(self) -> dict:
         return self.__dict__
-        # return {
-        #     'scrape_metadata_policy': self.scrape_metadata_policy,
-        #     'scrape_assets_policy':   self.scrape_assets_policy,
-        #     'search_term_mode':       self.search_term_mode,
-        #     'game_selection_mode':    self.game_selection_mode,
-        #     'asset_selection_mode':   self.asset_selection_mode,
-        #     'asset_IDs_to_scrape':    self.asset_IDs_to_scrape,
-        #     'overwrite_existing':     self.overwrite_existing,
-        #     'ignore_scrap_title':     self.ignore_scrap_title,
-        #     'clean_tags':             self.clean_tags,
-        #     'update_nfo_files':       self.update_nfo_files,
-        #     'show_info_verbose':      self.show_info_verbose
-        # }
             
     @staticmethod
     def from_settings_dict(settings:dict):
         
         scraper_settings = ScraperSettings()   
             
-        scraper_settings.scrape_metadata_policy = settings['scan_metadata_policy']
-        scraper_settings.scrape_assets_policy   = settings['scan_asset_policy']
+        scraper_settings.scrape_metadata_policy = settings['scrape_metadata_policy']
+        scraper_settings.scrape_assets_policy   = settings['scrape_assets_policy']
         scraper_settings.search_term_mode       = settings['search_term_mode']
         scraper_settings.game_selection_mode    = settings['game_selection_mode']
         scraper_settings.asset_selection_mode   = settings['asset_selection_mode']
@@ -299,7 +286,7 @@ class ScrapeStrategy(object):
         self.pdialog = progress_dialog
         self.pdialog_verbose = scraper_settings.show_info_verbose
  
-    def process_collection(self, romcollection_id) -> bool:       
+    def process_collection(self, romcollection_id) -> typing.List[ROMObj]:       
         try:
             roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, romcollection_id)
         except Exception as ex:
@@ -336,15 +323,18 @@ class ScrapeStrategy(object):
         self.pdialog.endProgress()
         return roms
     
-    def process_single_rom(self, rom_id: str):
+    def process_single_rom(self, rom_id: str) -> ROMObj:
         logger.debug('ScrapeStrategy.process_single_rom() Load and scrape a single ROM...')
         try:
-            rom = api.client_get_rom(self.webservice_host, self.webservice_port)
+            rom = api.client_get_rom(self.webservice_host, self.webservice_port, rom_id)
         except Exception as ex:
             logger.error('Failure while retrieving ROMs from collection', exc_info=ex)
             return
         
+        msg = 'Scraping {0}...'.format(rom.get_file().getBaseNoExt())
+        self.pdialog.startProgress(msg)
         self._process_ROM(rom, rom.get_file())
+        return rom
     
     def _process_ROM(self, rom: ROMObj, ROM_checksums: io.FileName):
         logger.debug('ScrapeStrategy._process_ROM() Determining metadata and asset actions...')
@@ -444,9 +434,9 @@ class ScrapeStrategy(object):
                 asset_path = self._scrap_ROM_asset(asset_id, self.local_asset_list[asset_id], rom)
                 if asset_path is None:
                     logger.debug('No asset scraped. Skipping {}'.format(asset_name))
-                    continue      
+                    continue   
                 if asset_id == constants.ASSET_TRAILER_ID:
-                    rom.set_trailer(asset_path)
+                    rom.set_asset(asset_id, asset_path)
                 else:                       
                     rom.set_asset(asset_id, asset_path.getPath())
             else:
@@ -547,42 +537,42 @@ class ScrapeStrategy(object):
         else:
             raise ValueError('Invalid scrape_assets_policy value {0}'.format(self.scraper_settings.scrape_assets_policy))
         # Process asset by asset (only enabled ones)
-        for AInfo in self.scraper_settings.asset_IDs_to_scrape:
+        for asset_info_id in self.scraper_settings.asset_IDs_to_scrape:
             # Local artwork.
             if self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
-                if self.local_asset_list[AInfo.id]:
-                    logger.debug('Local {0} FOUND'.format(AInfo.name))
+                if self.local_asset_list[asset_info_id]:
+                    logger.debug('Local {0} FOUND'.format(asset_info_id))
                 else:
-                    logger.debug('Local {0} NOT found.'.format(AInfo.name))
-                self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
+                    logger.debug('Local {0} NOT found.'.format(asset_info_id))
+                self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
             # Local artwork + Scrapers.
             elif self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE:
-                if self.local_asset_list[AInfo.id]:
-                    logger.debug('Local {0} FOUND'.format(AInfo.name))
-                    self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
-                elif self.asset_scraper_obj.supports_asset_ID(AInfo.id):
+                if self.local_asset_list[asset_info_id]:
+                    logger.debug('Local {0} FOUND'.format(asset_info_id))
+                    self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
+                elif self.asset_scraper_obj.supports_asset_ID(asset_info_id):
                     # Scrape only if scraper supports asset.
-                    logger.debug('Local {0} NOT found. Scraping.'.format(AInfo.name))
-                    self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_SCRAPER
+                    logger.debug('Local {0} NOT found. Scraping.'.format(asset_info_id))
+                    self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_SCRAPER
                 else:
-                    logger.debug('Local {0} NOT found. No scraper support.'.format(AInfo.name))
-                    self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
+                    logger.debug('Local {0} NOT found. No scraper support.'.format(asset_info_id))
+                    self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
             # Scrapers.
             elif self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_SCRAPE_ONLY:
                 # Scraper does not support asset but local asset found.
-                if not self.asset_scraper_obj.supports_asset_ID(AInfo.id) and self.local_asset_list[AInfo.id]:
+                if not self.asset_scraper_obj.supports_asset_ID(asset_info_id) and self.local_asset_list[asset_info_id]:
                     logger.debug('Scraper {} does not support {}. Using local asset.'.format(
-                        self.asset_scraper_obj.get_name(), AInfo.name))
-                    self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
+                        self.asset_scraper_obj.get_name(), asset_info_id))
+                    self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
                 # Scraper does not support asset and local asset not found.
-                elif not self.asset_scraper_obj.supports_asset_ID(AInfo.id) and not self.local_asset_list[AInfo.id]:
+                elif not self.asset_scraper_obj.supports_asset_ID(asset_info_id) and not self.local_asset_list[asset_info_id]:
                     logger.debug('Scraper {} does not support {}. Local asset not found.'.format(
-                        self.asset_scraper_obj.get_name(), AInfo.name))
-                    self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
+                        self.asset_scraper_obj.get_name(), asset_info_id))
+                    self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
                 # Scraper supports asset. Scrape wheter local asset is found or not.
-                elif self.asset_scraper_obj.supports_asset_ID(AInfo.id):
-                    logger.debug('Scraping {} with {}.'.format(AInfo.name, self.asset_scraper_obj.get_name()))
-                    self.asset_action_list[AInfo.id] = ScrapeStrategy.ACTION_ASSET_SCRAPER
+                elif self.asset_scraper_obj.supports_asset_ID(asset_info_id):
+                    logger.debug('Scraping {} with {}.'.format(asset_info_id, self.asset_scraper_obj.get_name()))
+                    self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_SCRAPER
                 else:
                     raise ValueError('Logical error')
 
@@ -908,10 +898,9 @@ class ScrapeStrategy(object):
 
         return True
         
- #
+    #
     # Search for local assets and place found files into a list.
     # Returned list all has assets as defined in ROM_ASSET_LIST.
-    # This function is used in the Scraper.
     #
     # ROM         -> Rom object
     # asset_infos -> list of assets to request
@@ -922,24 +911,50 @@ class ScrapeStrategy(object):
         rom_basename_noext = ROMFile.getBaseNoExt()
         local_assets = {}
         for asset_info_id in asset_info_ids:
-            local_asset = io.misc_search_file_cache(rom.get_asset_path(asset_info_id), rom_basename_noext, asset_info.exts)
-            if local_asset:
-                local_assets[asset_info_id] = local_asset
-                logger.debug('get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
-            else:
+            
+            asset_exts = constants.IMAGE_EXTENSION_LIST
+            if asset_info_id == constants.ASSET_MANUAL_ID: asset_exts = constants.MANUAL_EXTENSION_LIST
+            if asset_info_id == constants.ASSET_TRAILER_ID: asset_exts = constants.TRAILER_EXTENSION_LIST
+            search_exts = io.get_filesearch_extension_list(asset_exts)
+            
+            asset_path = rom.get_asset_path(asset_info_id)
+            if asset_path is None:
                 local_assets[asset_info_id] = None
-                logger.debug('get_local_assets() Missing  {0:<9}'.format(asset_info_id))
+                logger.warn('get_local_assets() Asset Path not defined for ROM {} asset {0:<9}'.format(rom_basename_noext, asset_info_id))
+            else:
+                local_asset = io.misc_search_file_cache(asset_path, rom_basename_noext, search_exts)
+                if local_asset:
+                    local_assets[asset_info_id] = local_asset
+                    logger.debug('get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
+                else:
+                    local_assets[asset_info_id] = None
+                    logger.debug('get_local_assets() Missing  {0:<9}'.format(asset_info_id))
 
         return local_assets
 
-
-    def store_scraped_rom(self, rom_id: str, rom_data: dict):
-        params = {
+    def store_scraped_rom(self, scraper_id: str, rom_id: str, rom: ROMObj):
+        post_data = {
             'rom_id': rom_id,
-            'rom_data': rom_data
-        }        
-        kodi.event(sender='plugin.program.AEL',command='STORE_SCRAPED_ROM_DATA', data=params)
-
+            'ael_addon_id': scraper_id,
+            'rom': rom.get_data_dic(),
+            'applied_settings': self.scraper_settings.get_data_dic()
+        }      
+        is_stored = api.client_post_scraped_rom(self.webservice_host, self.webservice_port, post_data)
+        if not is_stored:
+            kodi.notify_error('Failed to store scraped ROM')
+  
+    def store_scraped_roms(self, scraper_id: str, romcollection_id: str, scraped_roms: typing.List[ROMObj]):
+        roms = [*(r.get_data_dic() for r in scraped_roms)]
+        post_data = {
+            'romcollection_id': romcollection_id,
+            'ael_addon_id': scraper_id,
+            'roms': roms,
+            'applied_settings': self.scraper_settings.get_data_dic()
+        }      
+        is_stored = api.client_post_scraped_roms(self.webservice_host, self.webservice_port, post_data)
+        if not is_stored:
+            kodi.notify_error('Failed to store scraped ROMs')
+                      
 #
 # Abstract base class for all scrapers (offline or online, metadata or asset).
 # The scrapers are Launcher and ROM agnostic. All the required Launcher/ROM properties are
@@ -979,7 +994,7 @@ class Scraper(object):
 
     # --- Constructor ----------------------------------------------------------------------------
     # @param cache_dir: [str] Path to scraper cache dir.
-    def __init__(self, cache_dir:str, fallbackScraper = None):
+    def __init__(self, cache_dir:str):
         
         self.verbose_flag = False
         self.dump_file_flag = False # Dump DEBUG files only if this is true.

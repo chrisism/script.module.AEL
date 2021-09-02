@@ -669,16 +669,15 @@ KODI_MESSAGE_NOTIFY_WARN = 300
 # Kodi OK dialog to display a message.
 KODI_MESSAGE_DIALOG      = 400
 
-# If st_dic['abort'] is False then everything is OK.
-# If st_dic['abort'] is True then execution must be aborted and error displayed.
-# Success message can also be displayed (st_dic['abort'] False and
-# st_dic['dialog'] is different from KODI_MESSAGE_NONE).
-def new_status_dic():
+# If status_dic['status'] is True then everything is OK. If status_dic['status'] is False,
+# then display the notification.
+def new_status_dic(message):
     return {
-        'abort' : False,
-        'dialog' : KODI_MESSAGE_NONE,
-        'msg' : '',
+        'status' : True,
+        'dialog' : KODI_MESSAGE_NOTIFY,
+        'msg'    : message,
     }
+
 
 # Display an status/error message in the GUI.
 # Note that it is perfectly OK to display an error message and not abort execution.

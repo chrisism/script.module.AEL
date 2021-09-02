@@ -77,12 +77,22 @@ def client_post_scanner_settings(host: str, port:int, data: dict) -> bool:
     return code == 200
 
 def client_post_scanned_roms(host: str, port:int, data: dict) -> bool:
-    uri = 'http://{}:{}/store/roms/'.format(host, port)
+    uri = 'http://{}:{}/store/roms/added'.format(host, port)
     response_data, code = net.post_JSON_URL(uri, data)
     return code == 200
 
 def client_post_dead_roms(host: str, port:int, data: dict) -> bool:
-    uri = 'http://{}:{}/remove/roms/'.format(host, port)
+    uri = 'http://{}:{}/store/roms/dead'.format(host, port)
+    response_data, code = net.post_JSON_URL(uri, data)
+    return code == 200
+
+def client_post_scraped_rom(host: str, port:int, data: dict) -> bool:
+    uri = 'http://{}:{}/store/rom/updated'.format(host, port)
+    response_data, code = net.post_JSON_URL(uri, data)
+    return code == 200
+
+def client_post_scraped_roms(host: str, port:int, data: dict) -> bool:
+    uri = 'http://{}:{}/store/roms/updated'.format(host, port)
     response_data, code = net.post_JSON_URL(uri, data)
     return code == 200
 
@@ -108,23 +118,29 @@ class MetaDataObj(object):
 
     # --- Metadata --------------------------------------------------------------------------------
     def get_name(self):
-        return self.entity_data['m_name'] if 'm_name' in self.entity_data else 'Unknown'
+        return self.entity_data['m_name'] if 'm_name' in self.entity_data else None
 
     def get_releaseyear(self):
-        return self.entity_data['m_year'] if 'm_year' in self.entity_data else ''
+        return self.entity_data['m_year'] if 'm_year' in self.entity_data else None
 
     def get_genre(self) -> str:
-        return self.entity_data['m_genre'] if 'm_genre' in self.entity_data else ''
+        return self.entity_data['m_genre'] if 'm_genre' in self.entity_data else None
 
     def get_developer(self) -> str:
-        return self.entity_data['m_developer'] if 'm_developer' in self.entity_data else ''
+        return self.entity_data['m_developer'] if 'm_developer' in self.entity_data else None
 
     def get_rating(self):
-        return int(self.entity_data['m_rating']) if self.entity_data['m_rating'] else ''
+        return int(self.entity_data['m_rating']) if self.entity_data['m_rating'] else None
 
     def get_plot(self):
-        return self.entity_data['m_plot'] if 'm_plot' in self.entity_data else ''
-    
+        return self.entity_data['m_plot'] if 'm_plot' in self.entity_data else None
+        
+    def get_number_of_players(self):
+        return self.entity_data['m_nplayers']
+
+    def get_esrb_rating(self):
+        return self.entity_data['m_esrb']
+        
     def has_asset(self, asset_id:str) -> bool:
         if 'assets' in self.entity_data: return False
         return asset_id in self.entity_data['assets']
@@ -187,6 +203,21 @@ class ROMObj(MetaDataObj):
         asset_paths = self.entity_data['asset_paths'] if 'asset_paths' in self.entity_data else {}
         return asset_paths[assetinfo_id] if assetinfo_id in asset_paths else None
      
-class AssetInfoObj(object):
-    id              = ''
-    name            = ''
+    @staticmethod
+    def get_template() -> dict:
+        return {
+             'id': '',
+             'm_name': '',
+             'm_year': '',
+             'm_genre': '',
+             'm_developer': '',
+             'm_rating': '',
+             'm_plot': '',
+             'm_nplayers': '',
+             'm_esrb': '',
+             'platform': '',
+             'filename': '',
+             'scanned_by_id': '',
+             'assets': [],
+             'asset_paths': []
+         }
