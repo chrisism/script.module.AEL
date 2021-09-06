@@ -204,7 +204,7 @@ class ROMObj(MetaDataObj):
         return asset_paths[assetinfo_id] if assetinfo_id in asset_paths else None
      
     @staticmethod
-    def get_template() -> dict:
+    def get_data_template() -> dict:
         return {
              'id': '',
              'm_name': '',
