@@ -218,6 +218,6 @@ class ROMObj(MetaDataObj):
              'platform': '',
              'filename': '',
              'scanned_by_id': '',
-             'assets': [],
-             'asset_paths': []
+             'assets': {},
+             'asset_paths': {}
          }

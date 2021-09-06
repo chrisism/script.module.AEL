@@ -920,7 +920,7 @@ class ScrapeStrategy(object):
             asset_path = rom.get_asset_path(asset_info_id)
             if asset_path is None:
                 local_assets[asset_info_id] = None
-                logger.warn('get_local_assets() Asset Path not defined for ROM {} asset {0:<9}'.format(rom_basename_noext, asset_info_id))
+                logger.warn('get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_basename_noext, asset_info_id))
             else:
                 local_asset = io.misc_search_file_cache(asset_path, rom_basename_noext, search_exts)
                 if local_asset:
