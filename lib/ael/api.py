@@ -30,17 +30,21 @@ from ael.utils import net, io
 
 logger = logging.getLogger(__name__)
 
+VERBOSE = True
+
 ###############################################################
 # CLIENT METHODS
 ###############################################################
 def client_get_rom(host: str, port:int, rom_id:str) -> ROMObj:
     uri = 'http://{}:{}/query/rom/?id={}'.format(host, port, rom_id)
     rom_data = net.get_URL_as_json(uri)    
+    if VERBOSE: logger.debug(rom_data)
     return ROMObj(rom_data)
 
 def client_get_roms_in_collection(host: str, port:int, rom_collection_id:str) -> typing.List[ROMObj]:
     uri = 'http://{}:{}/query/romcollection/roms/?id={}'.format(host, port, rom_collection_id)
     rom_data = net.get_URL_as_json(uri)
+    if VERBOSE: logger.debug(rom_data)
     roms = []
     for rom_entry in rom_data:
         roms.append(ROMObj(rom_entry))
@@ -49,51 +53,67 @@ def client_get_roms_in_collection(host: str, port:int, rom_collection_id:str) ->
 def client_get_collection_launchers(host:str, port:int, rom_collection_id:str) -> dict:
     uri = 'http://{}:{}/query/romcollection/launchers/?id={}'.format(host, port, rom_collection_id)
     launchers = net.get_URL_as_json(uri)
+    if VERBOSE: logger.debug(launchers)
     return launchers
 
 def client_get_rom_launcher_settings(host: str, port:int, rom_id: str, launcher_id:str) -> dict:
     uri = 'http://{}:{}/query/rom/launcher/settings/?id={}&launcher_id={}'.format(host, port, rom_id, launcher_id)
     launcher_settings = net.get_URL_as_json(uri)    
+    if VERBOSE: logger.debug(launcher_settings)
     return launcher_settings
 
 def client_get_collection_launcher_settings(host: str, port:int, rom_collection_id: str, launcher_id:str) -> dict:
     uri = 'http://{}:{}/query/romcollection/launcher/settings/?id={}&launcher_id={}'.format(host, port, rom_collection_id, launcher_id)
     launcher_settings = net.get_URL_as_json(uri)    
+    if VERBOSE: logger.debug(launcher_settings)
     return launcher_settings
 
 def client_get_collection_scanner_settings(host: str, port:int, rom_collection_id: str, scanner_id:str) -> dict:
     uri = 'http://{}:{}/query/romcollection/scanner/settings/?id={}&scanner_id={}'.format(host, port, rom_collection_id, scanner_id)
     scanner_settings = net.get_URL_as_json(uri)    
+    if VERBOSE: logger.debug(VERBOSE)
     return scanner_settings
 
 def client_post_launcher_settings(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/launcher/'.format(host, port)
+    if VERBOSE: logger.debug(data)
     response_data, code = net.post_JSON_URL(uri, data)
+    if VERBOSE: logger.debug(response_data)
     return code == 200
 
 def client_post_scanner_settings(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/scanner/'.format(host, port)
+    if VERBOSE: logger.debug(data)
     response_data, code = net.post_JSON_URL(uri, data)
+    if VERBOSE: logger.debug(response_data)
     return code == 200
 
 def client_post_scanned_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/added'.format(host, port)
+    if VERBOSE: logger.debug(data)
     response_data, code = net.post_JSON_URL(uri, data)
+    if VERBOSE: logger.debug(response_data)
     return code == 200
 
 def client_post_dead_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/dead'.format(host, port)
+    if VERBOSE: logger.debug(data)
     response_data, code = net.post_JSON_URL(uri, data)
+    if VERBOSE: logger.debug(response_data)
     return code == 200
 
 def client_post_scraped_rom(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/rom/updated'.format(host, port)
+    if VERBOSE: logger.debug(data)
     response_data, code = net.post_JSON_URL(uri, data)
+    if VERBOSE: logger.debug(response_data)
     return code == 200
 
 def client_post_scraped_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/updated'.format(host, port)
+    if VERBOSE: logger.debug(data)
     response_data, code = net.post_JSON_URL(uri, data)
+    if VERBOSE: logger.debug(response_data)
     return code == 200
 
 ###############################################################

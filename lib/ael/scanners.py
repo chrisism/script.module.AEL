@@ -24,7 +24,7 @@ import re
 import typing
 
 # --- AEL packages ---
-from ael import report, api
+from ael import report, api, platforms
 from ael.utils import io, kodi, text
 
 from ael.api import ROMObj
@@ -439,6 +439,32 @@ class RomScannerStrategy(ScannerStrategyABC):
     def _processFoundItems(self, candidates:typing.List[ROMCandidateABC], roms:typing.List[ROMObj], launcher_report: report.Reporter) -> typing.List[ROMObj]:
         return []
 
+    def configuration_get_extensions_from_launchers(self, input, item_key, scanner_settings):
+        if input: return input
+        extensions = scanner_settings[item_key] if item_key in scanner_settings else ''
+        if extensions != '': return extensions
+        
+        if self.romcollection_id:
+            extensions_by_launchers = []
+            launchers = api.client_get_collection_launchers(self.webservice_host, self.webservice_port, self.romcollection_id)
+            for key, launcher_settings in launchers.items():
+                if 'application' in launcher_settings:    
+                    app = launcher_settings['application'] 
+                    appPath = io.FileName(app)
+                    launcher_extensions = platforms.emudata_get_program_extensions(appPath.getBase())
+                    if launcher_extensions != '':
+                        extensions_by_launchers.append(launcher_extensions)
+                        
+                if 'scanners' in launcher_settings:
+                    if 'romext' in launcher_settings['scanners']:
+                        extensions_by_launchers = launcher_settings['scanners']['romext'].split('|')
+                
+            if len(extensions_by_launchers) > 0:
+                extensions = '|'.join(extensions_by_launchers)
+            else:
+                extensions = ''
+            
+        return extensions
 class SteamScanner(RomScannerStrategy):
     
     # ~~~ Scan for new items not yet in the rom collection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
