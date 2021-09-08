@@ -339,10 +339,10 @@ class ScrapeStrategy(object):
     def _process_ROM(self, rom: ROMObj, ROM_checksums: io.FileName):
         logger.debug('ScrapeStrategy._process_ROM() Determining metadata and asset actions...')
                         
-        if self.scraper_settings.scrape_metadata_policy is not constants.SCRAPE_ACTION_NONE:
+        if self.scraper_settings.scrape_metadata_policy != constants.SCRAPE_ACTION_NONE:
             self._process_ROM_metadata_begin(rom)
         
-        if self.scraper_settings.scrape_assets_policy is not constants.SCRAPE_ACTION_NONE:
+        if self.scraper_settings.scrape_assets_policy != constants.SCRAPE_ACTION_NONE:
             self._process_ROM_assets_begin(rom)
 
         # --- If metadata or any asset is scraped then select the game among the candidates ---
@@ -906,7 +906,7 @@ class ScrapeStrategy(object):
     # asset_infos -> list of assets to request
     #
     def _get_local_assets(self, rom:ROMObj, asset_info_ids:list):
-        logger.debug('get_local_assets() Searching for ROM local assets...')
+        logger.debug('_get_local_assets() Searching for ROM local assets...')
         ROMFile = rom.get_file()
         rom_basename_noext = ROMFile.getBaseNoExt()
         local_assets = {}
@@ -920,15 +920,15 @@ class ScrapeStrategy(object):
             asset_path = rom.get_asset_path(asset_info_id)
             if asset_path is None:
                 local_assets[asset_info_id] = None
-                logger.warn('get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_basename_noext, asset_info_id))
+                logger.warn('_get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_basename_noext, asset_info_id))
             else:
                 local_asset = io.misc_search_file_cache(asset_path, rom_basename_noext, search_exts)
                 if local_asset:
                     local_assets[asset_info_id] = local_asset
-                    logger.debug('get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
+                    logger.debug('_get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
                 else:
                     local_assets[asset_info_id] = None
-                    logger.debug('get_local_assets() Missing  {0:<9}'.format(asset_info_id))
+                    logger.debug('_get_local_assets() Missing  {0:<9}'.format(asset_info_id))
 
         return local_assets
 

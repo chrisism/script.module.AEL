@@ -186,7 +186,7 @@ class ROMObj(MetaDataObj):
     def set_file(self, file: io.FileName):
         self.entity_data['filename'] = file.getPath()     
 
-    def get_file(self):
+    def get_file(self) -> io.FileName:
         if not 'filename' in self.entity_data: return None
         path = self.entity_data['filename']
         if path == '': return None
@@ -201,7 +201,10 @@ class ROMObj(MetaDataObj):
     
     def get_asset_path(self, assetinfo_id: str) -> io.FileName:
         asset_paths = self.entity_data['asset_paths'] if 'asset_paths' in self.entity_data else {}
-        return asset_paths[assetinfo_id] if assetinfo_id in asset_paths else None
+        asset_path_str = asset_paths[assetinfo_id] if assetinfo_id in asset_paths else None
+        
+        if asset_path_str is None or asset_path_str == '': return None
+        return io.FileName(asset_path_str)
      
     @staticmethod
     def get_data_template() -> dict:
