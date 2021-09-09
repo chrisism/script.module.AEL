@@ -165,6 +165,9 @@ class MetaDataObj(object):
         if 'assets' in self.entity_data: return False
         return asset_id in self.entity_data['assets']
 
+    def get_asset(self, asset_id: str) -> str:
+        return self.entity_data['assets'][asset_id] if asset_id in self.entity_data['assets'] else None
+
     def get_data_dic(self):
         return self.entity_data
     
@@ -225,6 +228,11 @@ class ROMObj(MetaDataObj):
         
         if asset_path_str is None or asset_path_str == '': return None
         return io.FileName(asset_path_str)
+     
+    def get_all_asset_paths(self) -> typing.List[io.FileName]:
+        asset_paths = self.entity_data['asset_paths'].values() if 'asset_paths' in self.entity_data else []
+        asset_path_FNs = [io.FileName(pth) for pth in asset_paths]
+        return asset_path_FNs
      
     @staticmethod
     def get_data_template() -> dict:

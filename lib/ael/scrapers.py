@@ -298,6 +298,10 @@ class ScrapeStrategy(object):
         self.pdialog.startProgress('Scraping ROMs in launcher', num_items)
         logger.debug('============================== Scraping ROMs ==============================')
         
+        all_paths = []
+        for rom in roms: all_paths.extend(rom.get_all_asset_paths())
+        self._cache_assets(all_paths)
+        
         for rom in roms:
             self.pdialog.updateProgress(num_items_checked)
             num_items_checked = num_items_checked + 1
@@ -333,6 +337,7 @@ class ScrapeStrategy(object):
         
         msg = 'Scraping {0}...'.format(rom.get_file().getBaseNoExt())
         self.pdialog.startProgress(msg)
+        self._cache_assets(rom.get_all_asset_paths())
         self._process_ROM(rom, rom.get_file())
         return rom
     
@@ -445,18 +450,18 @@ class ScrapeStrategy(object):
 
         romdata = rom.get_data_dic()
         # --- Print some debug info ---
-        logger.debug('Set Title     file "{}"'.format(romdata['s_title']))
-        logger.debug('Set Snap      file "{}"'.format(romdata['s_snap']))
-        logger.debug('Set Boxfront  file "{}"'.format(romdata['s_boxfront']))
-        logger.debug('Set Boxback   file "{}"'.format(romdata['s_boxback']))
-        logger.debug('Set Cartridge file "{}"'.format(romdata['s_cartridge']))
-        logger.debug('Set Fanart    file "{}"'.format(romdata['s_fanart']))
-        logger.debug('Set Banner    file "{}"'.format(romdata['s_banner']))
-        logger.debug('Set Clearlogo file "{}"'.format(romdata['s_clearlogo']))
-        logger.debug('Set Flyer     file "{}"'.format(romdata['s_flyer']))
-        logger.debug('Set Map       file "{}"'.format(romdata['s_map']))
-        logger.debug('Set Manual    file "{}"'.format(romdata['s_manual']))
-        logger.debug('Set Trailer   file "{}"'.format(romdata['s_trailer']))
+        logger.debug('Set Title     file "{}"'.format(romdata['assets'][constants.ASSET_TITLE_ID]))
+        logger.debug('Set Snap      file "{}"'.format(romdata['assets'][constants.ASSET_SNAP_ID]))
+        logger.debug('Set Boxfront  file "{}"'.format(romdata['assets'][constants.ASSET_BOXFRONT_ID]))
+        logger.debug('Set Boxback   file "{}"'.format(romdata['assets'][constants.ASSET_BOXBACK_ID]))
+        logger.debug('Set Cartridge file "{}"'.format(romdata['assets'][constants.ASSET_CARTRIDGE_ID]))
+        logger.debug('Set Fanart    file "{}"'.format(romdata['assets'][constants.ASSET_FANART_ID]))
+        logger.debug('Set Banner    file "{}"'.format(romdata['assets'][constants.ASSET_BANNER_ID]))
+        logger.debug('Set Clearlogo file "{}"'.format(romdata['assets'][constants.ASSET_CLEARLOGO_ID]))
+        logger.debug('Set Flyer     file "{}"'.format(romdata['assets'][constants.ASSET_FLYER_ID]))
+        logger.debug('Set Map       file "{}"'.format(romdata['assets'][constants.ASSET_MAP_ID]))
+        logger.debug('Set Manual    file "{}"'.format(romdata['assets'][constants.ASSET_MANUAL_ID]))
+        logger.debug('Set Trailer   file "{}"'.format(romdata['assets'][constants.ASSET_TRAILER_ID]))
 
         return rom
 
@@ -932,6 +937,18 @@ class ScrapeStrategy(object):
 
         return local_assets
 
+    def _cache_assets(self, paths:typing.List[io.FileName]):
+        duplicates = []
+        for path in paths:
+            if path is None: continue
+            
+            path_str = path.getPath()
+            if path_str in duplicates or path_str == '': continue
+            
+            logger.debug('Caching directory "{}"'.format(path_str))
+            io.misc_add_file_cache(path)
+            duplicates.append(path_str)
+
     def store_scraped_rom(self, scraper_id: str, rom_id: str, rom: ROMObj):
         post_data = {
             'rom_id': rom_id,
@@ -1073,9 +1090,6 @@ class Scraper(object):
         if not self.dump_file_flag: return
         file_path = os.path.join(self.dump_dir, file_name)
         io.FileName(file_path).writeAll(page_data)
-
-    @abc.abstractmethod
-    def get_id(self): pass
     
     @abc.abstractmethod
     def get_name(self): pass
@@ -1524,9 +1538,6 @@ class Scraper(object):
 # ------------------------------------------------------------------------------------------------
 class Null_Scraper(Scraper):
     def __init__(self): super(Null_Scraper, self).__init__('')
-
-    def get_id(self):
-        return constants.SCRAPER_NULL_ID
 
     def get_name(self): return 'Null'
 
