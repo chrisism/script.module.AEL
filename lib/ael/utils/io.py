@@ -558,10 +558,11 @@ class FileName:
                                 indent = JSON_indent, separators = JSON_separators)
         self.saveStrToFile(json_data)
 
-    def readXml(self) -> ET.ElementTree:
+    def readXml(self) -> ET.Element:
         tree = None
         try:
-            tree = ET.parse(self.getPath())
+            str_data = self.loadFileToStr()
+            tree = ET.fromstring(str_data)
         except ET.ParseError as e:
             logger.error('(ParseError) Exception parsing XML {}'.format(self.getPath()))
             logger.error('(ParseError) {0}'.format(str(e)))

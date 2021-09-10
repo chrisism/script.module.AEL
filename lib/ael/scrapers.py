@@ -406,7 +406,7 @@ class ScrapeStrategy(object):
         
             if self.pdialog_verbose:
                 self.pdialog.updateMessage('Loading NFO file {0}'.format(self.NFO_file.getPath()))
-            rom.update_with_nfo_file(NFO_file, self.pdialog_verbose)
+            rom.update_with_nfo_file(NFO_file)
 
         elif self.metadata_action == ScrapeStrategy.ACTION_META_SCRAPER:
             self._scrap_ROM_metadata(rom)
@@ -434,16 +434,14 @@ class ScrapeStrategy(object):
                 continue
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET:
                 logger.debug('Using local asset for {}'.format(asset_name))
-                rom.set_asset(asset_id, self.local_asset_list[asset_id])
+                local_asset = self.local_asset_list[asset_id]
+                if local_asset: rom.set_asset(asset_id, local_asset.getPath())
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_SCRAPER:
                 asset_path = self._scrap_ROM_asset(asset_id, self.local_asset_list[asset_id], rom)
                 if asset_path is None:
                     logger.debug('No asset scraped. Skipping {}'.format(asset_name))
                     continue   
-                if asset_id == constants.ASSET_TRAILER_ID:
-                    rom.set_asset(asset_id, asset_path)
-                else:                       
-                    rom.set_asset(asset_id, asset_path.getPath())
+                rom.set_asset(asset_id, asset_path.getPath())
             else:
                 raise ValueError('Asset ID {} unknown action {}'.format(
                     asset_id, self.asset_action_list[asset_id]))

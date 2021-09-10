@@ -27,6 +27,7 @@ import typing
 
 # AEL modules
 from ael.utils import net, io
+from ael import constants
 
 logger = logging.getLogger(__name__)
 
@@ -233,6 +234,35 @@ class ROMObj(MetaDataObj):
         asset_paths = self.entity_data['asset_paths'].values() if 'asset_paths' in self.entity_data else []
         asset_path_FNs = [io.FileName(pth) for pth in asset_paths]
         return asset_path_FNs
+    
+    def update_with_nfo_file(self, nfo_file_path:io.FileName):
+        logger.debug('ROMObj.update_with_nfo_file() Loading "{0}"'.format(nfo_file_path.getPath()))
+        if not nfo_file_path.exists():
+            logger.debug("ROMObj.update_with_nfo_file() NFO file not found '{0}'".format(nfo_file_path.getPath()))
+            return
+        
+        xml_doc = nfo_file_path.readXml()
+        if xml_doc is None: return
+        
+        item_title     = xml_doc.find('title')
+        item_year      = xml_doc.find('year')
+        item_genre     = xml_doc.find('genre')
+        item_developer = xml_doc.find('developer')
+        item_nplayers  = xml_doc.find('nplayers')
+        item_esrb      = xml_doc.find('esrb')
+        item_rating    = xml_doc.find('rating')
+        item_plot      = xml_doc.find('plot>')
+        item_trailer   = xml_doc.find('trailer')
+        
+        if item_title is not None:     self.set_name(item_title.text)
+        if item_year is not None:      self.set_releaseyear(item_year.text)
+        if item_genre is not None:     self.set_genre(item_genre.text)
+        if item_developer is not None: self.set_developer(item_developer.text)
+        if item_rating is not None:    self.set_rating(item_rating.text)
+        if item_plot is not None:      self.set_plot(item_plot.text)
+        if item_nplayers is not None:  self.set_number_of_players(item_nplayers.text)
+        if item_esrb is not None:      self.set_esrb_rating(item_esrb.text)
+        if item_trailer is not None:   self.set_asset(constants.ASSET_TRAILER_ID, item_trailer.text)
      
     @staticmethod
     def get_data_template() -> dict:
