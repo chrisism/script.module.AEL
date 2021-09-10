@@ -38,7 +38,7 @@ import xbmcgui
 
 # AEL libs
 from ael.utils import kodi, io, net, text
-from ael import constants, platforms
+from ael import constants, platforms, settings
 from ael import api
 
 from ael.api import ROMObj
@@ -132,23 +132,22 @@ class ScraperSettings(object):
         self.update_nfo_files       = False
         self.show_info_verbose      = False
     
-    def build_menu(self):
-        options = collections.OrderedDict()        
-        options['SC_METADATA_POLICY']      = 'Metadata scan policy: "{}"'.format(kodi.translate(self.scrape_metadata_policy))
-        options['SC_ASSET_POLICY']         = 'Asset scan policy: "{}"'.format(kodi.translate(self.scrape_assets_policy))
-        options['SC_GAME_SELECTION_MODE']  = 'Game selection mode: "{}"'.format(kodi.translate(self.game_selection_mode))
-        options['SC_ASSET_SELECTION_MODE'] = 'Asset selection mode: "{}"'.format(kodi.translate(self.asset_selection_mode))
-        options['SC_OVERWRITE_MODE']       = 'Overwrite existing files: "{}"'.format('Yes' if self.overwrite_existing else 'No')
-       # options['SC_SCRAPER']              = 'Metadata scraper: "{}"'.format(kodi.translate(self.metadata_scraper_ID))
-       #options['SC_ASSET_SCRAPER']        = 'Asset scraper: "{}"'.format(kodi.translate(self.assets_scraper_ID))        
-        return options
-    
     def get_data_dic(self) -> dict:
         return self.__dict__
             
     @staticmethod
-    def from_settings_dict(settings:dict):
+    def from_addon_settings():
+        scraper_settings = ScraperSettings()   
+                                        
+        scraper_settings.scrape_metadata_policy = settings.getSettingAsInt('scrape_metadata_policy')
+        scraper_settings.scrape_assets_policy   = settings.getSettingAsInt('scrape_assets_policy')
+        scraper_settings.game_selection_mode    = settings.getSettingAsInt('game_selection_mode')
+        scraper_settings.asset_selection_mode   = settings.getSettingAsInt('asset_selection_mode')
         
+        return scraper_settings       
+        
+    @staticmethod
+    def from_settings_dict(settings:dict):        
         scraper_settings = ScraperSettings()   
             
         scraper_settings.scrape_metadata_policy = settings['scrape_metadata_policy']
@@ -417,7 +416,7 @@ class ScrapeStrategy(object):
     #
     # @param rom: [ROM] ROM data object. Mutable and edited by assignment.
     def _process_ROM_assets(self, rom:ROMObj):
-        logger.debug('ScrapeStrategy.scanner_process_ROM_assets() Processing asset actions...')
+        logger.debug('ScrapeStrategy._process_ROM_assets() Processing asset actions...')
         
         if all(asset_action == ScrapeStrategy.ACTION_ASSET_NONE for asset_action in self.asset_action_list.values()):
             return
@@ -514,12 +513,12 @@ class ScrapeStrategy(object):
         else:
             raise ValueError('Invalid scrape_metadata_policy value {0}'.format(self.scraper_settings.scrape_metadata_policy))
   
-    # Determine the actions to be carried out by scanner_process_ROM_assets()
+    # Determine the actions to be carried out by _process_ROM_assets()
     def _process_ROM_assets_begin(self, rom: ROMObj):
-        logger.debug('ScrapeStrategy._scanner_process_ROM_assets_begin() Determining asset actions...')
+        logger.debug('ScrapeStrategy._process_ROM_assets_begin() Determining asset actions...')
         
         if self.asset_scraper_obj is None:
-            logger.debug('ScrapeStrategy::_scanner_process_ROM_assets_begin() No asset scraper set, disabling asset scraping.')
+            logger.debug('ScrapeStrategy::_process_ROM_assets_begin() No asset scraper set, disabling asset scraping.')
             self.asset_action_list = { asset_id:ScrapeStrategy.ACTION_ASSET_NONE for asset_id in self.scraper_settings.asset_IDs_to_scrape }
             return
         
@@ -1301,7 +1300,7 @@ class Scraper(object):
     #          list is returned. If there is an error/exception None is returned, the cause printed
     #          in the log and status_dic has a message to show.
     @abc.abstractmethod
-    def get_assets(self, asset_info, status_dic): pass
+    def get_assets(self, asset_info_id:str, status_dic): pass
 
     # When returning the asset list with get_assets(), some sites return thumbnails images
     # because the real assets are on a single dedicated page. For this sites, resolve_asset_URL()
@@ -1561,7 +1560,7 @@ class Null_Scraper(Scraper):
     # Null scraper never returns valid scraped metadata.
     def get_metadata(self, status_dic): return self._new_gamedata_dic()
 
-    def get_assets(self, asset_info, status_dic): return []
+    def get_assets(self, asset_info_id, status_dic): return []
 
     def resolve_asset_URL(self, selected_asset, status_dic): return ('', '')
 

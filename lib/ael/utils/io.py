@@ -45,7 +45,7 @@ import typing
 
 # Python 3
 #from html.parser import HTMLParser
-#from urllib.parse import urlparse
+from urllib.parse import urlparse
 
 # --- Python standard library named imports ---
 import xml.etree.ElementTree as ET
@@ -619,6 +619,30 @@ def is_android():
 
 def is_linux():
     return is_linux_bool
+
+# -------------------------------------------------------------------------------------------------
+# URLs
+# -------------------------------------------------------------------------------------------------
+#
+# Get extension of URL. Returns '' if not found. Examples: 'png', 'jpg', 'gif'.
+#
+def get_URL_extension(url) -> str:
+    path = urlparse(url).path
+    ext = os.path.splitext(path)[1]
+    if ext[0] == '.': ext = ext[1:] # Remove initial dot
+
+    return ext
+
+#
+# Defaults to 'jpg' if URL extension cannot be determined
+#
+def get_image_URL_extension(url) -> str:
+    path = urlparse(url).path
+    ext = os.path.splitext(path)[1]
+    if ext[0] == '.': ext = ext[1:] # Remove initial dot
+    ret = 'jpg' if ext == '' else ext
+
+    return ret
 
 # -------------------------------------------------------------------------------------------------
 # File cache

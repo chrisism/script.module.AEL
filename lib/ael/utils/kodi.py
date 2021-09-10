@@ -186,7 +186,7 @@ def get_info_label(name):
     return xbmc.getInfoLabel(name)
 
 def translate(id):
-    return xbmcaddon.Addon().getLocalizedString(id)
+    return xbmcaddon.Addon().getLocalizedString(int(id))
 
 def getAddonDir() -> io.FileName:
     addon_id = xbmcaddon.Addon().getAddonInfo('id')
@@ -316,6 +316,31 @@ class OrdDictionaryDialog(object):
         key = list(options_odict.keys())[selection]
 
         return key
+#
+# Kodi dialog with multiselect
+#
+class MultiSelectDialog(object):
+    def __init__(self):
+        self.dialog = xbmcgui.Dialog()
+
+    def select(self, title: str, options_odict: collections.OrderedDict, preselected = [], use_details: bool = False):
+        preselected_indices = None
+        if preselected is not None and len(preselected) > 0:
+            preselected_indices = []
+            for preselect in preselected:
+                preselected_value = options_odict[preselect]
+                preselected_indices.append(list(options_odict.values()).index(preselected_value))
+            
+        # --- Execute select dialog menu logic ---
+        selection = self.dialog.multiselect(title, [v for v in options_odict.values()], useDetails = use_details, preselect = preselected_indices)       
+        if selection is None: return None
+        if len(selection) == 0: return []
+        
+        selected_keys = []
+        for selected in selection:
+            selected_keys.append(list(options_odict.keys())[selected])
+
+        return selected_keys
 
 # Progress dialog that can be closed and reopened.
 # If the dialog is canceled this class remembers it forever.
