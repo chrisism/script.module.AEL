@@ -31,7 +31,7 @@ from ael import constants
 
 logger = logging.getLogger(__name__)
 
-VERBOSE = True
+VERBOSE = False
 
 ###############################################################
 # CLIENT METHODS
