@@ -555,7 +555,10 @@ class ScrapeStrategy(object):
         # Process asset by asset (only enabled ones)
         for asset_info_id in self.scraper_settings.asset_IDs_to_scrape:
             # Local artwork.
-            if self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
+            if not self.scraper_settings.overwrite_existing and rom.has_asset(asset_info_id):
+                logger.debug('ROM has {} assigned. Overwrite existing disabled.'.format(asset_info_id))
+                self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_NONE
+            elif self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
                 if self.local_asset_list[asset_info_id]:
                     logger.debug('Local {0} FOUND'.format(asset_info_id))
                 else:
