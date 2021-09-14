@@ -284,6 +284,18 @@ class ScrapeStrategy(object):
         self.meta_and_asset_scraper_same = self.meta_scraper_obj is self.asset_scraper_obj
         self.pdialog = progress_dialog
         self.pdialog_verbose = scraper_settings.show_info_verbose
+        
+        logger.debug('========================== Applied scraper settings ==========================')
+        logger.debug('Metadata policy:      {}'.format(kodi.translate(scraper_settings.scrape_metadata_policy)))
+        logger.debug('Assets policy:        {}'.format(kodi.translate(scraper_settings.scrape_assets_policy)))
+        logger.debug('Search term input:    {}'.format(kodi.translate(scraper_settings.search_term_mode)))
+        logger.debug('Game selection:       {}'.format(kodi.translate(scraper_settings.game_selection_mode)))
+        logger.debug('Asset selection:      {}'.format(kodi.translate(scraper_settings.asset_selection_mode)))
+        logger.debug('AssetIDs:             {}'.format(', '.join(scraper_settings.asset_IDs_to_scrape)))
+        logger.debug('Overwrite existing:   {}'.format('Yes' if scraper_settings.overwrite_existing else 'No'))
+        logger.debug('Ignore scrape title:  {}'.format('Yes' if scraper_settings.ignore_scrap_title else 'No'))
+        logger.debug('Update NFO files:     {}'.format('Yes' if scraper_settings.update_nfo_files else 'No'))
+        logger.debug('==============================================================================')
  
     def process_collection(self, romcollection_id) -> typing.List[ROMObj]:       
         try:
