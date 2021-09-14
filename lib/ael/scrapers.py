@@ -368,14 +368,16 @@ class ScrapeStrategy(object):
         if self.scraper_settings.scrape_metadata_policy != constants.SCRAPE_ACTION_NONE:
             if self.metadata_action == ScrapeStrategy.ACTION_META_SCRAPER:
                 self._get_candidate(rom, ROM_checksums, search_term, self.meta_scraper_obj, status_dic)
-            meta_candidate_set = True
+                meta_candidate_set = True
         
         asset_candidate_set = False
         if self.scraper_settings.scrape_assets_policy != constants.SCRAPE_ACTION_NONE:
-            if not self.meta_and_asset_scraper_same and not meta_candidate_set:
+            if self.meta_and_asset_scraper_same and meta_candidate_set:
+                logger.debug('Asset candidate game same as metadata candidate. Doing nothing.')
+                asset_candidate_set = True
+            else:
                 self._get_candidate(rom, ROM_checksums, search_term, self.asset_scraper_obj, status_dic)
                 asset_candidate_set = True
-            else: logger.debug('Asset candidate game same as metadata candidate. Doing nothing.')
                 
         if not meta_candidate_set: logger.debug('Metadata candidate game is not set')
         if not asset_candidate_set: logger.debug('Asset candidate game is not set')
