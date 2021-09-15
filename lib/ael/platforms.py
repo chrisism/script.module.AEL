@@ -511,6 +511,10 @@ def get_AEL_platform(platform_long) -> Platform:
     idx = get_AEL_platform_index(platform_long)
     return AEL_platforms[idx]
 
+def get_AEL_platform_by_compact(platform_compact) -> Platform:
+    idx = platform_compact_to_index_dic[platform_compact]
+    return AEL_platforms[idx]
+
 # NOTE must take into account platform aliases.
 # '0' means any platform in TGDB and must be returned when there is no platform matching.
 def AEL_platform_to_TheGamesDB(platform_long_name):

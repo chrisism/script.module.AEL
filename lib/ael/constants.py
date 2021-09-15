@@ -461,35 +461,6 @@ TRAILER_EXTENSION_LIST = ['mov', 'divx', 'xvid', 'wmv', 'avi', 'mpg', 'mpeg', 'm
 # Use True only for development.
 SCRAPER_CACHE_HUMAN_JSON = True
 
-# Make sure all the ids matches the scraper list in settings.xml and strings.po or bad things will happen.
-# --- IDs ---
-SCRAPER_NULL_ID          = 10010
-SCRAPER_AEL_OFFLINE_ID   = 10020
-SCRAPER_THEGAMESDB_ID    = 10030
-SCRAPER_MOBYGAMES_ID     = 10040
-SCRAPER_SCREENSCRAPER_ID = 10050
-SCRAPER_GAMEFAQS_ID      = 10060 # Disabled at the moment.
-SCRAPER_ARCADEDB_ID      = 10070
-SCRAPER_LIBRETRO_ID      = 10080 # Not coded yet.
-SCRAPER_STEAMGRIDDB_ID   = 10090
-SCRAPER_GOOGLESEARCH_ID  = 10100
-SCRAPER_YOUTUBESEARCH_ID = 10110
-
-# List of enabled scrapers. If a scraper ID is in this list then a unique scraper object
-# will be instantiated and cached in the global ScraperFactory object.
-# To disable an scraper just remove it from this list.
-SCRAPER_LIST = [
-    SCRAPER_NULL_ID,
-    SCRAPER_AEL_OFFLINE_ID,
-    SCRAPER_THEGAMESDB_ID,
-    SCRAPER_MOBYGAMES_ID,
-    SCRAPER_SCREENSCRAPER_ID,
-    SCRAPER_ARCADEDB_ID,
-    SCRAPER_STEAMGRIDDB_ID,
-    SCRAPER_GOOGLESEARCH_ID,
-    SCRAPER_YOUTUBESEARCH_ID
-]
-
 SCRAPE_ACTION_NONE             = 20000
 SCRAPE_POLICY_TITLE_ONLY       = 20010
 SCRAPE_POLICY_NFO_PREFERED     = 20020

@@ -286,11 +286,11 @@ class ScrapeStrategy(object):
         self.pdialog_verbose = scraper_settings.show_info_verbose
         
         logger.debug('========================== Applied scraper settings ==========================')
-        logger.debug('Metadata policy:      {}'.format(kodi.translate(scraper_settings.scrape_metadata_policy)))
-        logger.debug('Assets policy:        {}'.format(kodi.translate(scraper_settings.scrape_assets_policy)))
-        logger.debug('Search term input:    {}'.format(kodi.translate(scraper_settings.search_term_mode)))
-        logger.debug('Game selection:       {}'.format(kodi.translate(scraper_settings.game_selection_mode)))
-        logger.debug('Asset selection:      {}'.format(kodi.translate(scraper_settings.asset_selection_mode)))
+        logger.debug('Metadata policy:      {}'.format(self._translate(scraper_settings.scrape_metadata_policy)))
+        logger.debug('Assets policy:        {}'.format(self._translate(scraper_settings.scrape_assets_policy)))
+        logger.debug('Search term input:    {}'.format(self._translate(scraper_settings.search_term_mode)))
+        logger.debug('Game selection:       {}'.format(self._translate(scraper_settings.game_selection_mode)))
+        logger.debug('Asset selection:      {}'.format(self._translate(scraper_settings.asset_selection_mode)))
         logger.debug('AssetIDs:             {}'.format(', '.join(scraper_settings.asset_IDs_to_scrape)))
         logger.debug('Overwrite existing:   {}'.format('Yes' if scraper_settings.overwrite_existing else 'No'))
         logger.debug('Ignore scrape title:  {}'.format('Yes' if scraper_settings.ignore_scrap_title else 'No'))
@@ -334,7 +334,7 @@ class ScrapeStrategy(object):
                 kodi.dialog_OK('Stopping ROM scraping.')
                 logger.info('User pressed Cancel button when scraping ROMs. ROM scraping stopped.')
                 return None
-            
+        
         self.pdialog.endProgress()
         return roms
     
@@ -349,7 +349,15 @@ class ScrapeStrategy(object):
         msg = 'Scraping {0}...'.format(rom.get_file().getBaseNoExt())
         self.pdialog.startProgress(msg)
         self._cache_assets(rom.get_all_asset_paths())
-        self._process_ROM(rom, rom.get_file())
+        try:
+            self._process_ROM(rom, rom.get_file())
+        except Exception as ex:
+            logger.error('(Exception) Object type "{}"'.format(type(ex)))
+            logger.error('(Exception) Message "{}"'.format(str(ex)))
+            logger.warning('Could not scrape "{}"'.format(rom.get_file().getBaseNoExt()))
+            kodi.notify_warn('Could not scrape "{}"'.format(rom.get_name()))
+            return None
+        
         return rom
     
     def _process_ROM(self, rom: ROMObj, ROM_checksums: io.FileName):
@@ -663,7 +671,7 @@ class ScrapeStrategy(object):
             logger.debug('Scraper {} found {} candidate/s'.format(scraper_obj.get_name(), len(candidates)))
 
             # --- Choose game to download metadata ---
-            if self.scraper_settings.game_selection_mode == constants.SCRAPE_AUTOMATIC:
+            if self.scraper_settings.game_selection_mode == constants.SCRAPE_MANUAL:
                 logger.debug('Metadata manual scraping')
                 if len(candidates) == 1:
                     logger.debug('get_candidates() returned 1 game. Automatically selected.')
@@ -675,9 +683,11 @@ class ScrapeStrategy(object):
                     game_name_list = [candidate['display_name'] for candidate in candidates]
                     select_candidate_idx = kodi.ListDialog().select(
                         title='Select game for ROM {}'.format(ROM_path.getBaseNoExt()), options_list=game_name_list)
+                    if select_candidate_idx is None:
+                        raise constants.AddonError('Cancelled game selection')
                     if select_candidate_idx < 0: select_candidate_idx = 0
                     self.pdialog.reopen()
-            elif self.scraper_settings.game_selection_mode == constants.SCRAPE_MANUAL:
+            elif self.scraper_settings.game_selection_mode == constants.SCRAPE_AUTOMATIC:
                 logger.debug('Metadata automatic scraping. Selecting first result.')
                 select_candidate_idx = 0
             else:
@@ -985,7 +995,19 @@ class ScrapeStrategy(object):
         is_stored = api.client_post_scraped_roms(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
             kodi.notify_error('Failed to store scraped ROMs')
-                      
+
+    def _translate(self, key):
+        if key == constants.SCRAPE_ACTION_NONE: return 'No action'
+        if key == constants.SCRAPE_POLICY_TITLE_ONLY: return 'Use title only'
+        if key == constants.SCRAPE_POLICY_NFO_PREFERED : return 'Prefer NFO'
+        if key == constants.SCRAPE_POLICY_LOCAL_ONLY: return 'Use local files only'
+        if key == constants.SCRAPE_POLICY_NFO_AND_SCRAPE: return 'NFO / Scrape'
+        if key == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE: return 'Local / Scrape'
+        if key == constants.SCRAPE_POLICY_SCRAPE_ONLY: return 'Scrape only'
+        if key == constants.SCRAPE_MANUAL: return 'Manual selection'
+        if key == constants.SCRAPE_AUTOMATIC : return 'Automatic selection'
+        return key
+
 #
 # Abstract base class for all scrapers (offline or online, metadata or asset).
 # The scrapers are Launcher and ROM agnostic. All the required Launcher/ROM properties are

@@ -163,8 +163,8 @@ class MetaDataObj(object):
         return self.entity_data['m_esrb']
         
     def has_asset(self, asset_id:str) -> bool:
-        if 'assets' in self.entity_data: return False
-        return asset_id in self.entity_data['assets']
+        asset = self.get_asset(asset_id)
+        return asset is not None and asset != ''
 
     def get_asset(self, asset_id: str) -> str:
         return self.entity_data['assets'][asset_id] if asset_id in self.entity_data['assets'] else None
