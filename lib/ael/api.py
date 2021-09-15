@@ -206,6 +206,12 @@ class ROMObj(MetaDataObj):
 
     def get_scanned_by(self) -> str:
         return self.entity_data['scanned_by_id'] if 'scanned_by_id' in self.entity_data else None
+                   
+    def get_scanned_data(self) -> dict:
+        return self.entity_data['scanned_data'] if 'scanned_data' in self.entity_data else {}
+
+    def set_scanned_data(self, data:dict):
+        self.entity_data['scanned_data'] = data
        
     def set_file(self, file: io.FileName):
         self.entity_data['filename'] = file.getPath()     
@@ -279,6 +285,7 @@ class ROMObj(MetaDataObj):
              'platform': '',
              'filename': '',
              'scanned_by_id': '',
+             'scanned_data': {},
              'assets': {},
              'asset_paths': {}
          }

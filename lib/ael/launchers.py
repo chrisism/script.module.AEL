@@ -306,6 +306,10 @@ class LauncherABC(object):
         for rom_key, rom_value in rom_data.items():
             if isinstance(rom_value, str):
                 arguments = arguments.replace('${}$'.format(rom_key), rom_value)
+
+        scanned_data = rom.get_scanned_data()                
+        for scanned_key, scanned_value in scanned_data.items():
+            arguments = arguments.replace('${}$'.format(scanned_key), scanned_value)
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
