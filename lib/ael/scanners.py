@@ -266,19 +266,35 @@ class RomScannerStrategy(ScannerStrategyABC):
         # --- Call hook before wizard ---
         if not self._configure_pre_wizard_hook(): return False
 
-        # --- Scanner configuration code ---
-        wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_scanner_addon_id())
-        # >> Call Child class wizard builder method
-        wizard = self._configure_get_wizard(wizard)
-        # >> Run wizard
-        self.launcher_args = wizard.runWizard(self.scanner_settings)
-        if not self.scanner_settings: return False
+        if self.scanner_id is None:
+            # --- Scanner configuration code ---
+            wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_scanner_addon_id())
+            # >> Call Child class wizard builder method
+            wizard = self._configure_get_wizard(wizard)
+            # >> Run wizard
+            self.scanner_settings = wizard.runWizard(self.scanner_settings)
+            if not self.scanner_settings: return False
+        else:
+            self.edit()
+            if not kodi.dialog_yesno('Save scanner changes?'): return False
 
         # --- Call hook after wizard ---
         if not self._configure_post_wizard_hook(): return False
 
         return True
 
+    def edit(self):
+        # Edit mode. Show options dialog
+        edit_options = self._configure_get_edit_options()
+        edit_dialog = kodi.OrdDictionaryDialog()
+        t = 'Edit {} settings'.format(self.get_name())
+        selected_option = edit_dialog.select(t, edit_options)
+        
+        if selected_option is None: return # short circuit
+        
+        selected_option() # execute
+        self.edit() # recursive call
+        
     def scan(self):
                
         # --- Open ROM scanner report file ---
@@ -403,6 +419,9 @@ class RomScannerStrategy(ScannerStrategyABC):
     @abc.abstractmethod
     def _configure_get_wizard(self, wizard) -> kodi.WizardDialog: pass
 
+    @abc.abstractmethod
+    def _configure_get_edit_options(self) -> dict: pass
+    
     # ~~~ Pre & Post configuration hooks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod
     def _configure_pre_wizard_hook(self): return True
