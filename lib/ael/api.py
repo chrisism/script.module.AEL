@@ -210,9 +210,16 @@ class ROMObj(MetaDataObj):
     def get_scanned_data(self) -> dict:
         return self.entity_data['scanned_data'] if 'scanned_data' in self.entity_data else {}
 
+    def get_scanned_data_element(self, key:str):
+        scanned_data = self.get_scanned_data()
+        return scanned_data[key] if key in scanned_data else None
+    
     def set_scanned_data(self, data:dict):
         self.entity_data['scanned_data'] = data
        
+    def set_scanned_data_element(self, key:str, data):
+        self.entity_data['scanned_data'][key] = data
+    
     def set_file(self, file: io.FileName):
         self.entity_data['filename'] = file.getPath()     
 

@@ -304,17 +304,16 @@ class LauncherABC(object):
         # automatic substitution of rom values
         rom_data = rom.get_data_dic()
         for rom_key, rom_value in rom_data.items():
-            if isinstance(rom_value, str):
-                arguments = arguments.replace('${}$'.format(rom_key), rom_value)
+            arguments = arguments.replace('${}$'.format(str(rom_key)), str(rom_value))
 
         scanned_data = rom.get_scanned_data()                
         for scanned_key, scanned_value in scanned_data.items():
-            arguments = arguments.replace('${}$'.format(scanned_key), scanned_value)
+            arguments = arguments.replace('${}$'.format(str(scanned_key)), str(scanned_value))
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
             if isinstance(rom_value, str):
-                arguments = arguments.replace('${}$'.format(launcher_key), launcher_value)        
+                arguments = arguments.replace('${}$'.format(str(launcher_key)), str(launcher_value))
 
         logger.debug('launch(): final arguments "{0}"'.format(arguments))        
         return arguments

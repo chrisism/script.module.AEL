@@ -1063,6 +1063,8 @@ class Scraper(object):
         self.scraper_cache_dir = cache_dir
         # Do not log here. Otherwise the same thing will be printed for every scraper instantiated.
         # logger.debug('Scraper.__init__() scraper_cache_dir "{}"'.format(self.scraper_cache_dir))
+        if not self.scraper_cache_dir:
+            self.scraper_cache_dir = kodi.getAddonDir().pjoin('cache', isdir=True).getPath()
 
         self.last_http_call = datetime.now()
         

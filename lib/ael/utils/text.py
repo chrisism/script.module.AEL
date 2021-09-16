@@ -214,20 +214,20 @@ def get_ROM_basename_tokens(basename_str):
     reg_exp = '\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
     tokens_raw = re.findall(reg_exp, basename_str)
     if DEBUG_TOKEN_PARSER:
-        logger.debug('text_get_ROM_basename_tokens() tokens_raw   {0}'.format(tokens_raw))
+        logger.debug('get_ROM_basename_tokens() tokens_raw   {0}'.format(tokens_raw))
 
     # >> Strip tokens
     tokens_strip = list()
     for token in tokens_raw: tokens_strip.append(token.strip())
     if DEBUG_TOKEN_PARSER:
-        logger.debug('text_get_ROM_basename_tokens() tokens_strip {0}'.format(tokens_strip))
+        logger.debug('get_ROM_basename_tokens() tokens_strip {0}'.format(tokens_strip))
 
     # >> Remove empty tokens ''
     tokens_clean = list()
     for token in tokens_strip: 
         if token: tokens_clean.append(token)
     if DEBUG_TOKEN_PARSER:        
-        logger.debug('text_get_ROM_basename_tokens() tokens_clean {0}'.format(tokens_clean))
+        logger.debug('get_ROM_basename_tokens() tokens_clean {0}'.format(tokens_clean))
 
     # >> Remove '-' tokens from Trurip multidisc names
     tokens = list()
@@ -235,6 +235,6 @@ def get_ROM_basename_tokens(basename_str):
         if token == '-': continue
         tokens.append(token)
     if DEBUG_TOKEN_PARSER:
-        logger.debug('text_get_ROM_basename_tokens() tokens       {0}'.format(tokens))
+        logger.debug('get_ROM_basename_tokens() tokens       {0}'.format(tokens))
 
     return tokens

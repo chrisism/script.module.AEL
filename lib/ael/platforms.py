@@ -515,25 +515,6 @@ def get_AEL_platform_by_compact(platform_compact) -> Platform:
     idx = platform_compact_to_index_dic[platform_compact]
     return AEL_platforms[idx]
 
-# NOTE must take into account platform aliases.
-# '0' means any platform in TGDB and must be returned when there is no platform matching.
-def AEL_platform_to_TheGamesDB(platform_long_name):
-    if platform_long_name in platform_long_to_index_dic:
-        pobj = AEL_platforms[platform_long_to_index_dic[platform_long_name]]
-    else:
-        # Platform not found.
-        return DEFAULT_PLAT_TGDB
-    scraper_platform = pobj.TGDB_plat
-    # Check if platform is an alias.
-    # If alias does not have specific platform return platform of parent.
-    if pobj.aliasof is not None and scraper_platform is None:
-        parent_idx = platform_compact_to_index_dic[pobj.aliasof]
-        parent_long_name = AEL_platforms[parent_idx].long_name
-        return AEL_platform_to_TheGamesDB(parent_long_name)
-
-    # If platform is None then return default platform
-    return DEFAULT_PLAT_TGDB if scraper_platform is None else scraper_platform
-
 # * MobyGames API cannot be used withouth a valid platform.
 # * If '0' is used as the Unknown platform then MobyGames returns an HTTP error
 #    "HTTP Error 422: UNPROCESSABLE ENTITY"
