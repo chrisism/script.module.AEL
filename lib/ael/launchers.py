@@ -118,24 +118,33 @@ class LauncherABC(object):
         # --- Call hook before wizard ---
         if not self._build_pre_wizard_hook(): return False
 
-        # --- Launcher build code (ask user about launcher stuff) ---
-        wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_launcher_addon_id())
-        
         # >> Call Child class wizard builder method
         if self.launcher_id is None:
+            # --- Launcher build code (ask user about launcher stuff) ---
+            wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_launcher_addon_id())
             wizard = self._builder_get_wizard(wizard) 
+            # >> Run wizard
+            self.launcher_args = wizard.runWizard(self.launcher_settings)
+            if not self.launcher_settings: return False
         else:
-            wizard = self._editor_get_wizard(wizard)
+            self.edit()
+            if not kodi.dialog_yesno('Save launcher changes?'): return False
         
-        # >> Run wizard
-        self.launcher_args = wizard.runWizard(self.launcher_settings)
-        if not self.launcher_settings: return False
-
         # --- Call hook after wizard ---
         if not self._build_post_wizard_hook(): return False
-
         return True
 
+    def edit(self):
+        # Edit mode. Show options dialog
+        edit_options = self._builder_get_edit_options()
+        edit_dialog = kodi.OrdDictionaryDialog()
+        t = 'Edit {} settings'.format(self.get_name())
+        selected_option = edit_dialog.select(t, edit_options)
+        
+        if selected_option is None: return # short circuit
+        
+        selected_option() # execute
+        self.edit() # recursive call
     #
     # Creates a new launcher using a wizard of dialogs.
     # Child concrete classes must implement this method.
@@ -144,7 +153,7 @@ class LauncherABC(object):
     def _builder_get_wizard(self, wizard) -> kodi.WizardDialog: pass
 
     @abc.abstractmethod
-    def _editor_get_wizard(self, wizard) -> kodi.WizardDialog: pass
+    def _builder_get_edit_options(self) -> dict: pass
 
     @abc.abstractmethod
     def _build_pre_wizard_hook(self): return True
