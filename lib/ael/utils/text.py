@@ -238,3 +238,21 @@ def get_ROM_basename_tokens(basename_str):
         logger.debug('get_ROM_basename_tokens() tokens       {0}'.format(tokens))
 
     return tokens
+#
+# Version helper class
+#
+class VersionNumber(object):
+    def __init__(self, versionString):
+        self.versionNumber = versionString.split('.')
+
+    def getFullString(self):
+        return '.'.join(self.versionNumber)
+
+    def getMajor(self):
+        return int(self.versionNumber[0])
+
+    def getMinor(self):
+        return int(self.versionNumber[1])
+
+    def getBuild(self):
+        return int(self.versionNumber[2])

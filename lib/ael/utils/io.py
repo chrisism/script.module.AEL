@@ -723,3 +723,4 @@ def parse_to_json_arg(obj) -> str:
     arg = '"{}"'.format(json.dumps(obj))
     arg = arg.replace('\\', '\\\\') #double encoding
     return arg
+
