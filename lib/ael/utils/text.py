@@ -7,6 +7,7 @@ import time
 import random
 import hashlib
 import re
+import html
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,65 @@ def XML_line(tag_name, tag_text, num_spaces = 2):
         line = '{0}<{1} />\n'.format(' ' * num_spaces, tag_name)
 
     return line
+#
+# Decodes HTML <br> tags and HTML entities (&xxx;) into Unicode characters.
+# See https://stackoverflow.com/questions/2087370/decode-html-entities-in-python-string
+#
+def unescape_HTML(s:str) -> str:
+    __debug_text_unescape_HTML = False
+    if __debug_text_unescape_HTML:
+        logger.debug('unescape_HTML() input  "{0}"'.format(s))
+
+    # --- Replace HTML tag characters by their Unicode equivalent ---
+    s = s.replace('<br>',   '\n')
+    s = s.replace('<br/>',  '\n')
+    s = s.replace('<br />', '\n')
+
+    # --- HTML entities ---
+    # s = s.replace('&lt;',   '<')
+    # s = s.replace('&gt;',   '>')
+    # s = s.replace('&quot;', '"')
+    # s = s.replace('&nbsp;', ' ')
+    # s = s.replace('&copy;', '©')
+    # s = s.replace('&amp;',  '&') # >> Must be done last
+
+    # --- HTML Unicode entities ---
+    # s = s.replace('&#039;', "'")
+    # s = s.replace('&#149;', "•")
+    # s = s.replace('&#x22;', '"')
+    # s = s.replace('&#x26;', '&')
+    # s = s.replace('&#x27;', "'")
+
+    # s = s.replace('&#x101;', "ā")
+    # s = s.replace('&#x113;', "ē")
+    # s = s.replace('&#x12b;', "ī")
+    # s = s.replace('&#x12B;', "ī")
+    # s = s.replace('&#x14d;', "ō")
+    # s = s.replace('&#x14D;', "ō")
+    # s = s.replace('&#x16b;', "ū")
+    # s = s.replace('&#x16B;', "ū")
+
+    # >> Use HTMLParser module to decode HTML entities.
+    s = html.unescape(s)
+    s
+
+    if __debug_text_unescape_HTML:
+        logger.debug('nescape_HTML() output "{0}"'.format(s))
+
+    return s
+
+# Remove HTML tags from string.
+def remove_HTML_tags(s):
+    p = re.compile('<.*?>')
+    s = p.sub('', s)
+
+    return s
+
+def unescape_and_untag_HTML(s):
+    s = unescape_HTML(s)
+    s = remove_HTML_tags(s)
+
+    return s
 
 def str_2_Uni(string):
     # print(type(string))

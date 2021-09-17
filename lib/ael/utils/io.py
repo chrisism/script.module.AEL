@@ -44,7 +44,6 @@ import shutil
 import typing
 
 # Python 3
-#from html.parser import HTMLParser
 from urllib.parse import urlparse
 
 # --- Python standard library named imports ---

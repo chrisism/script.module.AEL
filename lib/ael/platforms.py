@@ -26,8 +26,6 @@ DAT_NOINTRO  = 'No-Intro'
 DAT_REDUMP   = 'Redump'
 DAT_LIBRETRO = 'Libretro'
 DAT_NONE     = None
-DEFAULT_PLAT_TGDB          = '0'
-DEFAULT_PLAT_MOBYGAMES     = '0'
 DEFAULT_PLAT_SCREENSCRAPER = '0'
 DEFAULT_PLAT_GAMEFAQS      = '0'
 PLATFORM_MAME_LONG    = 'MAME'
@@ -514,26 +512,6 @@ def get_AEL_platform(platform_long) -> Platform:
 def get_AEL_platform_by_compact(platform_compact) -> Platform:
     idx = platform_compact_to_index_dic[platform_compact]
     return AEL_platforms[idx]
-
-# * MobyGames API cannot be used withouth a valid platform.
-# * If '0' is used as the Unknown platform then MobyGames returns an HTTP error
-#    "HTTP Error 422: UNPROCESSABLE ENTITY"
-# * If '' is used as the Unknwon platform then MobyGames returns and HTTP error
-#   "HTTP Error 400: BAD REQUEST"
-# * The solution is to use '0' as the unknwon platform. AEL will detect this and
-#   will remove the '&platform={}' parameter from the search URL.
-def AEL_platform_to_MobyGames(platform_long_name):
-    if platform_long_name in platform_long_to_index_dic:
-        pobj = AEL_platforms[platform_long_to_index_dic[platform_long_name]]
-    else:
-        return DEFAULT_PLAT_MOBYGAMES
-    scraper_platform = pobj.MG_plat
-    if pobj.aliasof is not None and scraper_platform is None:
-        parent_idx = platform_compact_to_index_dic[pobj.aliasof]
-        parent_long_name = AEL_platforms[parent_idx].long_name
-        return AEL_platform_to_MobyGames(parent_long_name)
-
-    return DEFAULT_PLAT_MOBYGAMES if scraper_platform is None else scraper_platform
 
 def AEL_platform_to_ScreenScraper(platform_long_name):
     if platform_long_name in platform_long_to_index_dic:
