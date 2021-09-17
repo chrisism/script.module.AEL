@@ -275,7 +275,7 @@ class RomScannerStrategy(ScannerStrategyABC):
             self.scanner_settings = wizard.runWizard(self.scanner_settings)
             if not self.scanner_settings: return False
         else:
-            self.edit()
+            if not self.edit(): return False
             if not kodi.dialog_yesno('Save scanner changes?'): return False
 
         # --- Call hook after wizard ---
@@ -283,17 +283,19 @@ class RomScannerStrategy(ScannerStrategyABC):
 
         return True
 
-    def edit(self):
+    def edit(self) -> bool:
         # Edit mode. Show options dialog
         edit_options = self._configure_get_edit_options()
+        if edit_options == None: return False
+
         edit_dialog = kodi.OrdDictionaryDialog()
         t = 'Edit {} settings'.format(self.get_name())
         selected_option = edit_dialog.select(t, edit_options)
         
-        if selected_option is None: return # short circuit
+        if selected_option is None: return True# short circuit
         
         selected_option() # execute
-        self.edit() # recursive call
+        return self.edit() # recursive call
         
     def scan(self):
                
@@ -429,6 +431,9 @@ class RomScannerStrategy(ScannerStrategyABC):
     @abc.abstractmethod
     def _configure_post_wizard_hook(self): return True
 
+    # ---------------------------------------------------------------------------------------------
+    # Execution methods
+    # --------------------------------------------------------------------------------------------- 
     # ~~~ Scan for new files (*.*) and put them in a list ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod
     def _getCandidates(self, launcher_report: report.Reporter) -> typing.List[ROMCandidateABC]:

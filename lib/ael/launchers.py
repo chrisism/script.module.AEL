@@ -127,24 +127,26 @@ class LauncherABC(object):
             self.launcher_args = wizard.runWizard(self.launcher_settings)
             if not self.launcher_settings: return False
         else:
-            self.edit()
+            if not self.edit(): return False
             if not kodi.dialog_yesno('Save launcher changes?'): return False
         
         # --- Call hook after wizard ---
         if not self._build_post_wizard_hook(): return False
         return True
 
-    def edit(self):
+    def edit(self) -> bool:
         # Edit mode. Show options dialog
         edit_options = self._builder_get_edit_options()
+        if edit_options == None: return False
+
         edit_dialog = kodi.OrdDictionaryDialog()
         t = 'Edit {} settings'.format(self.get_name())
         selected_option = edit_dialog.select(t, edit_options)
         
-        if selected_option is None: return # short circuit
+        if selected_option is None: return True # short circuit
         
         selected_option() # execute
-        self.edit() # recursive call
+        return self.edit() # recursive call
     #
     # Creates a new launcher using a wizard of dialogs.
     # Child concrete classes must implement this method.
