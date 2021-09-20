@@ -150,6 +150,16 @@ def dialog_yesno_timer(text, timer_ms = 30000, title = 'Advanced Emulator Launch
 def browse(type = 1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
     return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple,)
 
+def dialog_numeric(title:str, default:int = None):
+    if default is not None:
+        return xbmcgui.Dialog().numeric(heading=title, defaultt=str(default))
+    return xbmcgui.Dialog().numeric(heading=title)
+
+def dialog_ipaddr(title:str, default:int = None):
+    if default is not None:
+        return xbmcgui.Dialog().input(title, defaultt = default, type = xbmcgui.INPUT_IPADDRESS)
+    return xbmcgui.Dialog().numeric(heading=title, type = xbmcgui.INPUT_IPADDRESS)
+    
 # Show keyboard dialog for user input. Returns None if not confirmed.
 def dialog_keyboard(title, text='') -> str:
     keyboard = xbmc.Keyboard(text, title)
