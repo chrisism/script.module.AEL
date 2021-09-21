@@ -26,7 +26,6 @@ DAT_NOINTRO  = 'No-Intro'
 DAT_REDUMP   = 'Redump'
 DAT_LIBRETRO = 'Libretro'
 DAT_NONE     = None
-DEFAULT_PLAT_SCREENSCRAPER = '0'
 DEFAULT_PLAT_GAMEFAQS      = '0'
 PLATFORM_MAME_LONG    = 'MAME'
 PLATFORM_MAME_SHORT   = 'arcade-mame'
@@ -242,7 +241,6 @@ AEL_platforms = [
     Platform('Microsoft MSX2', 'microsoft-msx2', 'msx2', None, '4929', '57', '116', '40',
         DAT_NOINTRO, 'Microsoft - MSX2'),
     # Modern versions of Windows.
-    Platform('Microsoft Windows', 'microsoft-windows', 'windows', None, None, None, None, None, DAT_NONE),
     # MobyGames differentiates Windows = '3' and Windows 3.x = '5'
     Platform('Microsoft Windows', 'microsoft-windows', 'windows', None, '1', '3', '136', '19', DAT_NONE,
               default_box_size=constants.BOX_SIZE_STEAM),
@@ -512,19 +510,6 @@ def get_AEL_platform(platform_long) -> Platform:
 def get_AEL_platform_by_compact(platform_compact) -> Platform:
     idx = platform_compact_to_index_dic[platform_compact]
     return AEL_platforms[idx]
-
-def AEL_platform_to_ScreenScraper(platform_long_name):
-    if platform_long_name in platform_long_to_index_dic:
-        pobj = AEL_platforms[platform_long_to_index_dic[platform_long_name]]
-    else:
-        return DEFAULT_PLAT_SCREENSCRAPER
-    scraper_platform = pobj.SS_plat
-    if pobj.aliasof is not None and scraper_platform is None:
-        parent_idx = platform_compact_to_index_dic[pobj.aliasof]
-        parent_long_name = AEL_platforms[parent_idx].long_name
-        return AEL_platform_to_ScreenScraper(parent_long_name)
-
-    return DEFAULT_PLAT_SCREENSCRAPER if scraper_platform is None else scraper_platform
 
 # Platform '0' means all platforms in GameFAQs.
 def AEL_platform_to_GameFAQs(platform_long_name):

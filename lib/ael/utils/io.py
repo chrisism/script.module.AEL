@@ -42,6 +42,8 @@ import sys
 import os
 import shutil
 import typing
+import zlib
+import hashlib
 
 # Python 3
 from urllib.parse import urlparse
@@ -723,3 +725,78 @@ def parse_to_json_arg(obj) -> str:
     arg = arg.replace('\\', '\\\\') #double encoding
     return arg
 
+#
+# Calculates CRC, MD5 and SHA1 of a file in an efficient way.
+# Returns a dictionary with the checksums or None in case of error.
+#
+# https://stackoverflow.com/questions/519633/lazy-method-for-reading-big-file-in-python
+# https://stackoverflow.com/questions/1742866/compute-crc-of-file-in-python 
+#
+def misc_calculate_checksums(full_file_path):
+    if full_file_path is None:
+        logger.debug('No checksum to complete')
+        return None
+    
+    logger.debug('Computing checksums "{}"'.format(full_file_path))
+    try:
+        f = open(full_file_path, 'rb')
+        crc_prev = 0
+        md5 = hashlib.md5()
+        sha1 = hashlib.sha1()
+        for piece in misc_read_file_in_chunks(f):
+            crc_prev = zlib.crc32(piece, crc_prev)
+            md5.update(piece)
+            sha1.update(piece)
+        crc_digest = '{:08X}'.format(crc_prev & 0xFFFFFFFF)
+        md5_digest = md5.hexdigest()
+        sha1_digest = sha1.hexdigest()
+        size = os.path.getsize(full_file_path)
+    except:
+        logger.debug('(Exception) In misc_calculate_checksums()')
+        logger.debug('Returning None')
+        return None
+    checksums = {
+        'crc'  : crc_digest.upper(),
+        'md5'  : md5_digest.upper(),
+        'sha1' : sha1_digest.upper(),
+        'size' : size,
+    }
+
+    return checksums
+
+def misc_calculate_stream_checksums(file_bytes):
+    logger.debug('Computing checksums of bytes stream...'.format(len(file_bytes)))
+    crc_prev = 0
+    md5 = hashlib.md5()
+    sha1 = hashlib.sha1()
+    # Process bytes stream block by block
+    # for piece in misc_read_bytes_in_chunks(file_bytes):
+    #     crc_prev = zlib.crc32(piece, crc_prev)
+    #     md5.update(piece)
+    #     sha1.update(piece)
+    # Process bytes in one go
+    crc_prev = zlib.crc32(file_bytes, crc_prev)
+    md5.update(file_bytes)
+    sha1.update(file_bytes)
+    crc_digest = '{:08X}'.format(crc_prev & 0xFFFFFFFF)
+    md5_digest = md5.hexdigest()
+    sha1_digest = sha1.hexdigest()
+    size = len(file_bytes)
+
+    checksums = {
+        'crc'  : crc_digest.upper(),
+        'md5'  : md5_digest.upper(),
+        'sha1' : sha1_digest.upper(),
+        'size' : size,
+    }
+
+    return checksums
+
+#
+# Lazy function (generator) to read a file piece by piece. Default chunk size: 8k.
+#
+def misc_read_file_in_chunks(file_object, chunk_size = 8192):
+    while True:
+        data = file_object.read(chunk_size)
+        if not data: break
+        yield data
