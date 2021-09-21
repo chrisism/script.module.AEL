@@ -732,14 +732,14 @@ def parse_to_json_arg(obj) -> str:
 # https://stackoverflow.com/questions/519633/lazy-method-for-reading-big-file-in-python
 # https://stackoverflow.com/questions/1742866/compute-crc-of-file-in-python 
 #
-def misc_calculate_checksums(full_file_path):
+def misc_calculate_checksums(full_file_path: FileName):
     if full_file_path is None:
         logger.debug('No checksum to complete')
         return None
     
-    logger.debug('Computing checksums "{}"'.format(full_file_path))
+    logger.debug('Computing checksums "{}"'.format(full_file_path.getPath()))
     try:
-        f = open(full_file_path, 'rb')
+        f = full_file_path.open('rb')
         crc_prev = 0
         md5 = hashlib.md5()
         sha1 = hashlib.sha1()
@@ -750,8 +750,10 @@ def misc_calculate_checksums(full_file_path):
         crc_digest = '{:08X}'.format(crc_prev & 0xFFFFFFFF)
         md5_digest = md5.hexdigest()
         sha1_digest = sha1.hexdigest()
-        size = os.path.getsize(full_file_path)
-    except:
+        size = full_file_path.stat().st_size()
+        #os.path.getsize(full_file_path)
+    except Exception as ex:
+        logger.fatal('Exception in plugin', exc_info=ex)
         logger.debug('(Exception) In misc_calculate_checksums()')
         logger.debug('Returning None')
         return None

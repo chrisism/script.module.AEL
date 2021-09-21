@@ -974,6 +974,10 @@ class ScrapeStrategy(object):
             duplicates.append(path_str)
 
     def store_scraped_rom(self, scraper_id: str, rom_id: str, rom: ROMObj):
+        if rom is None: 
+            logger.warn('Skipping store action. No ROM data provided.')
+            return
+        
         post_data = {
             'rom_id': rom_id,
             'ael_addon_id': scraper_id,
