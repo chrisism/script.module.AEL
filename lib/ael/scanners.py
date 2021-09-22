@@ -286,7 +286,9 @@ class RomScannerStrategy(ScannerStrategyABC):
     def edit(self) -> bool:
         # Edit mode. Show options dialog
         edit_options = self._configure_get_edit_options()
-        if edit_options == None: return False
+        if edit_options == None:
+            logger.debug('No edit options. Cancelling')
+            return False
 
         edit_dialog = kodi.OrdDictionaryDialog()
         t = 'Edit {} settings'.format(self.get_name())
