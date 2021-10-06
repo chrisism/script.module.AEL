@@ -127,7 +127,7 @@ class ScraperSettings(object):
         self.asset_IDs_to_scrape    = constants.ROM_ASSET_ID_LIST
         
         self.overwrite_existing     = False
-        self.ignore_scrap_title     = False
+        self.ignore_scrap_title     = True
         self.clean_tags             = False
         self.update_nfo_files       = False
         self.show_info_verbose      = False
@@ -143,6 +143,10 @@ class ScraperSettings(object):
         scraper_settings.scrape_assets_policy   = settings.getSettingAsInt('scrape_assets_policy')
         scraper_settings.game_selection_mode    = settings.getSettingAsInt('game_selection_mode')
         scraper_settings.asset_selection_mode   = settings.getSettingAsInt('asset_selection_mode')
+        
+        scraper_settings.ignore_scrap_title = settings.getSettingAsBool('scan_ignore_scrap_title')
+        scraper_settings.clean_tags         = settings.getSettingAsBool('scan_clean_tags')
+        scraper_settings.update_nfo_files   = settings.getSettingAsBool('scan_update_NFO_files')
         
         return scraper_settings       
         
