@@ -1,16 +1,17 @@
-import unittest, mock, os, sys, re
+import unittest, os
+from unittest.mock import patch, MagicMock
 
-from mock import *
-from mock import ANY
-from fakes import FakeFile, FakeScraper
-import xml.etree.ElementTree as ET
+import logging
+import random
 
-from resources.utils import *
-from resources.net_IO import *
-from resources.scrap import *
-from resources.objects import *
-from resources.constants import *        
-        
+from lib.ael.api import ROMObj
+from lib.ael.utils import io
+from lib.ael.scrapers import Null_Scraper, ScrapeStrategy, ScraperSettings
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
+                datefmt = '%m/%d/%Y %I:%M:%S %p', level = logging.INFO) 
+
 class Test_clean_title_scraper(unittest.TestCase):
     
     ROOT_DIR = ''
@@ -19,46 +20,36 @@ class Test_clean_title_scraper(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        set_log_level(LOG_DEBUG)
-        
         cls.TEST_DIR = os.path.dirname(os.path.abspath(__file__))
         cls.ROOT_DIR = os.path.abspath(os.path.join(cls.TEST_DIR, os.pardir))
         cls.TEST_ASSETS_DIR = os.path.abspath(os.path.join(cls.TEST_DIR,'assets/'))
                 
-        print('ROOT DIR: {}'.format(cls.ROOT_DIR))
-        print('TEST DIR: {}'.format(cls.TEST_DIR))
-        print('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
-        print('---------------------------------------------------------------------------')
+        logger.info('ROOT DIR: {}'.format(cls.ROOT_DIR))
+        logger.info('TEST DIR: {}'.format(cls.TEST_DIR))
+        logger.info('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
+        logger.info('---------------------------------------------------------------------------')
 
-
-    def get_test_settings(self):
-        settings = {}
-        settings['scan_metadata_policy'] = 3 # OnlineScraper only
-        settings['scan_asset_policy'] = 0
-        settings['metadata_scraper_mode'] = 1
-        settings['asset_scraper_mode'] = 1
-        settings['scan_clean_tags'] = True
-        settings['scan_ignore_scrap_title'] = False
-        settings['scraper_metadata'] = 0 # NullScraper
-        settings['mobygames_apikey'] = 'abc123'
-        settings['escape_romfile'] = False
-
-        return settings
-
-    def test_scraping_metadata_for_game(self):
+    @patch('lib.ael.scrapers.api.client_get_rom')
+    def test_scraping_metadata_for_game(self, api: MagicMock):
         
         # arrange
-        settings = self.get_test_settings()
-        paths = Fake_Paths('\\fake\\')
+        settings = ScraperSettings()
+        settings.scrape_metadata_policy = 3
+        settings.clean_tags = True
         
-        fakeBase = 'castlevania [ROM] (test) v2'                
-        target = ScrapeStrategy(paths,settings)
+        fakeFilePath = '\\fake\\castlevania [ROM] (test) v2.rom'
+        fakeId = str(random.random())
+        subject = ROMObj()
+        subject.set_file(io.FileName(fakeFilePath))
+        api.return_value = subject
+            
+        target = ScrapeStrategy('', 0, settings, Null_Scraper(), MagicMock())
                 
         # act
-        actual = target.process_ROM_metadata()
+        actual = target.process_single_rom(fakeId)
                 
         # assert
-        self.assertTrue(actual)
-        self.assertEqual(u'castlevania v2', actual['title'])
+        self.assertIsNotNone(actual)
+        self.assertEqual(u'castlevania v2', actual.get_name())
         print(actual)
         
