@@ -1,14 +1,14 @@
-import sys
 import unittest, os
-import unittest.mock
-from mock import patch
+from unittest.mock import patch, MagicMock, call
 
 import logging
-from lib.ael.utils import *
+
+from fakes import FakeClass
+from lib.ael.utils import kodi
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
-                datefmt = '%m/%d/%Y %I:%M:%S %p', level = logging.INFO)
+                datefmt = '%m/%d/%Y %I:%M:%S %p', level = logging.DEBUG) 
 
 class Test_utils_kodi_tests(unittest.TestCase):
     
@@ -30,23 +30,23 @@ class Test_utils_kodi_tests(unittest.TestCase):
 
     def test_building_a_wizards_works(self):
         
-        page1 = WizardDialog_Keyboard(None, 'x', 'abc')
-        page2 = WizardDialog_Selection(page1, 'x2',['aa'], 'abc2')
-        page3 = WizardDialog_Keyboard(page2, 'x3', 'abc3')
+        page1 = kodi.WizardDialog_Keyboard(None, 'x', 'abc')
+        page2 = kodi.WizardDialog_Selection(page1, 'x2',['aa'], 'abc2')
+        page3 = kodi.WizardDialog_Keyboard(page2, 'x3', 'abc3')
 
         props = {}
 
         page3.runWizard(props)
         
-    @patch('resources.utils.xbmc.Keyboard', autospec=True)     
-    def test_starting_wizard_calls_pages_in_right_order(self, mock_keyboard): 
+    @patch('lib.ael.utils.kodi.xbmc.Keyboard', autospec=True)     
+    def test_starting_wizard_calls_pages_in_right_order(self, mock_keyboard:MagicMock): 
         
         # arrange
         mock_keyboard.getText().return_value = 'test'
 
-        wizard = WizardDialog_Keyboard(None, 'x1', 'expected1')
-        wizard = WizardDialog_Keyboard(wizard, 'x2', 'expected2')
-        wizard = WizardDialog_Keyboard(wizard, 'x3', 'expected3')
+        wizard = kodi.WizardDialog_Keyboard(None, 'x1', 'expected1')
+        wizard = kodi.WizardDialog_Keyboard(wizard, 'x2', 'expected2')
+        wizard = kodi.WizardDialog_Keyboard(wizard, 'x3', 'expected3')
 
         props = {}
 
@@ -60,15 +60,15 @@ class Test_utils_kodi_tests(unittest.TestCase):
         self.assertEqual(call('','expected2'), calls[1])
         self.assertEqual(call('','expected3'), calls[2])
 
-    @patch('resources.utils.xbmc.Keyboard.getText', autospec=True)     
-    def test_when_i_give_the_wizardpage_a_custom_function_it_calls_it_as_expected(self, mock_keyboard): 
+    @patch('lib.ael.utils.kodi.xbmc.Keyboard.getText', autospec=True)     
+    def test_when_i_give_the_wizardpage_a_custom_function_it_calls_it_as_expected(self, mock_keyboard:MagicMock): 
         
         # arrange
         mock_keyboard.return_value = 'expected'
         fake = FakeClass()
 
         props = {}
-        page1 = WizardDialog_Keyboard(None, 'key','title1', fake.FakeMethod)
+        page1 = kodi.WizardDialog_Keyboard(None, 'key','title1', fake.FakeMethod)
 
         # act
         page1.runWizard(props)
@@ -76,11 +76,11 @@ class Test_utils_kodi_tests(unittest.TestCase):
         # assert
         self.assertEqual('expected', fake.value)
                 
-    @patch('resources.utils.xbmcgui.Dialog.select', autospec=True)
-    def test_when_using_dictionary_select_dialog_it_gives_me_the_correct_result(self, mocked_dialog):
+    @patch('lib.ael.utils.kodi.xbmcgui.Dialog.select', autospec=True)
+    def test_when_using_dictionary_select_dialog_it_gives_me_the_correct_result(self, mocked_dialog:MagicMock):
 
         # arrange
-        dialog = KodiOrdDictionaryDialog()
+        dialog = kodi.OrdDictionaryDialog()
 
         options = {}
         options['10'] = 'A'
@@ -88,7 +88,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
         options['30'] = 'C'
 
         expected = '20'
-        mocked_dialog.return_value = 2
+        mocked_dialog.return_value = 1
 
         # act
         actual = dialog.select('mytitle', options)
@@ -101,7 +101,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
 
         # arrange
         expected = 'expected'
-        target = WizardDialog_Dummy(None, 'actual', expected, None, lambda p1, p2: True)
+        target = kodi.WizardDialog_Dummy(None, 'actual', expected, None, lambda p1, p2: True)
         props = {}
 
         # act

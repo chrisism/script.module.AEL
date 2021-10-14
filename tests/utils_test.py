@@ -1,10 +1,12 @@
-import unittest, mock, os, sys
-from mock import *
+import unittest, os
 
-import xbmcaddon, xbmc
+import logging
 
-from resources.utils import *
-from resources.constants import *
+from lib.ael.utils import text, io
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
+                datefmt = '%m/%d/%Y %I:%M:%S %p', level = logging.DEBUG) 
 
 class Test_utilstests(unittest.TestCase):
     
@@ -13,9 +15,7 @@ class Test_utilstests(unittest.TestCase):
     TEST_ASSETS_DIR = ''
 
     @classmethod
-    def setUpClass(cls):
-        set_log_level(LOG_DEBUG)
-        
+    def setUpClass(cls):        
         cls.TEST_DIR = os.path.dirname(os.path.abspath(__file__))
         cls.ROOT_DIR = os.path.abspath(os.path.join(cls.TEST_DIR, os.pardir))
         cls.TEST_ASSETS_DIR = os.path.abspath(os.path.join(cls.TEST_DIR,'assets/'))
@@ -29,10 +29,10 @@ class Test_utilstests(unittest.TestCase):
 
         # arrange
         url = 'http://wwww.somesite.com/with/somepicture.jpg'
-        expected = '.jpg'
+        expected = 'jpg'
 
         # act
-        actual = text_get_URL_extension(url)
+        actual = io.get_URL_extension(url)
 
         # assert
         self.assertEqual(expected, actual)
@@ -45,7 +45,7 @@ class Test_utilstests(unittest.TestCase):
         expected = ''
 
         # act
-        actual = text_get_URL_extension(url)
+        actual = io.get_URL_extension(url)
 
         # assert
         self.assertEqual(expected, actual)
@@ -54,10 +54,10 @@ class Test_utilstests(unittest.TestCase):
 
         # arrange
         url = 'http://wwww.somesite.com/with/somepicture.png'
-        expected = '.png'
+        expected = 'png'
 
         # act
-        actual = text_get_image_URL_extension(url)
+        actual = io.get_image_URL_extension(url)
 
         # assert
         self.assertEqual(expected, actual)
@@ -66,10 +66,10 @@ class Test_utilstests(unittest.TestCase):
 
         # arrange
         url = 'http://wwww.somesite.com/with/somepicture'
-        expected = '.jpg'
+        expected = 'jpg'
 
         # act
-        actual = text_get_image_URL_extension(url)
+        actual = io.get_image_URL_extension(url)
 
         # assert
         self.assertEqual(expected, actual)

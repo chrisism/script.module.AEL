@@ -235,16 +235,16 @@ class WebBrowserExecutor(ExecutorABC):
         logger.debug('WebBrowserExecutor::execute() function ENDS')
 
 class ExecutorSettings(object):
-    show_batch_window: False
-    lirc_state: False
-    windows_cd_apppath: False
-    windows_close_fds: False
+    show_batch_window = False
+    lirc_state = False
+    windows_cd_apppath = False
+    windows_close_fds = False
 
 class ExecutorFactoryABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def create(self, application_str: str, launcher_settings: dict) -> ExecutorABC: pass
+    def create(self, application_str: str) -> ExecutorABC: pass
 
 # -------------------------------------------------------------------------------------------------
 # Abstract Factory Pattern
@@ -256,7 +256,7 @@ class ExecutorFactory(ExecutorFactoryABC):
         self.logFile  = reportFilePath
         super(ExecutorFactory).__init__()
 
-    def create(self, application_str: str, launcher_settings: dict) -> ExecutorABC:
+    def create(self, application_str: str) -> ExecutorABC:
         
         application = io.FileName(application_str)
         if application.getBase().lower().replace('.exe' , '') == 'xbmc' \

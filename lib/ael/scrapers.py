@@ -953,7 +953,7 @@ class ScrapeStrategy(object):
             asset_path = rom.get_asset_path(asset_info_id)
             if asset_path is None:
                 local_assets[asset_info_id] = None
-                logger.warn('_get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_basename_noext, asset_info_id))
+                logger.warning('_get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_basename_noext, asset_info_id))
             else:
                 local_asset = io.misc_search_file_cache(asset_path, rom_basename_noext, search_exts)
                 if local_asset:
@@ -979,7 +979,7 @@ class ScrapeStrategy(object):
 
     def store_scraped_rom(self, scraper_id: str, rom_id: str, rom: ROMObj):
         if rom is None: 
-            logger.warn('Skipping store action. No ROM data provided.')
+            logger.warning('Skipping store action. No ROM data provided.')
             return
         
         post_data = {
@@ -1607,7 +1607,7 @@ class Null_Scraper(Scraper):
     def get_candidates(self, search_term, rom_FN, rom_checksums_FN, platform, status_dic): return []
 
     # Null scraper never returns valid scraped metadata.
-    def get_metadata(self, status_dic): return self._new_gamedata_dic()
+    def get_metadata(self, status_dic) -> dict: return self._new_gamedata_dic()
 
     def get_assets(self, asset_info_id, status_dic): return []
 

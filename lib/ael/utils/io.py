@@ -630,6 +630,7 @@ def is_linux():
 def get_URL_extension(url) -> str:
     path = urlparse(url).path
     ext = os.path.splitext(path)[1]
+    if len(ext) == 0: return ext
     if ext[0] == '.': ext = ext[1:] # Remove initial dot
 
     return ext
@@ -640,6 +641,7 @@ def get_URL_extension(url) -> str:
 def get_image_URL_extension(url) -> str:
     path = urlparse(url).path
     ext = os.path.splitext(path)[1]
+    if len(ext) == 0: return 'jpg'
     if ext[0] == '.': ext = ext[1:] # Remove initial dot
     ret = 'jpg' if ext == '' else ext
 

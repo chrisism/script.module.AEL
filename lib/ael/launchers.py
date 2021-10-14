@@ -241,7 +241,7 @@ class LauncherABC(object):
                               'This is a bug, please report it.')
             return
         
-        executor = self.executorFactory.create(application, self.launcher_settings)
+        executor = self.executorFactory.create(application)
         
         if executor is None:
             logger.error('Cannot create an executor for {}'.format(name))
