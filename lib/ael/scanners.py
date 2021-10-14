@@ -149,7 +149,7 @@ class ScannerStrategyABC(object):
   
     def amount_of_dead_roms(self) -> int:
         return len(self.marked_dead_roms)
-
+    
     #
     # Configure this scanner.
     #
