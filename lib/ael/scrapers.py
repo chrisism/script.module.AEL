@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import logging
 import typing
-import collections
 import abc
 import time
 from datetime import datetime
@@ -127,7 +126,7 @@ class ScraperSettings(object):
         self.asset_IDs_to_scrape    = constants.ROM_ASSET_ID_LIST
         
         self.overwrite_existing     = False
-        self.ignore_scrap_title     = True
+        self.ignore_scrap_title     = False
         self.clean_tags             = False
         self.update_nfo_files       = False
         self.show_info_verbose      = False
@@ -1042,14 +1041,8 @@ class Scraper(object):
     CACHE_LIST = [
         CACHE_CANDIDATES, CACHE_METADATA, CACHE_ASSETS, CACHE_INTERNAL,
     ]
-
-    # TODO MOVE TO TGDB Scrpaer
-    #GLOBAL_CACHE_TGDB_GENRES     = 'TGDB_genres'
-    #GLOBAL_CACHE_TGDB_DEVELOPERS = 'TGDB_developers'
-    #GLOBAL_CACHE_LIST = [
-    #    GLOBAL_CACHE_TGDB_GENRES, GLOBAL_CACHE_TGDB_DEVELOPERS,
-    #]
-
+    GLOBAL_CACHE_LIST = []
+    
     JSON_indent = 1
     JSON_separators = (',', ':')
 
@@ -1092,10 +1085,10 @@ class Scraper(object):
         self.global_disk_caches = {}
         self.global_disk_caches_loaded = {}
         self.global_disk_caches_dirty = {}
-        # for cache_name in Scraper.GLOBAL_CACHE_LIST:
-        #     self.global_disk_caches[cache_name] = {}
-        #     self.global_disk_caches_loaded[cache_name] = False
-        #     self.global_disk_caches_dirty[cache_name] = False
+        for cache_name in Scraper.GLOBAL_CACHE_LIST:
+            self.global_disk_caches[cache_name] = {}
+            self.global_disk_caches_loaded[cache_name] = False
+            self.global_disk_caches_dirty[cache_name] = False
 
     # --- Methods --------------------------------------------------------------------------------
     # Scraper is much more verbose (even more than AEL Debug level).
@@ -1521,7 +1514,7 @@ class Scraper(object):
     # --- Private global disk caches -------------------------------------------------------------
     def _get_global_file_name(self, cache_type):
         json_fname = cache_type + '.json'
-        json_full_path = os.path.join(self.scraper_cache_dir, json_fname).decode('utf-8')
+        json_full_path = os.path.join(self.scraper_cache_dir, json_fname)
 
         return json_full_path, json_fname
 
