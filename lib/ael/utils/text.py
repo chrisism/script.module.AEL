@@ -316,3 +316,128 @@ class VersionNumber(object):
 
     def getBuild(self):
         return int(self.versionNumber[2])
+    
+##################################################################################
+# Tables & CSV
+##################################################################################
+# Renders a list of list of strings table into a CSV list of strings.
+# The list of strings must be joined with '\n'.join()
+def render_table_CSV_slist(table_str):
+    rows = len(table_str)
+    cols = len(table_str[0])
+    table_str_list = []
+    for i in range(1, rows):
+        row_str = ''
+        for j in range(cols):
+            if j < cols - 1:
+                row_str += '{},'.format(table_str[i][j])
+            else:
+                row_str += '{}'.format(table_str[i][j])
+        table_str_list.append(row_str)
+
+    return table_str_list
+
+#
+# First row            column aligment 'right' or 'left'
+# Second row           column titles
+# Third and next rows  table data
+#
+# Returns a list of strings that must be joined with '\n'.join()
+#
+def render_table_str(table_str):
+    rows = len(table_str)
+    cols = len(table_str[0])
+    table_str_list = []
+    col_sizes = get_table_str_col_sizes(table_str, rows, cols)
+    col_padding = table_str[0]
+
+    # --- Table header ---
+    row_str = ''
+    for j in range(cols):
+        if j < cols - 1:
+            row_str += print_padded_left(table_str[1][j], col_sizes[j]) + '  '
+        else:
+            row_str += print_padded_left(table_str[1][j], col_sizes[j])
+    table_str_list.append(row_str)
+    # >> Table -----
+    total_size = sum(col_sizes) + 2*(cols-1)
+    table_str_list.append('{0}'.format('-' * total_size))
+
+    # --- Data rows ---
+    for i in range(2, rows):
+        row_str = ''
+        for j in range(cols):
+            if j < cols - 1:
+                if col_padding[j] == 'right':
+                    row_str += print_padded_right(table_str[i][j], col_sizes[j]) + '  '
+                else:
+                    row_str += print_padded_left(table_str[i][j], col_sizes[j]) + '  '
+            else:
+                if col_padding[j] == 'right':
+                    row_str += print_padded_right(table_str[i][j], col_sizes[j])
+                else:
+                    row_str += print_padded_left(table_str[i][j], col_sizes[j])
+        table_str_list.append(row_str)
+
+    return table_str_list
+
+#
+# First row             column aligment 'right' or 'left'
+# Second and next rows  table data
+#
+def render_table_str_NO_HEADER(table_str):
+    rows = len(table_str)
+    cols = len(table_str[0])
+    table_str_list = []
+    # >> Ignore row 0 when computing sizes.
+    col_sizes = get_table_str_col_sizes(table_str, rows, cols)
+    col_padding = table_str[0]
+
+    # --- Data rows ---
+    for i in range(1, rows):
+        row_str = ''
+        for j in range(cols):
+            if j < cols - 1:
+                if col_padding[j] == 'right':
+                    row_str += print_padded_right(table_str[i][j], col_sizes[j]) + '  '
+                else:
+                    row_str += print_padded_left(table_str[i][j], col_sizes[j]) + '  '
+            else:
+                if col_padding[j] == 'right':
+                    row_str += print_padded_right(table_str[i][j], col_sizes[j])
+                else:
+                    row_str += print_padded_left(table_str[i][j], col_sizes[j])
+        table_str_list.append(row_str)
+
+    return table_str_list
+
+def print_padded_left(str, str_max_size):
+    formatted_str = '{0}'.format(str)
+    padded_str =  formatted_str + ' ' * (str_max_size - len(formatted_str))
+
+    return padded_str
+
+def print_padded_right(str, str_max_size):
+    formatted_str = '{0}'.format(str)
+    padded_str = ' ' * (str_max_size - len(formatted_str)) + formatted_str
+
+    return padded_str
+
+#
+# Removed Kodi colour tags before computing size (substitute by ''):
+#   A) [COLOR skyblue]
+#   B) [/COLOR]
+#
+def get_table_str_col_sizes(table_str, rows, cols):
+    col_sizes = [0] * cols
+    for j in range(cols):
+        col_max_size = 0
+        for i in range(1, rows):
+            cell_str = re.sub(r'\[COLOR \w+?\]', '', table_str[i][j])
+            cell_str = re.sub(r'\[/COLOR\]', '', cell_str)
+            str_size = len('{0}'.format(cell_str))
+            if str_size > col_max_size: col_max_size = str_size
+        col_sizes[j] = col_max_size
+
+    return col_sizes
+    
