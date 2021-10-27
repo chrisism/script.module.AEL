@@ -55,3 +55,29 @@ class Test_clean_title_scraper(unittest.TestCase):
         self.assertEqual(u'castlevania v2', actual.get_name())
         logger.info(actual)
         
+    @patch('lib.ael.scrapers.api.client_get_rom')
+    def test_when_scraping_with_cleantitlescraper_it_will_give_the_correct_result(self, api: MagicMock):
+        
+        # arrange
+        settings = ScraperSettings()
+        settings.scrape_metadata_policy = constants.SCRAPE_POLICY_TITLE_ONLY
+        settings.scrape_assets_policy = constants.SCRAPE_ACTION_NONE
+        settings.clean_tags = True
+        
+        fakeFilePath = '/don/el_juan [DUMMY].zip'
+        fakeId = str(random.random())
+        subject = ROMObj()
+        subject.set_file(io.FileName(fakeFilePath))
+        api.return_value = subject
+            
+        expected = 'el_juan'
+        target = ScrapeStrategy('', 0, settings, Null_Scraper(), MagicMock())                
+        
+        # act
+        actual = target.process_single_rom(fakeId)
+
+        # assert
+        self.assertIsNotNone(actual)
+        self.assertTrue(actual)
+
+        self.assertEqual(expected, actual.get_name())
