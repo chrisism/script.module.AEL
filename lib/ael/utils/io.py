@@ -357,7 +357,11 @@ class FileName:
 
         # open() is a built-in function.
         # See https://docs.python.org/3/library/functions.html#open
-        self.fileHandle = open(self.path_tr, flags, encoding=encoding)
+        if flags and 'b' in flags:
+            self.fileHandle = open(self.path_tr, flags)
+        else: 
+            self.fileHandle = open(self.path_tr, flags, encoding=encoding)
+            
         return self.fileHandle
 
     def close_python(self):
@@ -505,11 +509,10 @@ class FileName:
             logger.debug('FileName::loadFileToStr() Loading path_str "{0}"'.format(self.path_str))
             logger.debug('FileName::loadFileToStr() Loading path_tr  "{0}"'.format(self.path_tr))
 
-        data = data_str if encoding == 'utf-8' else data_str.encode(encoding)
         # --- Catch exceptions in the FilaName class ---
         try:
-            self.open('w')
-            self.write(data)
+            self.open('w', encoding)
+            self.write(data_str)
             self.close()
         except OSError:
             logger.error('(OSError) Exception in saveStrToFile()')
@@ -752,7 +755,7 @@ def misc_calculate_checksums(full_file_path: FileName):
         crc_digest = '{:08X}'.format(crc_prev & 0xFFFFFFFF)
         md5_digest = md5.hexdigest()
         sha1_digest = sha1.hexdigest()
-        size = full_file_path.stat().st_size()
+        size = full_file_path.stat().st_size
         #os.path.getsize(full_file_path)
     except Exception as ex:
         logger.fatal('Exception in plugin', exc_info=ex)

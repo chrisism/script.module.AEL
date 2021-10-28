@@ -135,6 +135,9 @@ def notify_error(text, title = 'Advanced Emulator Launcher error', time = 7000):
 #
 def dialog_OK(text, title = 'Advanced Emulator Launcher'):
     xbmcgui.Dialog().ok(title, text)
+    
+def dialog_OK_timer(text, timer_ms = 30000, title = 'Advanced Emulator Launcher'):
+    xbmcgui.Dialog().ok(title, text, autoclose = timer_ms)
 
 # Returns True is YES was pressed, returns False if NO was pressed or dialog canceled.
 def dialog_yesno(text, title = 'Advanced Emulator Launcher'):

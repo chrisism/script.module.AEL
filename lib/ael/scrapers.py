@@ -651,7 +651,7 @@ class ScrapeStrategy(object):
                 self.pdialog.close()
                 # Close error message dialog automatically 1 minute to keep scanning.
                 # kodi_dialog_OK(status_dic['msg'])
-                kodi.dialog_yesno_timer(status_dic['msg'], 60000)
+                kodi.dialog_OK_timer(status_dic['msg'], 60000)
                 status_dic = kodi.new_status_dic('No error')
                 self.pdialog.reopen()
             # * If candidates is None some kind of error/exception happened.
@@ -730,7 +730,7 @@ class ScrapeStrategy(object):
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_yesno_timer(status_dic['msg'], 60000)
+            kodi.dialog_OK_timer(status_dic['msg'], 60000)
             self.pdialog.reopen()
             return
         scraper_applied = self._apply_candidate_on_metadata(game_data, rom)
@@ -783,7 +783,7 @@ class ScrapeStrategy(object):
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_yesno_timer(status_dic['msg'], 60000)
+            kodi.dialog_OK_timer(status_dic['msg'], 60000)
             status_dic = kodi.new_status_dic('No error')
             self.pdialog.reopen()
         if assetdata_list is None or not assetdata_list:
@@ -849,7 +849,7 @@ class ScrapeStrategy(object):
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_yesno_timer(status_dic['msg'], 60000)
+            kodi.dialog_OK_timer(status_dic['msg'], 60000)
             status_dic = kodi.new_status_dic('No error')
             self.pdialog.reopen()
         if image_url is None or not image_url:
@@ -865,7 +865,7 @@ class ScrapeStrategy(object):
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_yesno_timer(status_dic['msg'], 60000)
+            kodi.dialog_OK_timer(status_dic['msg'], 60000)
             status_dic = kodi.new_status_dic('No error')
             self.pdialog.reopen()
         if image_ext is None or not image_ext:
@@ -887,7 +887,7 @@ class ScrapeStrategy(object):
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_yesno_timer('Cannot download {} image (Timeout)'.format(asset_name), 60000)
+            kodi.dialog_OK_timer('Cannot download {} image (Timeout)'.format(asset_name), 60000)
             self.pdialog.reopen()
         
         # --- Update Kodi cache with downloaded image ---

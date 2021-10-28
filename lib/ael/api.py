@@ -77,44 +77,44 @@ def client_get_collection_scanner_settings(host: str, port:int, rom_collection_i
 
 def client_post_launcher_settings(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/launcher/'.format(host, port)
-    if VERBOSE: logger.debug(data)
+    if VERBOSE: logger.debug('POST REQUEST: {}'.format(data))
     response_data, code = net.post_JSON_URL(uri, data)
-    if VERBOSE: logger.debug(response_data)
+    if VERBOSE: logger.debug('RESPONSE: {}'.format(response_data))
     return code == 200
 
 def client_post_scanner_settings(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/scanner/'.format(host, port)
-    if VERBOSE: logger.debug(data)
+    if VERBOSE: logger.debug('POST REQUEST: {}'.format(data))
     response_data, code = net.post_JSON_URL(uri, data)
-    if VERBOSE: logger.debug(response_data)
+    if VERBOSE: logger.debug('RESPONSE: {}'.format(response_data))
     return code == 200
 
 def client_post_scanned_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/added'.format(host, port)
-    if VERBOSE: logger.debug(data)
+    if VERBOSE: logger.debug('POST REQUEST: {}'.format(data))
     response_data, code = net.post_JSON_URL(uri, data)
-    if VERBOSE: logger.debug(response_data)
+    if VERBOSE: logger.debug('RESPONSE: {}'.format(response_data))
     return code == 200
 
 def client_post_dead_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/dead'.format(host, port)
-    if VERBOSE: logger.debug(data)
+    if VERBOSE: logger.debug('POST REQUEST: {}'.format(data))
     response_data, code = net.post_JSON_URL(uri, data)
-    if VERBOSE: logger.debug(response_data)
+    if VERBOSE: logger.debug('RESPONSE: {}'.format(response_data))
     return code == 200
 
 def client_post_scraped_rom(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/rom/updated'.format(host, port)
-    if VERBOSE: logger.debug(data)
+    if VERBOSE: logger.debug('POST REQUEST: {}'.format(data))
     response_data, code = net.post_JSON_URL(uri, data)
-    if VERBOSE: logger.debug(response_data)
+    if VERBOSE: logger.debug('RESPONSE: {}'.format(response_data))
     return code == 200
 
 def client_post_scraped_roms(host: str, port:int, data: dict) -> bool:
     uri = 'http://{}:{}/store/roms/updated'.format(host, port)
-    if VERBOSE: logger.debug(data)
+    if VERBOSE: logger.debug('POST REQUEST: {}'.format(data))
     response_data, code = net.post_JSON_URL(uri, data)
-    if VERBOSE: logger.debug(response_data)
+    if VERBOSE: logger.debug('RESPONSE: {}'.format(response_data))
     return code == 200
 
 ###############################################################
@@ -260,12 +260,13 @@ class ROMObj(MetaDataObj):
         item_title     = xml_doc.find('title')
         item_year      = xml_doc.find('year')
         item_genre     = xml_doc.find('genre')
-        item_developer = xml_doc.find('developer')
         item_nplayers  = xml_doc.find('nplayers')
         item_esrb      = xml_doc.find('esrb')
         item_rating    = xml_doc.find('rating')
-        item_plot      = xml_doc.find('plot>')
+        item_plot      = xml_doc.find('plot')
         item_trailer   = xml_doc.find('trailer')
+        item_developer = xml_doc.find('developer')
+        if not item_developer: item_developer = xml_doc.find('publisher')
         
         if item_title is not None:     self.set_name(item_title.text)
         if item_year is not None:      self.set_releaseyear(item_year.text)
