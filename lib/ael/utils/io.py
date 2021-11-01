@@ -509,7 +509,7 @@ class FileName:
             logger.debug('FileName::loadFileToStr() Loading path_str "{0}"'.format(self.path_str))
             logger.debug('FileName::loadFileToStr() Loading path_tr  "{0}"'.format(self.path_tr))
 
-        # --- Catch exceptions in the FilaName class ---
+        # --- Catch exceptions in the FileName class ---
         try:
             self.open('w', encoding)
             self.write(data_str)
