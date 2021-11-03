@@ -1207,8 +1207,8 @@ class Scraper(object):
 
     # When the user decides to rescrape an item that was in the cache make sure all
     # the caches are purged.
-    def clear_cache(self, rom_FN:io.FileName, platform):
-        self.cache_key = rom_FN.getBase()
+    def clear_cache(self, rom_identifier: str, platform):
+        self.cache_key = rom_identifier
         self.platform = platform
         logger.debug('Scraper.clear_cache() Clearing caches "{}" "{}"'.format(
             self.cache_key, platform))

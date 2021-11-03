@@ -1,6 +1,6 @@
 {
     "name": "script.module.ael",
-    "version": "0.10.0",
+    "version": "0.10.1",
     "scripts": {
         "build": "addon build",
         "build-alpha": "addon versioning --semver prerelease --tag alpha && npm run build",
