@@ -204,6 +204,15 @@ class MetaDataObj(object):
     
 class ROMObj(MetaDataObj):
 
+    def get_identifier(self) -> str:
+        file = self.get_file()
+        name = self.get_name()
+        
+        if file: return file.getBaseNoExt()
+        if name: return name
+        
+        return 'ROM_{}'.format(self.get_id())
+
     def get_scanned_by(self) -> str:
         return self.entity_data['scanned_by_id'] if 'scanned_by_id' in self.entity_data else None
                    
