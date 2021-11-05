@@ -319,7 +319,7 @@ class ScrapeStrategy(object):
         for rom in roms:
             self.pdialog.updateProgress(num_items_checked)
             num_items_checked = num_items_checked + 1
-            ROM_name = rom.get_name()            
+            ROM_name = rom.get_identifier()            
             self.pdialog.updateMessage('Scraping ROM {}...'.format(ROM_name))
             try:
                 self._process_ROM(rom)
@@ -348,7 +348,7 @@ class ScrapeStrategy(object):
             logger.error('Failure while retrieving ROMs from collection', exc_info=ex)
             return
         
-        ROM_name = rom.get_name()            
+        ROM_name = rom.get_identifier()            
         msg = 'Scraping ROM {}...'.format(ROM_name)
         self.pdialog.startProgress(msg)
         self._cache_assets(rom.get_all_asset_paths())
@@ -382,7 +382,7 @@ class ScrapeStrategy(object):
         # set internally in the scraper object. Unless candidate selection was skipped for metadata.
         status_dic = kodi.new_status_dic('No error')
 
-        ROM_path = rom.get_file()
+        ROM_path = rom.get_scanned_data_element_as_file('file')
         if ROM_path:
             search_term = text.format_ROM_name_for_scraping(ROM_path.getBaseNoExt())
         else:
@@ -426,12 +426,12 @@ class ScrapeStrategy(object):
         if self.metadata_action == ScrapeStrategy.ACTION_META_TITLE_ONLY:
             if self.pdialog_verbose:
                 self.pdialog.updateMessage('Formatting ROM name...')
-            ROM_path = rom.get_file()
+            ROM_path = rom.get_scanned_data_element_as_file('file')
             if ROM_path:
                 rom.set_name(text.format_ROM_title(ROM_path.getBaseNoExt(), self.scraper_settings.clean_tags))
 
         elif self.metadata_action == ScrapeStrategy.ACTION_META_NFO_FILE:
-            ROM_path = rom.get_file()
+            ROM_path = rom.get_scanned_data_element_as_file('file')
             if ROM_path: 
                 NFO_file = io.FileName(ROM_path.getPathNoExt() + '.nfo')
             else:
@@ -506,8 +506,8 @@ class ScrapeStrategy(object):
             return
         
         # --- Determine metadata action ----------------------------------------------------------
-        # --- Test if NFO file exists ---        
-        ROM_path = rom.get_file()
+        # --- Test if NFO file exists ---  
+        ROM_path = rom.get_scanned_data_element_as_file('file')  
         if ROM_path: 
             self.NFO_file = io.FileName(ROM_path.getPathNoExt() + '.nfo')
         else:
@@ -726,7 +726,7 @@ class ScrapeStrategy(object):
         # --- If no candidates available just clean the ROM Title and return ---
         if not self.meta_scraper_obj.candidate:
             logger.debug('Medatada candidate is empty (no candidates found). Cleaning ROM name only.')
-            ROM_file = rom.get_file()
+            ROM_file = rom.get_scanned_data_element_as_file('file')
             if ROM_file:
                 rom.set_name(text.format_ROM_title(ROM_file.getBaseNoExt(), self.scraper_settings.clean_tags))
             # Update the empty NFO file to mark the ROM as scraped and avoid rescraping
@@ -893,7 +893,8 @@ class ScrapeStrategy(object):
         logger.debug('Into file "{}"'.format(image_local_path.getPath()))
         try:
             image_local_path = self.asset_scraper_obj.download_image(image_url, image_local_path)
-        except:
+        except Exception as ex:
+            logger.error('(Exception) In scraper.download_image.', ex)
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -921,7 +922,7 @@ class ScrapeStrategy(object):
         if not gamedata: return False
 
         # --- Put metadata into ROM/Launcher object ---
-        rom_file = rom.get_file()
+        rom_file = rom.get_scanned_data_element_as_file('file')
         if self.scraper_settings.ignore_scrap_title and rom_file:
             rom_name = text.format_ROM_title(rom_file.getBaseNoExt(), self.scraper_settings.clean_tags)
             rom.set_name(rom_name)
@@ -1459,7 +1460,7 @@ class Scraper(object):
     # This function is called when an exception in the scraper code happens.
     # All messages from the scrapers are KODI_MESSAGE_DIALOG.
     def _handle_exception(self, ex, status_dic, user_msg):
-        logger.error('(Exception) Object type "{}"'.format(type(ex)))
+        logger.error('(Exception) Object type "{}"'.format(type(ex)), ex)
         logger.error('(Exception) Message "{}"'.format(str(ex)))
         self._handle_error(status_dic, user_msg)
 

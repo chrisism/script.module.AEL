@@ -107,7 +107,7 @@ def download_img(img_url, file_path:io.FileName):
         logger.error('(IOError) Message "{0}"'.format(str(ex)))
         return
     except Exception as ex:
-        logger.error('(Exception) In download_img(), network code.')
+        logger.error('(Exception) In download_img(), network code.', ex)
         logger.error('(Exception) Object type "{}"'.format(type(ex)))
         logger.error('(Exception) Message "{0}"'.format(str(ex)))
         return
@@ -119,11 +119,11 @@ def download_img(img_url, file_path:io.FileName):
         f.write(img_buf)
         f.close()
     except IOError as ex:
-        logger.error('(IOError) In download_img(), disk code.')
+        logger.error('(IOError) In download_img(), disk code.', ex)
         logger.error('(IOError) Object type "{}"'.format(type(ex)))
         logger.error('(IOError) Message "{0}"'.format(str(ex)))
     except Exception as ex:
-        logger.error('(Exception) In download_img(), disk code.')
+        logger.error('(Exception) In download_img(), disk code.', ex)
         logger.error('(download_img) Object type "{}"'.format(type(ex)))
         logger.error('(Exception) Message "{0}"'.format(str(ex)))
 

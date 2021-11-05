@@ -281,7 +281,7 @@ class LauncherABC(object):
             
         # ROM based arguments replacements
         rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
-        rom_file = rom.get_file()
+        rom_file = rom.get_scanned_data_element_as_file('file')
         if rom_file:
             # --- Escape quotes and double quotes in ROMFileName ---
             # >> This maybe useful to Android users with complex command line arguments
