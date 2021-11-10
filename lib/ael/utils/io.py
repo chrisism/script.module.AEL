@@ -352,8 +352,9 @@ class FileName:
     # File low-level IO functions. Python Standard Library implementation
     # ---------------------------------------------------------------------------------------------
     def open_python(self, flags, encoding='utf-8'):
-        logger.debug('FileName::open_python() path_tr "{0}"'.format(self.path_tr))
-        logger.debug('FileName::open_python() flags   "{0}"'.format(flags))
+        if FILENAME_VERBOSE:
+            logger.debug('FileName::open_python() path_tr "{0}"'.format(self.path_tr))
+            logger.debug('FileName::open_python() flags   "{0}"'.format(flags))
 
         # open() is a built-in function.
         # See https://docs.python.org/3/library/functions.html#open
@@ -389,8 +390,9 @@ class FileName:
     # Kodi VFS documentation in https://alwinesch.github.io/group__python__xbmcvfs.html
     # ---------------------------------------------------------------------------------------------
     def open_kodivfs(self, flags, encoding='utf-8'):
-        logger.debug('FileName::open_kodivfs() path_tr "{0}"'.format(self.path_tr))
-        logger.debug('FileName::open_kodivfs() flags   "{0}"'.format(flags))
+        if FILENAME_VERBOSE:
+            logger.debug('FileName::open_kodivfs() path_tr "{0}"'.format(self.path_tr))
+            logger.debug('FileName::open_kodivfs() flags   "{0}"'.format(flags))
 
         self.fileHandle = xbmcvfs.File(self.path_tr, flags)
         return self.fileHandle
