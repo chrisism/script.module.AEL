@@ -170,6 +170,31 @@ def dialog_keyboard(title, text='') -> str:
     if not keyboard.isConfirmed(): return None
     return keyboard.getText()
 
+# Returns a directory. See https://codedocs.xyz/AlwinEsch/kodi
+#
+# This supports directories, files, images and writable directories.
+# xbmcgui.Dialog().browse(type, heading, shares[, mask, useThumbs, treatAsFolder, defaultt, enableMultiple])
+#
+# This supports files and images only.
+# xbmcgui.Dialog().browseMultiple(type, heading, shares[, mask, useThumbs, treatAsFolder, defaultt])
+# 
+# This supports directories, files, images and writable directories.
+# xbmcgui.Dialog().browseSingle(type, heading, shares[, mask, useThumbs, treatAsFolder, defaultt])
+#
+# shares   string or unicode - from sources.xml
+# "files"  list file sources (added through filemanager)
+# "local"  list local drives
+# ""       list local drives and network shares
+
+# Returns a directory.
+def dialog_get_directory(d_heading, d_dir = ''):
+    if d_dir:
+        ret = xbmcgui.Dialog().browse(0, d_heading, '', defaultt = d_dir)
+    else:
+        ret =  xbmcgui.Dialog().browse(0, d_heading, '')
+
+    return ret
+
 def refresh_container():
     logger.debug('kodi_refresh_container()')
     xbmc.executebuiltin('Container.Refresh')
