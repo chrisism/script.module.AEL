@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 
 import logging
 import random
+import re
 
 from lib.ael.api import ROMObj
 from lib.ael.utils import io
@@ -41,8 +42,9 @@ class Test_clean_title_scraper(unittest.TestCase):
                 
         fakeFilePath = '\\fake\\castlevania [ROM] (test) v2.rom'
         fakeId = str(random.random())
-        subject = ROMObj()
-        subject.set_file(io.FileName(fakeFilePath))
+        subject = ROMObj({
+          'scanned_data': { 'file': fakeFilePath}
+        })
         api.return_value = subject
             
         target = ScrapeStrategy('', 0, settings, Null_Scraper(), MagicMock())
@@ -66,8 +68,9 @@ class Test_clean_title_scraper(unittest.TestCase):
         
         fakeFilePath = '/don/el_juan [DUMMY].zip'
         fakeId = str(random.random())
-        subject = ROMObj()
-        subject.set_file(io.FileName(fakeFilePath))
+        subject = ROMObj({
+          'scanned_data': { 'file': fakeFilePath}
+        })
         api.return_value = subject
             
         expected = 'el_juan'
@@ -80,4 +83,37 @@ class Test_clean_title_scraper(unittest.TestCase):
         self.assertIsNotNone(actual)
         self.assertTrue(actual)
 
-        self.assertEqual(expected, actual.get_name())
+        self.assertEqual(expected, actual.get_name())        
+        
+    ROM_title_list = {
+      '[BIOS] CX4 (World)':                                       '[BIOS] CX4',
+      '[BIOS] CX4':                                               '[BIOS] CX4',
+      "'96 Zenkoku Koukou Soccer Senshuken (Japan)":              "'96 Zenkoku Koukou Soccer Senshuken",
+      'Super Mario World (Europe) (Rev 1)':                       'Super Mario World',
+      'Super Mario World - Super Mario Bros. 4 (Japan)':          'Super Mario World - Super Mario Bros. 4',
+      "Super Mario World 2 - Yoshi's Island (Europe) (En,Fr,De)": "Super Mario World 2 - Yoshi's Island",
+      "Super Mario World 2 - Yoshi's Island":                     "Super Mario World 2 - Yoshi's Island"
+    }
+      
+    def test_rom_title_formatting(self):
+      #
+      # Regexp to decompose a string in tokens
+      #
+      reg_exp = '\[.+?\]\s?|\(.+?\)\s?|\{.+?\}|[^\[\(\{]+'
+      for ROM_filename, expected in Test_clean_title_scraper.ROM_title_list.items():
+          tokens = re.findall(reg_exp, ROM_filename)
+          print('---------> "{0}"'.format(ROM_filename))
+          for i, token in enumerate(tokens): print('Token {0} -> "{1}"'.format(i, token.strip()))
+
+          str_list = []
+          for token in tokens:
+              stripped_token = token.strip()
+              if (stripped_token[0] == '[' or stripped_token[0] == '(' or stripped_token[0] == '{') and \
+                stripped_token != '[BIOS]':
+                  continue
+              str_list.append(stripped_token)
+          new_title = ' '.join(str_list)
+          print('>>>>>>>>>> "{0}"'.format(new_title))
+          print('')
+          actual = new_title
+          self.assertEquals(actual , expected)

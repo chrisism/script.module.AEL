@@ -89,7 +89,7 @@ logger = logging.getLogger(__name__)
 #
 # -------------------------------------------------------------------------------------------------
 # Once everything is working like a charm comment all the debug code to speed up.
-DEBUG_NEWFILENAME_CLASS = True
+FILENAME_VERBOSE = False
 
 class FileName:
     # ---------------------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ class FileName:
             if not self.path_str[-1:] == '/': self.path_str = self.path_str + '/'
             if not self.path_tr[-1:] == '/': self.path_tr = self.path_tr + '/'
 
-        # if DEBUG_NEWFILENAME_CLASS:
+        # if FILENAME_VERBOSE:
         #     logger.debug('FileName() path_str "{0}"'.format(self.path_str))
         #     logger.debug('FileName() path_tr  "{0}"'.format(self.path_tr))
 
@@ -293,7 +293,7 @@ class FileName:
 
     def makedirs_python(self):
         if not os.path.exists(self.path_tr): 
-            if DEBUG_NEWFILENAME_CLASS:
+            if FILENAME_VERBOSE:
                 logger.debug('FileName::makedirs_python() path_tr "{0}"'.format(self.path_tr))
             os.makedirs(self.path_tr)
 
@@ -352,8 +352,9 @@ class FileName:
     # File low-level IO functions. Python Standard Library implementation
     # ---------------------------------------------------------------------------------------------
     def open_python(self, flags, encoding='utf-8'):
-        logger.debug('FileName::open_python() path_tr "{0}"'.format(self.path_tr))
-        logger.debug('FileName::open_python() flags   "{0}"'.format(flags))
+        if FILENAME_VERBOSE:
+            logger.debug('FileName::open_python() path_tr "{0}"'.format(self.path_tr))
+            logger.debug('FileName::open_python() flags   "{0}"'.format(flags))
 
         # open() is a built-in function.
         # See https://docs.python.org/3/library/functions.html#open
@@ -389,8 +390,9 @@ class FileName:
     # Kodi VFS documentation in https://alwinesch.github.io/group__python__xbmcvfs.html
     # ---------------------------------------------------------------------------------------------
     def open_kodivfs(self, flags, encoding='utf-8'):
-        logger.debug('FileName::open_kodivfs() path_tr "{0}"'.format(self.path_tr))
-        logger.debug('FileName::open_kodivfs() flags   "{0}"'.format(flags))
+        if FILENAME_VERBOSE:
+            logger.debug('FileName::open_kodivfs() path_tr "{0}"'.format(self.path_tr))
+            logger.debug('FileName::open_kodivfs() flags   "{0}"'.format(flags))
 
         self.fileHandle = xbmcvfs.File(self.path_tr, flags)
         return self.fileHandle
@@ -438,7 +440,7 @@ class FileName:
             fs_encoding = sys.getfilesystemencoding()
             source_bytes = self.getPath().decode(fs_encoding)
             dest_bytes = to_FN.getPath().decode(fs_encoding)
-            if DEBUG_NEWFILENAME_CLASS:
+            if FILENAME_VERBOSE:
                 logger.debug('FileName::copy() Using Python Standard Library')
                 logger.debug('FileName::copy() fs encoding "{0}"'.format(fs_encoding))
                 logger.debug('FileName::copy() Copy "{0}"'.format(source_bytes))
@@ -452,7 +454,7 @@ class FileName:
                 logger.error('FileName::copy() IOError exception copying image')
                 raise constants.AddonError('IOError exception copying image')
         else:
-            if DEBUG_NEWFILENAME_CLASS:
+            if FILENAME_VERBOSE:
                 logger.debug('FileName::copy() Using Kodi VFS')
                 logger.debug('FileName::copy() Copy "{0}"'.format(self.getPath()))
                 logger.debug('FileName::copy() into "{0}"'.format(to_FN.getPath()))
@@ -467,7 +469,7 @@ class FileName:
     # Returns a Unicode string.
     #
     def loadFileToStr(self, encoding = 'utf-8'):
-        if DEBUG_NEWFILENAME_CLASS:
+        if FILENAME_VERBOSE:
             logger.debug('FileName::loadFileToStr() Loading path_str "{0}"'.format(self.path_str))
 
         # NOTE Exceptions should be catched, reported and re-raised in the low-level
@@ -505,11 +507,11 @@ class FileName:
     # data_str is a Unicode string. Encode it in UTF-8 for file writing.
     #
     def saveStrToFile(self, data_str: str, encoding = 'utf-8'):
-        if DEBUG_NEWFILENAME_CLASS:
+        if FILENAME_VERBOSE:
             logger.debug('FileName::loadFileToStr() Loading path_str "{0}"'.format(self.path_str))
             logger.debug('FileName::loadFileToStr() Loading path_tr  "{0}"'.format(self.path_tr))
 
-        # --- Catch exceptions in the FilaName class ---
+        # --- Catch exceptions in the FileName class ---
         try:
             self.open('w', encoding)
             self.write(data_str)

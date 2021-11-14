@@ -104,6 +104,14 @@ def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
     logger.debug('Executing {}...'.format(script_cmd))
     xbmc.executebuiltin(script_cmd, wait_for_execution)
 
+def play_item(item_label:str, path:str, type:str, info: dict):
+    
+    listitem = xbmcgui.ListItem(label = item_label, label2 = item_label)
+    listitem.setInfo(type, info)
+    
+    logger.debug('Calling xbmc.Player().play() ...')
+    xbmc.Player().play(path, listitem)
+
 #
 # Displays a small box in the low right corner
 #
@@ -234,6 +242,9 @@ def getAddonDir() -> io.FileName:
 def get_addon_id() -> str:
     addon_id = xbmcaddon.Addon().getAddonInfo('id')
     return addon_id
+
+def get_addon_version() -> str:
+    return xbmcaddon.Addon().getAddonInfo('version')
 
 def toggle_fullscreen():
     jsonrpc_query('Input.ExecuteAction', {'action' : 'togglefullscreen'})

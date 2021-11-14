@@ -204,6 +204,15 @@ class MetaDataObj(object):
     
 class ROMObj(MetaDataObj):
 
+    def get_identifier(self) -> str:
+        identifier = self.get_scanned_data_element('identifier')
+        name = self.get_name()
+        
+        if identifier: return identifier
+        if name: return name
+        
+        return 'ROM_{}'.format(self.get_id())
+
     def get_scanned_by(self) -> str:
         return self.entity_data['scanned_by_id'] if 'scanned_by_id' in self.entity_data else None
                    
@@ -214,22 +223,19 @@ class ROMObj(MetaDataObj):
         scanned_data = self.get_scanned_data()
         return scanned_data[key] if key in scanned_data else None
     
+    def get_scanned_data_element_as_file(self, key:str):
+        scanned_data  = self.get_scanned_data()
+        scanned_value = scanned_data[key] if key in scanned_data else None
+        
+        if scanned_value is None or scanned_value == '': return None
+        return io.FileName(scanned_value)
+    
     def set_scanned_data(self, data:dict):
         self.entity_data['scanned_data'] = data
        
     def set_scanned_data_element(self, key:str, data):
         self.entity_data['scanned_data'][key] = data
     
-    def set_file(self, file: io.FileName):
-        self.entity_data['filename'] = file.getPath()     
-
-    def get_file(self) -> io.FileName:
-        if not 'filename' in self.entity_data: return None
-        path = self.entity_data['filename']
-        if path == '': return None
-
-        return io.FileName(path)
-
     def set_platform(self, platform): 
         self.entity_data['platform'] = platform   
 
@@ -291,7 +297,6 @@ class ROMObj(MetaDataObj):
              'm_nplayers': '',
              'm_esrb': '',
              'platform': '',
-             'filename': '',
              'scanned_by_id': '',
              'scanned_data': {},
              'assets': {},
