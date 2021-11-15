@@ -397,6 +397,7 @@ class ProgressDialog(object):
     def __init__(self):
         self.title = 'Advanced Emulator Launcher'
         self.progress = 0
+        self.progress_step = 0
         self.flag_dialog_canceled = False
         self.dialog_active = False
         self.progressDialog = xbmcgui.DialogProgress()
@@ -404,15 +405,20 @@ class ProgressDialog(object):
     def startProgress(self, message, num_steps = 100):
         self.num_steps = num_steps
         self.progress = 0
+        self.progress_step = 0
         self.dialog_active = True
         self.message = message
         self.progressDialog.create(self.title, self.message)
         self.progressDialog.update(self.progress)
 
+    def incrementStep(self, message = None):
+        self.updateProgress(self.progress_step + 1, message)
+        
     # Update progress and optionally update messages as well.
     # If not messages specified then keep current message/s
     def updateProgress(self, step_index, message = None):
-        self.progress = int((step_index * 100) / self.num_steps)
+        self.progress_step = step_index
+        self.progress = int((self.progress_step * 100) / self.num_steps)
         # Update both messages
         if message:
             self.message = message
