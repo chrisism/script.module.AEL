@@ -131,6 +131,12 @@ def notify_warn(text, title = 'Advanced Emulator Launcher warning', time = 7000)
 def notify_error(text, title = 'Advanced Emulator Launcher error', time = 7000):
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_ERROR, time)
 
+
+# Displays a text window and requests a monospaced font.
+# v18 Leia change: New optional param added usemono.
+def display_text_window_mono(window_title, info_text):
+    xbmcgui.Dialog().textviewer(window_title, info_text, True)
+
 # -------------------------------------------------------------------------------------------------
 # Kodi notifications and dialogs
 # -------------------------------------------------------------------------------------------------

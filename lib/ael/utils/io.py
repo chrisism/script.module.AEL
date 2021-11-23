@@ -837,7 +837,6 @@ IMAGE_EXTENSIONS = {
     IMAGE_TIFF_ID : ['tif', 'tiff'],
 }
 
-
 # Image file magic numbers. All at file offset 0.
 # See https://en.wikipedia.org/wiki/List_of_file_signatures
 IMAGE_MAGIC_DIC = {
@@ -861,14 +860,14 @@ IMAGE_MAGIC_DIC = {
 
 # Inspects an image file and determine its type by using the magic numbers,
 # Returns an image id defined in list IMAGE_IDS or IMAGE_UKNOWN_ID.
-def misc_identify_image_id_by_contents(asset_fname):
+def misc_identify_image_id_by_contents(fpath: FileName):
     # If file size is 0 or less than 64 bytes it is corrupt.
-    statinfo = os.stat(asset_fname)
+    statinfo = os.stat(fpath.getPath())
     if statinfo.st_size < 64: return IMAGE_CORRUPT_ID
 
     # Read first 64 bytes of file.
     # Search for the magic number of the beginning of the file.
-    with open(asset_fname, "rb") as f:
+    with open(fpath.getPath(), "rb") as f:
         file_bytes = f.read(64)
     for img_id in IMAGE_MAGIC_DIC:
         for magic_bytes in IMAGE_MAGIC_DIC[img_id]:
@@ -880,13 +879,13 @@ def misc_identify_image_id_by_contents(asset_fname):
     return IMAGE_UKNOWN_ID
 
 # Returns an image id defined in list IMAGE_IDS or IMAGE_UKNOWN_ID.
-def misc_identify_image_id_by_ext(asset_fname):
-    asset_root, asset_ext = os.path.splitext(asset_fname)
+def misc_identify_image_id_by_ext(path: FileName):
+    ext = path.getExt()
     # log_debug('asset_ext {}'.format(asset_ext))
-    if not asset_ext: return IMAGE_UKNOWN_ID
-    asset_ext = asset_ext[1:] # Remove leading dot '.png' -> 'png'
+    if not ext: return IMAGE_UKNOWN_ID
+    ext = ext[1:] # Remove leading dot '.png' -> 'png'
     for img_id in IMAGE_EXTENSIONS:
         for img_ext in IMAGE_EXTENSIONS[img_id]:
-            if asset_ext.lower() == img_ext: return img_id
+            if ext.lower() == img_ext: return img_id
 
     return IMAGE_UKNOWN_ID

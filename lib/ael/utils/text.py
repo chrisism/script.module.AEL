@@ -344,7 +344,7 @@ def render_table_CSV_slist(table_str):
 #
 # Returns a list of strings that must be joined with '\n'.join()
 #
-def render_table_str(table_str):
+def render_table_str(table_str:list):
     rows = len(table_str)
     cols = len(table_str[0])
     table_str_list = []
