@@ -276,7 +276,7 @@ AEL_platforms = [
     # *) Nintendo - Nintendo 3DS (Encrypted) (20191109-080816)
     # *) Nintendo - Nintendo 3DS (Encrypted) (Parent-Clone) (Parent-Clone) (20191109-080816)
     Platform('Nintendo 3DS', 'nintendo-n3ds', 'n3ds', None, '4912', '101', '17', '116',
-        DAT_NOINTRO, 'Nintendo - Nintendo 3DS (Encrypted) (Parent-Clone)', default_box_size=constants.BOX_SIZE_3DS),
+        DAT_NOINTRO, 'Nintendo - Nintendo 3DS (Decrypted) (Parent-Clone)', default_box_size=constants.BOX_SIZE_3DS),
     # No-Intro Nintendo 64 DAT files:
     # *) Nintendo - Nintendo 64 (BigEndian) (20190918-121135)
     # *) Nintendo - Nintendo 64 (BigEndian) (Parent-Clone) (Parent-Clone) (20190918-121135)
@@ -331,14 +331,14 @@ AEL_platforms = [
     # *) Nintendo - New Nintendo 3DS (Encrypted) (20190402-125456)
     # *) Nintendo - New Nintendo 3DS (Encrypted) (Parent-Clone) (Parent-Clone) (20190402-125456)
     Platform('Nintendo New Nintendo 3DS', 'nintendo-new3ds', 'new3ds', None, None, None, None, None,
-        DAT_NOINTRO, 'Nintendo - New Nintendo 3DS (Encrypted) (Parent-Clone)', default_box_size=constants.BOX_SIZE_3DS),
+        DAT_NOINTRO, 'Nintendo - New Nintendo 3DS (Decrypted) (Parent-Clone)', default_box_size=constants.BOX_SIZE_3DS),
     # Pokemon Mini not found in GameFAQs.
     Platform('Nintendo Pokemon Mini', 'nintendo-pokemini', 'pokemini', None, '4957', '152', '211', None,
         DAT_NOINTRO, 'Nintendo - Pokemon Mini'),
     Platform('Nintendo Satellaview', 'nintendo-satellaview', 'satellaview', None, None, None, '107', None,
         DAT_NOINTRO, 'Nintendo - Satellaview'),
     Platform('Nintendo SNES', 'nintendo-snes', 'snes', None, '6', '15', '4', '63',
-        DAT_NOINTRO, 'Nintendo - Super Nintendo Entertainment System (Combined) (Parent-Clone)', default_box_size=constants.BOX_SIZE_WIDE),
+        DAT_NOINTRO, 'Nintendo - Super Nintendo Entertainment System (Combined)', default_box_size=constants.BOX_SIZE_WIDE),
     Platform('Nintendo Sufami Turbo', 'nintendo-sufami', 'sufami', None, None, None, '108', None,
         DAT_NOINTRO, 'Nintendo - Sufami Turbo'),
     Platform('Nintendo Switch', 'nintendo-switch', 'switch', None, '4971', '203', None, '124', DAT_NONE, 
