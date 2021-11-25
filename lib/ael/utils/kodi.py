@@ -84,12 +84,21 @@ def event(sender=None, command='test', data=None):
     jsonrpc_query('JSONRPC.NotifyAll', event_params)
     #xbmc.executebuiltin('NotifyAll({}, {}, {})'.format(sender, method, data))
 
+def execute(cmd):
+    xbmc.executebuiltin(cmd)
+
 def execute_uri(uri, args:dict=None):
     if args is not None:    
         uri = '{}?{}'.format(uri, urlencode(args))
     logger.debug('Executing RunPlugin(%s)...', uri)
     xbmc.executebuiltin('RunPlugin({})'.format(uri))
-    
+
+def update_uri(uri, args:dict=None):
+    if args is not None:    
+        uri = f'{uri}?{urlencode(args)}'
+    logger.debug('Executing Container.Update(%s)...', uri)
+    xbmc.executebuiltin(f'Container.Update({uri}, "replace")')
+        
 def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
     script_cmd = None
     if args is None: script_cmd = 'RunScript({})'.format(script)
@@ -210,9 +219,9 @@ def dialog_get_directory(d_heading, d_dir = ''):
     return ret
 
 def refresh_container():
-    logger.debug('kodi_refresh_container()')
+    logger.debug('refresh_container()')
     xbmc.executebuiltin('Container.Refresh')
-
+    
 def get_current_window_id():
     return xbmcgui.getCurrentWindowId()
 
