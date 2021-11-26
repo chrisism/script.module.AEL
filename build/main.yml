@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  isMaster: ${{eq(variables['Build.SourceBranch'], 'refs/heads/master-fork')}}
+  isMaster: or(${{eq(variables['Build.SourceBranch'], 'refs/heads/master')}},${{eq(variables['Build.SourceBranch'], 'refs/heads/main')}})
   isReleaseCandidate: ${{startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')}}
   isHotfix: ${{startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/')}}
   isDev: ${{eq(variables['Build.SourceBranch'], 'refs/heads/dev')}}
@@ -39,6 +39,17 @@ stages:
         displayName: 'Setting version variables'
         condition: or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}})
 
+      - task: MagicChunks@2
+        inputs:
+          sourcePath: 'addon.xml'
+          fileType: 'Xml'
+          targetPathType: 'source'
+          transformationType: 'json'
+          transformations: |
+            {
+              "addon/@version": "$(projectVersion)"
+            }
+
       - task: CopyFiles@2
         displayName: 'Copy addon files'
         inputs:
@@ -69,7 +80,7 @@ stages:
      
 - stage: DeployProd
   displayName: Deployment on Production
-  condition: eq(${{variables.isMaster}}, true)
+  condition: eq(${{variables.isDev}}, true)
   jobs:
     - deployment: Production
       environment: 
