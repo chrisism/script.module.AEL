@@ -40,11 +40,11 @@ stages:
         displayName: 'Setting version variables'
         condition: or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}})
 
-        - task: RegExMatchReplace@2
-          inputs:
-            PathToFile: 'addon.xml'
-            RegEx: 'version="\d+\.\d+\.\d+.*" provider'
-            ValueToReplace: 'version="$(packageVersion)" provider'
+      - task: RegExMatchReplace@2
+        inputs:
+          PathToFile: 'addon.xml'
+          RegEx: 'version="\d+\.\d+\.\d+.*" provider'
+          ValueToReplace: 'version="$(packageVersion)" provider'
           
       - task: CopyFiles@2
         displayName: 'Copy addon files'
