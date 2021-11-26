@@ -41,6 +41,7 @@ stages:
         condition: or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}})
 
       - task: MagicChunks@2
+        displayName: 'Update addon version'
         inputs:
           sourcePath: 'addon.xml'
           fileType: 'Xml'

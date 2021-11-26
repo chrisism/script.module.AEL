@@ -1,6 +1,5 @@
-c(ontinuous-delivery-fallback-tag: unstable
+continuous-delivery-fallback-tag: unstable
 commit-message-incrementing: enabled
-
 branches:
   develop:
     regex: dev(elop)?(ment)?$
