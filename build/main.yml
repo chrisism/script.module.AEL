@@ -40,18 +40,12 @@ stages:
         displayName: 'Setting version variables'
         condition: or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}})
 
-      - task: MagicChunks@2
-        displayName: 'Update addon version'
-        inputs:
-          sourcePath: 'addon.xml'
-          fileType: 'Xml'
-          targetPathType: 'source'
-          transformationType: 'json'
-          transformations: |
-            {
-              "addon/@version": "$(projectVersion)"
-            }
-
+        - task: RegExMatchReplace@2
+          inputs:
+            PathToFile: 'addon.xml'
+            RegEx: 'version="\d+\.\d+\.\d+.*" provider'
+            ValueToReplace: 'version="$(packageVersion)" provider'
+          
       - task: CopyFiles@2
         displayName: 'Copy addon files'
         inputs:
