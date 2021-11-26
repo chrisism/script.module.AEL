@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcaddon
 
-from ael import constants
+from akl import constants
 
 # read settings
 __addon__ = xbmcaddon.Addon()

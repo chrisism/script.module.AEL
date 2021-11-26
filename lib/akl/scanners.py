@@ -23,11 +23,11 @@ import logging
 import re
 import typing
 
-# --- AEL packages ---
-from ael import report, api, platforms
-from ael.utils import io, kodi, text
+# --- AKL packages ---
+from akl import report, api, platforms
+from akl.utils import io, kodi, text
 
-from ael.api import ROMObj
+from akl.api import ROMObj
 
 logger = logging.getLogger(__name__)
 
@@ -170,7 +170,7 @@ class ScannerStrategyABC(object):
     def cleanup(self): pass
         
     #
-    # This method will call the AEL webservice to retrieve previously stored scanner settings for a 
+    # This method will call the AKL webservice to retrieve previously stored scanner settings for a 
     # specific romcollection in the database.
     #
     def load_settings(self):
@@ -188,14 +188,14 @@ class ScannerStrategyABC(object):
             self.scanner_settings = {}
         
     #
-    # This method will call the AEL webservice to store scanner settings for a 
+    # This method will call the AKL webservice to store scanner settings for a 
     # specific romcollection in the database.
     #
     def store_settings(self):        
         scanner_settings = self.get_scanner_settings()
         post_data = {
             'romcollection_id': self.romcollection_id,
-            'ael_addon_id': self.scanner_id,
+            'akl_addon_id': self.scanner_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
         }        
@@ -207,7 +207,7 @@ class ScannerStrategyABC(object):
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
         post_data = {
             'romcollection_id': self.romcollection_id,
-            'ael_addon_id': self.scanner_id,
+            'akl_addon_id': self.scanner_id,
             'roms': roms
         }      
         is_stored = api.client_post_scanned_roms(self.webservice_host, self.webservice_port, post_data)
@@ -218,7 +218,7 @@ class ScannerStrategyABC(object):
         dead_rom_ids = [*(r.get_id() for r in self.marked_dead_roms)]
         post_data = {
             'romcollection_id': self.romcollection_id,
-            'ael_addon_id': self.scanner_id,
+            'akl_addon_id': self.scanner_id,
             'rom_ids': dead_rom_ids
         }      
         is_removed = api.client_post_dead_roms(self.webservice_host, self.webservice_port, post_data)

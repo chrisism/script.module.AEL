@@ -23,7 +23,7 @@
 # 2. Filesystem access utilities are located in this file. Filesystem can use the Python
 #    standard library or Kodi Virtual FileSystem library if available.
 #
-# 3. utils.py must not depend on any other AEL module to avoid circular dependencies, with the
+# 3. utils.py must not depend on any other AKL module to avoid circular dependencies, with the
 #    exception of constants.py
 #
 # 4. Functions starting with _ are internal module functions not to be called externally.
@@ -53,7 +53,7 @@ import xml.etree.ElementTree as ET
 
 import xbmcvfs
 
-from ael import constants
+from akl import constants
 
 logger = logging.getLogger(__name__)
 

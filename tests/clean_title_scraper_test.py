@@ -5,10 +5,10 @@ import logging
 import random
 import re
 
-from lib.ael.api import ROMObj
-from lib.ael.utils import io
-from lib.ael import constants
-from lib.ael.scrapers import Null_Scraper, ScrapeStrategy, ScraperSettings
+from lib.akl.api import ROMObj
+from lib.akl.utils import io
+from lib.akl import constants
+from lib.akl.scrapers import Null_Scraper, ScrapeStrategy, ScraperSettings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
@@ -31,7 +31,7 @@ class Test_clean_title_scraper(unittest.TestCase):
         logger.info('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
         logger.info('---------------------------------------------------------------------------')
 
-    @patch('lib.ael.scrapers.api.client_get_rom')
+    @patch('lib.akl.scrapers.api.client_get_rom')
     def test_scraping_metadata_for_game(self, api: MagicMock):
         
         # arrange
@@ -57,7 +57,7 @@ class Test_clean_title_scraper(unittest.TestCase):
         self.assertEqual(u'castlevania v2', actual.get_name())
         logger.info(actual)
         
-    @patch('lib.ael.scrapers.api.client_get_rom')
+    @patch('lib.akl.scrapers.api.client_get_rom')
     def test_when_scraping_with_cleantitlescraper_it_will_give_the_correct_result(self, api: MagicMock):
         
         # arrange

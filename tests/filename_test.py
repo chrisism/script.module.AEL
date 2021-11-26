@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 import logging
 
-from lib.ael.utils import io
+from lib.akl.utils import io
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',

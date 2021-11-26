@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Test AEL platform conversion to scraper platform names.
+# Test AKL platform conversion to scraper platform names.
 # Included scrapers: TheGamesDB, MobyGames, ScreenScraper.
 # GameFAQs scraper is not used for now (not API available).
 
-# AEL long name       | AEL short name | AEL compact name |
+# AKL long name       | AKL short name | AKL compact name |
 # Sega Master System  | sega-sms       | sms
 
 # --- Python standard library ---
@@ -17,8 +17,8 @@ import pprint
 import sys
 import logging
 
-# --- AEL modules ---
-from lib.ael.utils import io
+# --- AKL modules ---
+from lib.akl.utils import io
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',

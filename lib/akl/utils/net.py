@@ -29,8 +29,8 @@ from urllib.request import urlopen, build_opener, Request, HTTPSHandler
 from urllib.error import HTTPError
 from http.client import HTTPSConnection
 
-# AEL modules
-from ael.utils import io
+# AKL modules
+from akl.utils import io
 
 logger = logging.getLogger(__name__)
 

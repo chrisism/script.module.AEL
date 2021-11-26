@@ -12,7 +12,7 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
-from ael.utils import text, io
+from akl.utils import text, io
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,7 @@ def display_text_window_mono(window_title, info_text):
 # row is multiline.
 # Call examples:
 #  1) ret = kodi_dialog_OK('Launch ROM?')
-#  2) ret = kodi_dialog_OK('Launch ROM?', title = 'AEL - Launcher')
+#  2) ret = kodi_dialog_OK('Launch ROM?', title = 'AKL - Launcher')
 #
 def dialog_OK(text, title = 'Advanced Kodi Launcher'):
     xbmcgui.Dialog().ok(title, text)
@@ -904,7 +904,7 @@ def update_image_cache(img_path):
     try:
         shutil.copy2(encoded_img_path, encoded_cached_thumb)
     except OSError:
-        notify_warn(title='AEL warning', text='Cannot update cached image (OSError)')
+        notify_warn(title='AKL warning', text='Cannot update cached image (OSError)')
         logger.error('Exception in update_image_cache()')
         logger.error('(OSError) Cannot update cached image')
 

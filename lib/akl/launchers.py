@@ -22,10 +22,10 @@ import logging
 
 import xbmc
 
-# --- AEL packages ---
-from ael import settings, api
-from ael.utils import io, kodi
-from ael.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC
+# --- AKL packages ---
+from akl import settings, api
+from akl.utils import io, kodi
+from akl.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +178,7 @@ class LauncherABC(object):
         return launcher[item_key] == 'BROWSE'
     
     #
-    # This method will call the AEL webservice to retrieve previously stored launcher settings for a 
+    # This method will call the AKL webservice to retrieve previously stored launcher settings for a 
     # specific romcollection or rom in the database depending which id is specified.
     # If ROM id is specified, it will choose that above the collection id.
     #
@@ -198,7 +198,7 @@ class LauncherABC(object):
             self.launcher_settings = {}
         
     #
-    # This method will call the AEL webservice to store launcher settings for a 
+    # This method will call the AKL webservice to store launcher settings for a 
     # specific romcollection or rom in the database depending which id is specified.
     # If ROM id is specified, it will choose that above the collection id.
     #
@@ -206,7 +206,7 @@ class LauncherABC(object):
         launcher_settings = self.get_launcher_settings()
         post_data = {
             'romcollection_id': self.romcollection_id,
-            'ael_addon_id': self.launcher_id,
+            'akl_addon_id': self.launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings
         }        

@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# List AEL platforms using the new engine object-based.
+# List AKL platforms using the new engine object-based.
 # Included scrapers: TheGamesDB, MobyGames, ScreenScraper.
 # GameFAQs scraper is not used for now (not API available).
 
-# AEL long name       | AEL short name | AEL compact name |
+# AKL long name       | AKL short name | AKL compact name |
 # Sega Master System  | sega-sms       | sms
 
 # --- Python standard library ---
@@ -15,17 +15,17 @@ import os
 import pprint
 import sys
 
-# --- AEL modules ---
-from lib.ael import platforms
-from lib.ael.utils import text
+# --- AKL modules ---
+from lib.akl import platforms
+from lib.akl.utils import text
 
 # --- configuration ------------------------------------------------------------------------------
-fname_longname_txt  = 'data/AEL_platform_list_longname.txt'
-fname_longname_csv  = 'data/AEL_platform_list_longname.csv'
-fname_shortname_txt = 'data/AEL_platform_list_shortname.txt'
-fname_shortname_csv = 'data/AEL_platform_list_shortname.csv'
-fname_category_txt  = 'data/AEL_platform_list_category.txt'
-fname_category_csv  = 'data/AEL_platform_list_category.csv'
+fname_longname_txt  = 'data/AKL_platform_list_longname.txt'
+fname_longname_csv  = 'data/AKL_platform_list_longname.csv'
+fname_shortname_txt = 'data/AKL_platform_list_shortname.txt'
+fname_shortname_csv = 'data/AKL_platform_list_shortname.csv'
+fname_category_txt  = 'data/AKL_platform_list_category.txt'
+fname_category_csv  = 'data/AKL_platform_list_category.csv'
 
 # --- functions ----------------------------------------------------------------------------------
 def write_txt_file(filename, text):
@@ -35,25 +35,25 @@ def write_txt_file(filename, text):
 # --- main ---------------------------------------------------------------------------------------
 # --- Check that short names are unique ---
 print('Checking that platform short names are unique...')
-for index in range(len(platforms.AEL_platforms)):
-    for subindex in range(len(platforms.AEL_platforms)):
+for index in range(len(platforms.AKL_platforms)):
+    for subindex in range(len(platforms.AKL_platforms)):
         if index == subindex: continue
-        if platforms.AEL_platforms[index].short_name == platforms.AEL_platforms[subindex].short_name:
-            print('Short name {} is repeated!'.format(platforms.AEL_platforms[index].short_name))
+        if platforms.AKL_platforms[index].short_name == platforms.AKL_platforms[subindex].short_name:
+            print('Short name {} is repeated!'.format(platforms.AKL_platforms[index].short_name))
             sys.exit(1)
 
 # --- Check that compact names are unique ---
 print('Checking that platform compact names are unique...')
-for index in range(len(platforms.AEL_platforms)):
-    for subindex in range(len(platforms.AEL_platforms)):
+for index in range(len(platforms.AKL_platforms)):
+    for subindex in range(len(platforms.AKL_platforms)):
         if index == subindex: continue
-        if platforms.AEL_platforms[index].compact_name == platforms.AEL_platforms[subindex].compact_name:
-            print('Compact name {} is repeated!'.format(platforms.AEL_platforms[index].compact_name))
+        if platforms.AKL_platforms[index].compact_name == platforms.AKL_platforms[subindex].compact_name:
+            print('Compact name {} is repeated!'.format(platforms.AKL_platforms[index].compact_name))
             sys.exit(1)
 
 # --- Check that the platform object list is alphabetically sorted ---
 # Unknown platform is special and it's always in last position. Remove from alphabetical check.
-p_longname_list = [pobj.long_name for pobj in platforms.AEL_platforms[:-1]]
+p_longname_list = [pobj.long_name for pobj in platforms.AKL_platforms[:-1]]
 p_longname_list_sorted = sorted(p_longname_list, key = lambda s: s.lower())
 table_str = [ ['left', 'left', 'left'], ['Marker', 'Original', 'Sorted'] ]
 not_sorted_flag = False
@@ -76,14 +76,14 @@ table_str = [
     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
     ['Long name', 'Short name', 'Compact name', 'Alias', 'TGDB', 'MG', 'SS', 'GF', 'DAT'],
 ]
-for p_obj in platforms.AEL_platforms:
+for p_obj in platforms.AKL_platforms:
     table_str.append([
         p_obj.long_name, p_obj.short_name, p_obj.compact_name, str(p_obj.aliasof), 
         str(p_obj.TGDB_plat), str(p_obj.MG_plat), str(p_obj.SS_plat), str(p_obj.GF_plat),
         str(p_obj.DAT),
     ])
 header_list = []
-header_list.append('Number of AEL platforms {}'.format(len(platforms.AEL_platforms)))
+header_list.append('Number of AKL platforms {}'.format(len(platforms.AKL_platforms)))
 header_list.append('')
 table_str_list = text.render_table_str(table_str)
 header_list.extend(table_str_list)
@@ -101,14 +101,14 @@ table_str = [
     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
     ['Long name', 'Short name', 'Compact name', 'Alias', 'TGDB', 'MG', 'SS', 'GF', 'DAT'],
 ]
-for p_obj in sorted(platforms.AEL_platforms, key = lambda x: x.short_name.lower(), reverse = False):
+for p_obj in sorted(platforms.AKL_platforms, key = lambda x: x.short_name.lower(), reverse = False):
     table_str.append([
         p_obj.long_name, p_obj.short_name, p_obj.compact_name, p_obj.aliasof,
         p_obj.TGDB_plat, p_obj.MG_plat, p_obj.SS_plat, p_obj.GF_plat,
         p_obj.DAT,
     ])
 header_list = []
-header_list.append('Number of AEL platforms {}'.format(len(platforms.AEL_platforms)))
+header_list.append('Number of AKL platforms {}'.format(len(platforms.AKL_platforms)))
 header_list.append('')
 table_str_list = text.render_table_str(table_str)
 header_list.extend(table_str_list)
@@ -125,14 +125,14 @@ table_str = [
     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
     ['Long name', 'Short name', 'Compact name', 'Alias', 'TGDB', 'MG', 'SS', 'GF', 'DAT'],
 ]
-for p_obj in sorted(platforms.AEL_platforms, key = lambda x: (x.category.lower(), x.long_name.lower()), reverse = False):
+for p_obj in sorted(platforms.AKL_platforms, key = lambda x: (x.category.lower(), x.long_name.lower()), reverse = False):
     table_str.append([
         p_obj.long_name, p_obj.short_name, p_obj.compact_name, p_obj.aliasof,
         p_obj.TGDB_plat, p_obj.MG_plat, p_obj.SS_plat, p_obj.GF_plat,
         p_obj.DAT,
     ])
 header_list = []
-header_list.append('Number of AEL platforms {}'.format(len(platforms.AEL_platforms)))
+header_list.append('Number of AKL platforms {}'.format(len(platforms.AKL_platforms)))
 header_list.append('')
 table_str_list = text.render_table_str(table_str)
 header_list.extend(table_str_list)

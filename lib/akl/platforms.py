@@ -16,7 +16,7 @@
 # --- Python standard library ---
 from __future__ import unicode_literals
 
-from ael import constants
+from akl import constants
 
 # -------------------------------------------------------------------------------------------------
 # New platform engine
@@ -56,7 +56,7 @@ class Platform:
 # * From this list create dictionaries with indices to access platform information.
 #
 # * Shorted alphabetically by long name. Alphabetical order is veryfied with the script
-#   ./dev-core/list_AEL_platforms.py
+#   ./dev-core/list_AKL_platforms.py
 #
 # * To be compatible with Retroplayer and Kodi artwork database, anything that can be launched
 #   by Retroarch must be a platform, including Doom, CaveStory, etc.
@@ -81,7 +81,7 @@ class Platform:
 #
 # Default values: Platform('', '', '', None, None, None, None, None, DAT_NONE, ''),
 #
-AEL_platforms = [
+AKL_platforms = [
     # --- 3DO Interactive Multiplayer ---
     Platform('3DO Interactive Multiplayer', 'console-3do', '3do', None, '25', '35', '29', '61',
         DAT_REDUMP, 'Panasonic - 3DO Interactive Multiplayer - Datfile', default_box_size=constants.BOX_SIZE_SLIM),
@@ -468,7 +468,7 @@ AEL_platforms = [
 
 # --- Add category to platform objects ---
 # The category is the first part of the short name.
-for p_obj in AEL_platforms:
+for p_obj in AKL_platforms:
     p_obj.category = p_obj.short_name.split('-')[0]
 
 # Dictionaries for fast access to the platform information.
@@ -476,18 +476,18 @@ for p_obj in AEL_platforms:
 platform_long_to_index_dic = {}
 platform_short_to_index_dic = {}
 platform_compact_to_index_dic = {}
-AEL_platform_list = []
-for index, p_obj in enumerate(AEL_platforms):
+AKL_platform_list = []
+for index, p_obj in enumerate(AKL_platforms):
     platform_long_to_index_dic[p_obj.long_name] = index
     platform_short_to_index_dic[p_obj.short_name] = index
     platform_compact_to_index_dic[p_obj.compact_name] = index
-    AEL_platform_list.append(p_obj.long_name)
+    AKL_platform_list.append(p_obj.long_name)
 
 # Returns the platform numerical index from the platform name. If the platform name is not
 # found then returns the index of the 'Unknown' platform.
 # platform may be a long_name, short_name or compact_name, all platform names are searched
 # in an efficient way.
-def get_AEL_platform_index(platform):
+def get_AKL_platform_index(platform):
     try:
         return platform_long_to_index_dic[platform]
     except KeyError:
@@ -503,25 +503,25 @@ def get_AEL_platform_index(platform):
 
     return platform_long_to_index_dic[PLATFORM_UNKNOWN_LONG]
 
-def get_AEL_platform(platform_long) -> Platform:
-    idx = get_AEL_platform_index(platform_long)
-    return AEL_platforms[idx]
+def get_AKL_platform(platform_long) -> Platform:
+    idx = get_AKL_platform_index(platform_long)
+    return AKL_platforms[idx]
 
-def get_AEL_platform_by_compact(platform_compact) -> Platform:
+def get_AKL_platform_by_compact(platform_compact) -> Platform:
     idx = platform_compact_to_index_dic[platform_compact]
-    return AEL_platforms[idx]
+    return AKL_platforms[idx]
 
 # Platform '0' means all platforms in GameFAQs.
-def AEL_platform_to_GameFAQs(platform_long_name):
+def AKL_platform_to_GameFAQs(platform_long_name):
     if platform_long_name in platform_long_to_index_dic:
-        pobj = AEL_platforms[platform_long_to_index_dic[platform_long_name]]
+        pobj = AKL_platforms[platform_long_to_index_dic[platform_long_name]]
     else:
         return DEFAULT_PLAT_GAMEFAQS
     scraper_platform = pobj.GF_plat
     if pobj.aliasof is not None and scraper_platform is None:
         parent_idx = platform_compact_to_index_dic[pobj.aliasof]
-        parent_long_name = AEL_platforms[parent_idx].long_name
-        return AEL_platform_to_GameFAQs(parent_long_name)
+        parent_long_name = AKL_platforms[parent_idx].long_name
+        return AKL_platform_to_GameFAQs(parent_long_name)
 
     return DEFAULT_PLAT_GAMEFAQS if scraper_platform is None else scraper_platform
 

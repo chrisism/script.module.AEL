@@ -2,7 +2,7 @@ import unittest, os
 
 import logging
 
-from lib.ael.utils import text, io
+from lib.akl.utils import text, io
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',

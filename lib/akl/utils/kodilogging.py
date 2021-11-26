@@ -19,8 +19,8 @@ import logging
 import xbmc
 import xbmcaddon
 
-from ael import settings
-from ael.constants import LOG_DEBUG
+from akl import settings
+from akl.constants import LOG_DEBUG
 
 class KodiLogHandler(logging.StreamHandler):
 

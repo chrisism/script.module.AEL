@@ -28,8 +28,8 @@ import logging
 
 import xbmc
 
-from ael.utils import io
-from ael.utils import kodi
+from akl.utils import io
+from akl.utils import kodi
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +117,8 @@ class WindowsLnkFileExecutor(ExecutorABC):
     def execute(self, application, arguments, non_blocking):
         logger.debug('WindowsLnkFileExecutor::execute() Starting ...')
         logger.debug('Launching LNK application')
-        # os.system('start "AEL" /b "{0}"'.format(application).encode('utf-8'))
-        retcode = subprocess.call('start "AEL" /b "{0}"'.format(application).encode('utf-8'), shell = True)
+        # os.system('start "AKL" /b "{0}"'.format(application).encode('utf-8'))
+        retcode = subprocess.call('start "AKL" /b "{0}"'.format(application).encode('utf-8'), shell = True)
         logger.info('LNK app retcode = {0}'.format(retcode))
         logger.debug('WindowsLnkFileExecutor::execute() function ENDS')
 
@@ -203,7 +203,7 @@ class WindowsExecutor(ExecutorABC):
 
         # >> cwd = apppath.encode('utf-8') fails if application path has Unicode on Windows
         # >> A workaraound is to use cwd = apppath.encode(sys.getfilesystemencoding()) --> DOES NOT WORK
-        # >> For the moment AEL cannot launch executables on Windows having Unicode paths.
+        # >> For the moment AKL cannot launch executables on Windows having Unicode paths.
         logger.debug('Launching regular application')
         logger.debug('windows_cd_apppath = {0}'.format(self.windows_cd_apppath))
         logger.debug('windows_close_fds  = {0}'.format(self.windows_close_fds))

@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, call
 import logging
 
 from fakes import FakeClass
-from lib.ael.utils import kodi
+from lib.akl.utils import kodi
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
@@ -38,7 +38,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
 
         page3.runWizard(props)
         
-    @patch('lib.ael.utils.kodi.xbmc.Keyboard', autospec=True)     
+    @patch('lib.akl.utils.kodi.xbmc.Keyboard', autospec=True)     
     def test_starting_wizard_calls_pages_in_right_order(self, mock_keyboard:MagicMock): 
         
         # arrange
@@ -60,7 +60,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
         self.assertEqual(call('','expected2'), calls[1])
         self.assertEqual(call('','expected3'), calls[2])
 
-    @patch('lib.ael.utils.kodi.xbmc.Keyboard.getText', autospec=True)     
+    @patch('lib.akl.utils.kodi.xbmc.Keyboard.getText', autospec=True)     
     def test_when_i_give_the_wizardpage_a_custom_function_it_calls_it_as_expected(self, mock_keyboard:MagicMock): 
         
         # arrange
@@ -76,7 +76,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
         # assert
         self.assertEqual('expected', fake.value)
                 
-    @patch('lib.ael.utils.kodi.xbmcgui.Dialog.select', autospec=True)
+    @patch('lib.akl.utils.kodi.xbmcgui.Dialog.select', autospec=True)
     def test_when_using_dictionary_select_dialog_it_gives_me_the_correct_result(self, mocked_dialog:MagicMock):
 
         # arrange

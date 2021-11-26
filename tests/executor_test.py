@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 import logging
 
-from lib.ael.executors import ExecutorFactory, ExecutorSettings
+from lib.akl.executors import ExecutorFactory, ExecutorSettings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
@@ -26,8 +26,8 @@ class Test_executortests(unittest.TestCase):
         print('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
         print('---------------------------------------------------------------------------')
         
-    @patch('lib.ael.executors.io.is_windows')
-    @patch('lib.ael.executors.io.is_linux')            
+    @patch('lib.akl.executors.io.is_windows')
+    @patch('lib.akl.executors.io.is_linux')            
     def test_if_on_linux_factory_loads_with_correct_executor(self, is_linux_mock:MagicMock, is_windows_mock:MagicMock):
         
         # arrange
@@ -46,9 +46,9 @@ class Test_executortests(unittest.TestCase):
         expected = 'LinuxExecutor'
         self.assertEqual(actual, expected)
                 
-    @patch('lib.ael.executors.io.is_windows')
-    @patch('lib.ael.executors.io.is_osx')
-    @patch('lib.ael.executors.io.is_linux')                   
+    @patch('lib.akl.executors.io.is_windows')
+    @patch('lib.akl.executors.io.is_osx')
+    @patch('lib.akl.executors.io.is_linux')                   
     def test_if_on_windows_factory_loads_with_correct_executor(self, is_linux_mock:MagicMock, is_osx_mock:MagicMock, is_windows_mock:MagicMock):
         
         # arrange
@@ -68,9 +68,9 @@ class Test_executortests(unittest.TestCase):
         expected = 'WindowsExecutor'
         self.assertEqual(actual, expected)  
         
-    @patch('lib.ael.executors.io.is_windows')
-    @patch('lib.ael.executors.io.is_osx')
-    @patch('lib.ael.executors.io.is_linux')               
+    @patch('lib.akl.executors.io.is_windows')
+    @patch('lib.akl.executors.io.is_osx')
+    @patch('lib.akl.executors.io.is_linux')               
     def test_if_on_windows_with_bat_files_factory_loads_with_correct_executor(self, is_linux_mock:MagicMock, is_osx_mock:MagicMock, is_windows_mock:MagicMock):
 
         # arrange
@@ -90,9 +90,9 @@ class Test_executortests(unittest.TestCase):
         expected = 'WindowsBatchFileExecutor'
         self.assertEqual(actual, expected)  
         
-    @patch('lib.ael.executors.io.is_windows')
-    @patch('lib.ael.executors.io.is_osx')
-    @patch('lib.ael.executors.io.is_linux')      
+    @patch('lib.akl.executors.io.is_windows')
+    @patch('lib.akl.executors.io.is_osx')
+    @patch('lib.akl.executors.io.is_linux')      
     def test_if_on_windows_with_lnk_files_factory_loads_with_correct_executor(self, is_linux_mock:MagicMock, is_osx_mock:MagicMock, is_windows_mock:MagicMock):
 
         # arrange
@@ -127,9 +127,9 @@ class Test_executortests(unittest.TestCase):
         expected = 'XbmcExecutor'
         self.assertEqual(actual, expected)
         
-    @patch('lib.ael.executors.io.is_windows')
-    @patch('lib.ael.executors.io.is_osx')
-    @patch('lib.ael.executors.io.is_linux')         
+    @patch('lib.akl.executors.io.is_windows')
+    @patch('lib.akl.executors.io.is_osx')
+    @patch('lib.akl.executors.io.is_linux')         
     def test_if_on_osx_factory_loads_with_correct_executor(self, is_linux_mock:MagicMock, is_osx_mock:MagicMock, is_windows_mock:MagicMock):
 
         # arrange

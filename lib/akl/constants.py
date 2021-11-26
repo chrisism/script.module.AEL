@@ -82,7 +82,7 @@ KIND_ASSET_ROM        = 4
 # --- Special Cateogry/Launcher IDs ---
 VCATEGORY_ADDONROOT_ID      = 'root_category'
 VCATEGORY_CATEGORY_ID       = 'vcategory_category'
-VCATEGORY_OFFSCRAPER_AEL_ID = 'vcategory_offline_scraper'
+VCATEGORY_OFFSCRAPER_AKL_ID = 'vcategory_offline_scraper'
 VCATEGORY_OFFSCRAPER_LB_ID  = 'vcategory_offline_scraper'
 
 # Do we need this?
@@ -117,7 +117,7 @@ VCATEGORIES = [
     VCATEGORY_RATING_ID
 ]
 
-# --- AEL OBJECT TYPES ---
+# --- AKL OBJECT TYPES ---
 OBJ_CATEGORY                 = 'CATEGORY'
 OBJ_CATEGORY_VIRTUAL         = 'VIRTUAL_CATEGORY'
 OBJ_ROMCOLLECTION            = 'ROMCOLLECTION'
@@ -142,49 +142,49 @@ OBJ_VIRTUAL_TYPES = [
 ]
 
 # --- Content type property to be used by skins ---
-AEL_CONTENT_WINDOW_ID          = 10000
-AEL_CONTENT_LABEL              = 'AEL_Content'
-AEL_CONTENT_VALUE_LAUNCHERS    = 'launchers'
-AEL_CONTENT_VALUE_ROMS         = 'roms'
-AEL_CONTENT_VALUE_CATEGORY     = 'category'
-AEL_CONTENT_VALUE_ROMCOLLECTION       = 'romcollection'
-AEL_CONTENT_VALUE_STD_LAUNCHER = 'std_launcher'
-AEL_CONTENT_VALUE_ROM_LAUNCHER = 'rom_launcher'
-AEL_CONTENT_VALUE_ROM          = 'rom'
-AEL_CONTENT_VALUE_NONE         = ''
+AKL_CONTENT_WINDOW_ID          = 10000
+AKL_CONTENT_LABEL              = 'AKL_Content'
+AKL_CONTENT_VALUE_LAUNCHERS    = 'launchers'
+AKL_CONTENT_VALUE_ROMS         = 'roms'
+AKL_CONTENT_VALUE_CATEGORY     = 'category'
+AKL_CONTENT_VALUE_ROMCOLLECTION       = 'romcollection'
+AKL_CONTENT_VALUE_STD_LAUNCHER = 'std_launcher'
+AKL_CONTENT_VALUE_ROM_LAUNCHER = 'rom_launcher'
+AKL_CONTENT_VALUE_ROM          = 'rom'
+AKL_CONTENT_VALUE_NONE         = ''
 
-AEL_LAUNCHER_NAME_LABEL        = 'AEL_Launch_Name'
-AEL_LAUNCHER_ICON_LABEL        = 'AEL_Launch_Icon'
-AEL_LAUNCHER_CLEARLOGO_LABEL   = 'AEL_Launch_Clearlogo'
-AEL_LAUNCHER_PLATFORM_LABEL    = 'AEL_Launch_Platform'
-AEL_LAUNCHER_BOXSIZE_LABEL     = 'AEL_Launch_Boxsize'
+AKL_LAUNCHER_NAME_LABEL        = 'AKL_Launch_Name'
+AKL_LAUNCHER_ICON_LABEL        = 'AKL_Launch_Icon'
+AKL_LAUNCHER_CLEARLOGO_LABEL   = 'AKL_Launch_Clearlogo'
+AKL_LAUNCHER_PLATFORM_LABEL    = 'AKL_Launch_Platform'
+AKL_LAUNCHER_BOXSIZE_LABEL     = 'AKL_Launch_Boxsize'
 
 # Value is the number of items inside a launcher.
-AEL_NUMITEMS_LABEL             = 'AEL_NumItems'
+AKL_NUMITEMS_LABEL             = 'AKL_NumItems'
 
 # --- ROM flags used by skins to display status icons ---
-AEL_INFAV_BOOL_LABEL                 = 'AEL_InFav'
-AEL_INFAV_BOOL_VALUE_TRUE            = 'InFav_True'
-AEL_INFAV_BOOL_VALUE_FALSE           = 'InFav_False'
-AEL_MULTIDISC_BOOL_LABEL             = 'AEL_MultiDisc'
-AEL_MULTIDISC_BOOL_VALUE_TRUE        = 'MultiDisc_True'
-AEL_MULTIDISC_BOOL_VALUE_FALSE       = 'MultiDisc_False'
-AEL_FAV_STAT_LABEL                   = 'AEL_Fav_stat'
-AEL_FAV_STAT_VALUE_OK                = 'Fav_OK'
-AEL_FAV_STAT_VALUE_UNLINKED_ROM      = 'Fav_UnlinkedROM'
-AEL_FAV_STAT_VALUE_UNLINKED_LAUNCHER = 'Fav_UnlinkedLauncher'
-AEL_FAV_STAT_VALUE_BROKEN            = 'Fav_Broken'
-AEL_FAV_STAT_VALUE_NONE              = 'Fav_None'
-AEL_NOINTRO_STAT_LABEL               = 'AEL_NoIntro_stat'
-AEL_NOINTRO_STAT_VALUE_HAVE          = 'NoIntro_Have'
-AEL_NOINTRO_STAT_VALUE_MISS          = 'NoIntro_Miss'
-AEL_NOINTRO_STAT_VALUE_UNKNOWN       = 'NoIntro_Unknown'
-AEL_NOINTRO_STAT_VALUE_EXTRA         = 'NoIntro_Extra'
-AEL_NOINTRO_STAT_VALUE_NONE          = 'NoIntro_None'
-AEL_PCLONE_STAT_LABEL                = 'AEL_PClone_stat'
-AEL_PCLONE_STAT_VALUE_PARENT         = 'PClone_Parent'
-AEL_PCLONE_STAT_VALUE_CLONE          = 'PClone_Clone'
-AEL_PCLONE_STAT_VALUE_NONE           = 'PClone_None'
+AKL_INFAV_BOOL_LABEL                 = 'AKL_InFav'
+AKL_INFAV_BOOL_VALUE_TRUE            = 'InFav_True'
+AKL_INFAV_BOOL_VALUE_FALSE           = 'InFav_False'
+AKL_MULTIDISC_BOOL_LABEL             = 'AKL_MultiDisc'
+AKL_MULTIDISC_BOOL_VALUE_TRUE        = 'MultiDisc_True'
+AKL_MULTIDISC_BOOL_VALUE_FALSE       = 'MultiDisc_False'
+AKL_FAV_STAT_LABEL                   = 'AKL_Fav_stat'
+AKL_FAV_STAT_VALUE_OK                = 'Fav_OK'
+AKL_FAV_STAT_VALUE_UNLINKED_ROM      = 'Fav_UnlinkedROM'
+AKL_FAV_STAT_VALUE_UNLINKED_LAUNCHER = 'Fav_UnlinkedLauncher'
+AKL_FAV_STAT_VALUE_BROKEN            = 'Fav_Broken'
+AKL_FAV_STAT_VALUE_NONE              = 'Fav_None'
+AKL_NOINTRO_STAT_LABEL               = 'AKL_NoIntro_stat'
+AKL_NOINTRO_STAT_VALUE_HAVE          = 'NoIntro_Have'
+AKL_NOINTRO_STAT_VALUE_MISS          = 'NoIntro_Miss'
+AKL_NOINTRO_STAT_VALUE_UNKNOWN       = 'NoIntro_Unknown'
+AKL_NOINTRO_STAT_VALUE_EXTRA         = 'NoIntro_Extra'
+AKL_NOINTRO_STAT_VALUE_NONE          = 'NoIntro_None'
+AKL_PCLONE_STAT_LABEL                = 'AKL_PClone_stat'
+AKL_PCLONE_STAT_VALUE_PARENT         = 'PClone_Parent'
+AKL_PCLONE_STAT_VALUE_CLONE          = 'PClone_Clone'
+AKL_PCLONE_STAT_VALUE_NONE           = 'PClone_None'
 
 # --- ID of the fake ROM parent of all Unknown ROMs ---
 UNKNOWN_ROMS_PARENT_ID = 'Unknown_ROMs_Parent'
@@ -325,7 +325,7 @@ ASSET_CLEARLOGO_ID  = 'clearlogo'
 ASSET_POSTER_ID     = 'poster'
 ASSET_BANNER_ID     = 'banner' # Marquee in MAME
 ASSET_TRAILER_ID    = 'trailer'
-# --- AEL artwork types ---
+# --- AKL artwork types ---
 # What about supporting BOXSPINE and composite box (fron, spine and back in one image).
 ASSET_TITLE_ID      = 'title'
 ASSET_SNAP_ID       = 'snap'

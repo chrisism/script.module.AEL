@@ -35,12 +35,12 @@ import json
 # Kodi libs
 import xbmcgui
 
-# AEL libs
-from ael.utils import kodi, io, net, text
-from ael import constants, platforms, settings
-from ael import api
+# AKL libs
+from akl.utils import kodi, io, net, text
+from akl import constants, platforms, settings
+from akl import api
 
-from ael.api import ROMObj
+from akl.api import ROMObj
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +181,7 @@ class FilterROM(object):
         self.PATHS = PATHS
         self.settings = settings
         self.platform = platform
-        self.addon_dir = self.settings['scraper_aeloffline_addon_code_dir']
+        self.addon_dir = self.settings['scraper_akloffline_addon_code_dir']
 
         # If platform is MAME load the BIOS, Devices and Mechanical databases.
         if self.platform == platforms.PLATFORM_MAME_LONG:
@@ -913,7 +913,7 @@ class ScrapeStrategy(object):
         # --- Return value is downloaded image ---
         return image_local_path
 
-    # This function to be used in AEL 0.10.x series.
+    # This function to be used in AKL 0.10.x series.
     #
     # @param gamedata: Dictionary with game data.
     # @param rom: ROM object to apply metadata.
@@ -993,7 +993,7 @@ class ScrapeStrategy(object):
         
         post_data = {
             'rom_id': rom_id,
-            'ael_addon_id': scraper_id,
+            'akl_addon_id': scraper_id,
             'rom': rom.get_data_dic(),
             'applied_settings': self.scraper_settings.get_data_dic()
         }      
@@ -1005,7 +1005,7 @@ class ScrapeStrategy(object):
         roms = [*(r.get_data_dic() for r in scraped_roms)]
         post_data = {
             'romcollection_id': romcollection_id,
-            'ael_addon_id': scraper_id,
+            'akl_addon_id': scraper_id,
             'roms': roms,
             'applied_settings': self.scraper_settings.get_data_dic()
         }      
@@ -1101,7 +1101,7 @@ class Scraper(object):
             self.global_disk_caches_dirty[cache_name] = False
 
     # --- Methods --------------------------------------------------------------------------------
-    # Scraper is much more verbose (even more than AEL Debug level).
+    # Scraper is much more verbose (even more than AKL Debug level).
     def set_verbose_mode(self, verbose_flag):
         logger.debug('Scraper.set_verbose_mode() verbose_flag {0}'.format(verbose_flag))
         self.verbose_flag = verbose_flag
@@ -1220,7 +1220,7 @@ class Scraper(object):
     # Only write to disk non-empty caches.
     # Only write to disk dirty caches. If cache has not been modified then do not write it.
     def flush_disk_cache(self, pdialog:kodi.ProgressDialog = None):
-        # If scraper does not use disk cache (notably AEL Offline) return.
+        # If scraper does not use disk cache (notably AKL Offline) return.
         if not self.supports_disk_cache():
             logger.debug('Scraper.flush_disk_cache() Scraper {} does not use disk cache.'.format(
                 self.get_name()))
@@ -1323,7 +1323,7 @@ class Scraper(object):
     #
     # @param search_term: [str] String to be searched.
     # @param rom: [ROMObj] Scraper gets the known metadata set to use in searching candidates
-    # @param platform: [str] AEL platform.
+    # @param platform: [str] AKL platform.
     # @param status_dic: [dict] kodi_new_status_dic() status dictionary.
     # @return: [list] or None.
     @abc.abstractmethod

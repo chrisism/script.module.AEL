@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 
 #
-# API client to connect to AEL server to retrieve ROM data.
+# API client to connect to AKL server to retrieve ROM data.
 #
 
 # --- Python standard library ---
@@ -25,9 +25,9 @@ import abc
 import logging
 import typing
 
-# AEL modules
-from ael.utils import net, io
-from ael import constants
+# AKL modules
+from akl.utils import net, io
+from akl import constants
 
 logger = logging.getLogger(__name__)
 
