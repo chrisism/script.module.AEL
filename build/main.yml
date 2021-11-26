@@ -1,0 +1,88 @@
+trigger:
+- master-fork
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  isMaster: ${{eq(variables['Build.SourceBranch'], 'refs/heads/master-fork')}}
+  isReleaseCandidate: ${{startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')}}
+  isHotfix: ${{startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/')}}
+  isDev: ${{eq(variables['Build.SourceBranch'], 'refs/heads/dev')}}
+  workingDirectory: '$(Build.SourcesDirectory)'
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+    - job: build
+      displayName: build
+        
+      steps:
+      - task: gitversion/setup@0
+        displayName: 'Install GitTools'
+        inputs:
+          versionSpec: '5.3.x'
+
+      - task: gitversion/execute@0
+        displayName: 'Executing gitversion'
+
+      - script: |
+            echo '##vso[task.setvariable variable=releasePackageVersion]$(GitVersion.NuGetVersionV2)
+            echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
+        displayName: 'Setting version variables'
+        condition: not(or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}}))
+        
+      - script: |
+            echo '##vso[task.setvariable variable=releasePackageVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch).$(GitVersion.CommitsSinceVersionSourcePadded)
+            echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
+        displayName: 'Setting version variables'
+        condition: or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}})
+
+      - task: CopyFiles@2
+        displayName: 'Copy addon files'
+        inputs:
+          SourceFolder: ''
+          Contents: |
+              *.md
+              *.xml
+              lib/*
+              media/*
+          TargetFolder: '$(build.artifactstagingdirectory)/script.module.akl/'
+          CleanTargetFolder: true
+          flattenFolders: false
+
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: '$(build.artifactstagingdirectory)/script.module.akl'
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(build.artifactstagingdirectory)/package/script.module.akl-$(releasePackageVersion).zip'
+          replaceExistingArchive: true
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publishing application as artifact'
+        inputs:
+          PathtoPublish: '$(build.artifactstagingdirectory)/package/'
+          ArtifactName: 'script.module.akl'
+          publishLocation: 'Container'
+     
+- stage: DeployProd
+  displayName: Deployment on Production
+  condition: eq(${{variables.isMaster}}, true)
+  jobs:
+    - deployment: Production
+      environment: 
+        name: Production
+
+      #variables:
+
+      strategy:     
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              displayName: 'Downloading Application artifact'
+              artifact: 'script.module.akl'
+
+          
