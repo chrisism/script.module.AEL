@@ -44,7 +44,7 @@ stages:
         inputs:
           PathToFile: 'addon.xml'
           RegEx: 'version="\d+\.\d+\.\d+.*" provider'
-          ValueToReplace: 'version="$(packageVersion)" provider'
+          ValueToReplace: 'version="$(GitVersion.NuGetVersionV2)" provider'
           
       - task: CopyFiles@2
         displayName: 'Copy addon files'
@@ -53,8 +53,8 @@ stages:
           Contents: |
               *.md
               *.xml
-              lib/*
-              media/*
+              lib/**/*.*
+              media/**/*.*
           TargetFolder: '$(build.artifactstagingdirectory)/script.module.akl/'
           CleanTargetFolder: true
           flattenFolders: false
@@ -64,7 +64,7 @@ stages:
           rootFolderOrFile: '$(build.artifactstagingdirectory)/script.module.akl'
           includeRootFolder: false
           archiveType: 'zip'
-          archiveFile: '$(build.artifactstagingdirectory)/package/script.module.akl-$(releasePackageVersion).zip'
+          archiveFile: '$(build.artifactstagingdirectory)/package/script.module.akl-$(GitVersion.NuGetVersionV2).zip'
           replaceExistingArchive: true
 
       - task: PublishBuildArtifacts@1
