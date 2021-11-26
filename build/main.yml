@@ -131,11 +131,11 @@ stages:
 
             - script: |
                 git add .
-                git commit -m "Release script.module.akl version $(packageVersion)"
+                git commit -m "Release $(Build.BuildId)"
               workingDirectory: $(Pipeline.Workspace)/repository.chrisism/script.module.akl
               displayName: 'Git - Add and commit'    
 
             - script: |
-                git push https://$(github_userName):$(github_passWord)@github.com/chrisism/repository.chrisism.git master 
+                git push https://$(github_token)@github.com/chrisism/repository.chrisism.git master 
               workingDirectory: $(Pipeline.Workspace)/repository.chrisism/script.module.akl
               displayName: 'Git - Push'    
