@@ -1,5 +1,6 @@
 trigger:
-- master-fork
+- main
+- release/*
 
 pool:
   vmImage: 'ubuntu-latest'
