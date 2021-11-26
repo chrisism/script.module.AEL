@@ -93,11 +93,12 @@ def execute_uri(uri, args:dict=None):
     logger.debug('Executing RunPlugin(%s)...', uri)
     xbmc.executebuiltin('RunPlugin({})'.format(uri))
 
-def update_uri(uri, args:dict=None):
+def update_uri(uri, args:dict=None, reset_history=False):
     if args is not None:    
         uri = f'{uri}?{urlencode(args)}'
     logger.debug('Executing Container.Update(%s)...', uri)
-    xbmc.executebuiltin(f'Container.Update({uri}, "replace")')
+    cmd = f'Container.Update({uri}, replace)' if reset_history else f'Container.Update({uri})'
+    execute(cmd)
         
 def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
     script_cmd = None
