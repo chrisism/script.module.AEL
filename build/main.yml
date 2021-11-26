@@ -99,7 +99,7 @@ stages:
         name: Production
 
       variables:
-        group: repository.production.variables
+        - group: repository.production.variables
 
       strategy:     
         runOnce:
@@ -115,8 +115,8 @@ stages:
               displayName: 'Clone git repository'
 
             - script: |
-                git config --global user.email $(git_emailAddress)
-                git config --global user.name $(git_userName)
+                git config user.email $(git_emailAddress)
+                git config user.name $(git_userName)
               workingDirectory: $(Pipeline.Workspace)/repository.chrisism/
               displayName: 'Configure git settings'
 
