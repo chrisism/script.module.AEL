@@ -124,14 +124,14 @@ stages:
               displayName: 'Copy addon into git repository'
               inputs:
                 SourceFolder: '$(Pipeline.Workspace)/script.module.akl'
-                Contents: '*.*'
+                Contents: '**/*.*'
                 TargetFolder: '$(Pipeline.Workspace)/repository.chrisism/script.module.akl'
                 CleanTargetFolder: false
                 flattenFolders: false
 
             - script: |
                 git add .
-                git commit -m "Release $(Build.BuildId)"
+                git commit -m "Release $(Build.BuildNumber)"
               workingDirectory: $(Pipeline.Workspace)/repository.chrisism/script.module.akl
               displayName: 'Git - Add and commit'    
 
