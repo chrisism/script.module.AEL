@@ -1,2 +1,2 @@
 # script.module.ael
-AEL Module
+AKL Module

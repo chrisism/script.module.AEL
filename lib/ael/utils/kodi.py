@@ -125,20 +125,20 @@ def play_item(item_label:str, path:str, type:str, info: dict):
 #
 # Displays a small box in the low right corner
 #
-def notify(text, title = 'Advanced Emulator Launcher', time = 5000):
+def notify(text, title = 'Advanced Kodi Launcher', time = 5000):
     # --- Old way ---
     # xbmc.executebuiltin("XBMC.Notification(%s,%s,%s,%s)" % (title, text, time, ICON_IMG_FILE_PATH))
 
     # --- New way ---
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_INFO, time)
 
-def notify_warn(text, title = 'Advanced Emulator Launcher warning', time = 7000):
+def notify_warn(text, title = 'Advanced Kodi Launcher warning', time = 7000):
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_WARNING, time)
 
 #
 # Do not use this function much because it is the same icon as when Python fails, and that may confuse the user.
 #
-def notify_error(text, title = 'Advanced Emulator Launcher error', time = 7000):
+def notify_error(text, title = 'Advanced Kodi Launcher error', time = 7000):
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_ERROR, time)
 
 
@@ -157,21 +157,21 @@ def display_text_window_mono(window_title, info_text):
 #  1) ret = kodi_dialog_OK('Launch ROM?')
 #  2) ret = kodi_dialog_OK('Launch ROM?', title = 'AEL - Launcher')
 #
-def dialog_OK(text, title = 'Advanced Emulator Launcher'):
+def dialog_OK(text, title = 'Advanced Kodi Launcher'):
     xbmcgui.Dialog().ok(title, text)
     
-def dialog_OK_timer(text, timer_ms = 30000, title = 'Advanced Emulator Launcher'):
+def dialog_OK_timer(text, timer_ms = 30000, title = 'Advanced Kodi Launcher'):
     xbmcgui.Dialog().ok(title, text, autoclose = timer_ms)
 
 # Returns True is YES was pressed, returns False if NO was pressed or dialog canceled.
-def dialog_yesno(text, title = 'Advanced Emulator Launcher'):
+def dialog_yesno(text, title = 'Advanced Kodi Launcher'):
     return xbmcgui.Dialog().yesno(title, text)
 
 # Returns True is YES was pressed, returns False if NO was pressed or dialog canceled.
-def dialog_yesno_custom(text, yeslabel_str, nolabel_str, title = 'Advanced Emulator Launcher'):
+def dialog_yesno_custom(text, yeslabel_str, nolabel_str, title = 'Advanced Kodi Launcher'):
     return xbmcgui.Dialog().yesno(title, text, yeslabel = yeslabel_str, nolabel = nolabel_str)
 
-def dialog_yesno_timer(text, timer_ms = 30000, title = 'Advanced Emulator Launcher'):
+def dialog_yesno_timer(text, timer_ms = 30000, title = 'Advanced Kodi Launcher'):
     return xbmcgui.Dialog().yesno(title, text, autoclose = timer_ms)
 
 def browse(type = 1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
@@ -411,7 +411,7 @@ class MultiSelectDialog(object):
 # If the dialog is canceled this class remembers it forever.
 class ProgressDialog(object):
     def __init__(self):
-        self.title = 'Advanced Emulator Launcher'
+        self.title = 'Advanced Kodi Launcher'
         self.progress = 0
         self.progress_step = 0
         self.flag_dialog_canceled = False

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Advanced Emulator Launcher scraping engine.
+# Advanced Kodi Launcher scraping engine.
 #
 # --- Information about scraping ---
 # https://github.com/muldjord/skyscraper

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Advanced Emulator Launcher platform and emulator information.
+# Advanced Kodi Launcher platform and emulator information.
 
 # Copyright (c) 2016-2019 Wintermute0110 <wintermute0110@gmail.com>
 #

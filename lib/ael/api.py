@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Advanced Emulator Launcher: API
+# Advanced Kodi Launcher: API
 #
 #
 # This program is free software; you can redistribute it and/or modify

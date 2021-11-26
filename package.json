@@ -1,5 +1,5 @@
 {
-    "name": "script.module.ael",
+    "name": "script.module.akl",
     "version": "0.10.7",
     "scripts": {
         "build": "addon build",
@@ -32,7 +32,7 @@
     "dependencies": {},
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/chrisism/script.module.ael.git"
+        "url": "git+https://github.com/chrisism/script.module.akl.git"
     },
     "keywords": [
         "kodi",
@@ -41,5 +41,5 @@
     ],
     "author": "chrisism",
     "license": "GPL-2.0",
-    "homepage": "https://github.com/chrisism/script.module.ael#readme"
+    "homepage": "https://github.com/chrisism/script.module.akl#readme"
 }

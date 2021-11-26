@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Advanced Emulator Launcher platform constants.
+# Advanced Kodi Launcher platform constants.
 #
 
 # This file has contants that define the addon behaviour. 
