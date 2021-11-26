@@ -1,4 +1,4 @@
-continuous-delivery-fallback-tag: unstable
+c(ontinuous-delivery-fallback-tag: unstable
 commit-message-incrementing: enabled
 
 branches:
@@ -10,7 +10,7 @@ branches:
     prevent-increment-of-merged-branch-version: false
     track-merge-target: true
   master:
-    regex: master\-fork
+    regex: (master|main)
     mode: ContinuousDeployment
     tag: "stable"
     increment: Patch
