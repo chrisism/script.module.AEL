@@ -109,14 +109,10 @@ stages:
               displayName: 'Downloading Application artifact'
               artifact: 'script.module.akl'
 
-            - task: GitClone@2
-              inputs:
-                RepositoryURL: 'https://github.com/chrisism/repository.chrisism.git'
-                RepositoryPath: '$(Pipeline.Workspace)/'
-                Branch: 'master'
-                FallbackBranch: 'master'
-                BaseBranch: 'master'
-                Clean: true
+            - script: |
+                git clone https://github.com/chrisism/repository.chrisism.git
+              workingDirectory: $(Pipeline.Workspace)/
+              displayName: 'Clone git repository'
 
             - script: |
                 git config --global user.email $(git_emailAddress)
