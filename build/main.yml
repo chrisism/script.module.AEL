@@ -90,6 +90,85 @@ stages:
           ArtifactName: 'script.module.akl'
           publishLocation: 'Container'
      
+- stage: DeployStaging
+  displayName: Deployment on Staging
+  condition: or(eq(${{variables.isReleaseCandidate}}, true),eq(${{variables.isHotfix}}, true))
+  jobs:
+    - deployment: Production
+      environment: 
+        name: Production
+
+      variables:
+        - group: repository.variables
+
+      strategy:     
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              displayName: 'Downloading Application artifact'
+              artifact: 'script.module.akl'
+
+            - script: |
+                git clone https://github.com/chrisism/dev.repository.chrisism.git
+              workingDirectory: $(Pipeline.Workspace)/
+              displayName: 'Clone git repository'
+
+            - script: |
+                git config user.email $(git_emailAddress)
+                git config user.name $(git_userName)
+              workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/
+              displayName: 'Configure git settings'
+
+            - task: CopyFiles@2
+              displayName: 'Copy addon into git repository'
+              inputs:
+                SourceFolder: '$(Pipeline.Workspace)/script.module.akl'
+                Contents: '**/*.*'
+                TargetFolder: '$(Pipeline.Workspace)/dev.repository.chrisism/script.module.akl'
+                CleanTargetFolder: false
+                flattenFolders: false
+
+            - task: PythonScript@0
+              displayName: 'Merge addon xml files for repository'
+              inputs:
+                scriptSource: 'inline'
+                arguments: '$(Pipeline.Workspace)/dev.repository.chrisism/addons.xml $(Pipeline.Workspace)/dev.repository.chrisism/script.module.akl/addon.xml'
+                script: |
+                  import sys
+                  from xml.etree import ElementTree
+
+                  file_combined = sys.argv[1]
+                  file_source = sys.argv[2]
+
+                  addons_xml    = ElementTree.parse(file_combined)
+                  addons        = addons_xml.getroot()
+                  addon_in      = ElementTree.parse(file_source).getroot()
+
+                  nodes = addons.findall("addon[@id='script.module.akl']")
+
+                  for addon_node in nodes:
+                      addons.remove(addon_node)
+
+                  addons.append(addon_in)
+                  addons_xml.write(file_combined)
+                workingDirectory: '$(Pipeline.Workspace)/repository.chrisism/'
+                
+            - script: md5sum addons.xml > addons.xml.md5
+              workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/
+              displayName: 'Creating md5 file for addons.xml'
+
+            - script: |
+                git add .
+                git commit -m "Release $(Build.BuildNumber)"
+              workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/
+              displayName: 'Git - Add and commit'    
+
+            - script: |
+                git push https://$(github_token)@github.com/chrisism/dev.repository.chrisism.git master 
+              workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/script.module.akl
+              displayName: 'Git - Push'    
+
 - stage: DeployProd
   displayName: Deployment on Production
   condition: eq(${{variables.isMaster}}, true)
@@ -99,7 +178,7 @@ stages:
         name: Production
 
       variables:
-        - group: repository.production.variables
+        - group: repository.variables
 
       strategy:     
         runOnce:
