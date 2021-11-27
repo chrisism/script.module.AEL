@@ -141,18 +141,17 @@ stages:
                   file_combined = sys.argv[1]
                   file_source = sys.argv[2]
 
-                  data_combined = ElementTree.parse(file_combined).getroot()
-                  data_in       = ElementTree.parse(file_source).getroot()
+                  addons_xml    = ElementTree.parse(file_combined)
+                  addons        = addons_xml.getroot()
+                  addon_in      = ElementTree.parse(file_source).getroot()
 
-                  nodes = data_combined.findall("//addon[@id='script.module.akl']")
+                  nodes = addons.findall("addon[@id='script.module.akl']")
+
                   for addon_node in nodes:
-                    data_combined.remove(addon_node)
+                      addons.remove(addon_node)
 
-                  addons_node = data_combined.find('//addons')
-                  addon_node  = data_in.find('//addon')
-                  addons_node.append(addon_node)
-                  
-                  data_combined.write(file_combined)
+                  addons.append(addon_in)
+                  addons_xml.write(file_combined)
                 workingDirectory: '$(Pipeline.Workspace)/repository.chrisism/'
                 
             - script: md5sum addons.xml > addons.xml.md5
