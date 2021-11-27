@@ -161,7 +161,7 @@ stages:
             - script: |
                 git add .
                 git commit -m "Release $(Build.BuildNumber)"
-              workingDirectory: $(Pipeline.Workspace)/repository.chrisism/script.module.akl
+              workingDirectory: $(Pipeline.Workspace)/repository.chrisism/
               displayName: 'Git - Add and commit'    
 
             - script: |
