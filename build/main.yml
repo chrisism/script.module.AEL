@@ -130,10 +130,10 @@ stages:
                 flattenFolders: false
 
             - task: PythonScript@0
-              displayName: 'Merge addon xml files'
+              displayName: 'Merge addon xml files for repository'
               inputs:
                 scriptSource: 'inline'
-                arguments: '$(Pipeline.Workspace)/repository.chrisism/addons.xml '
+                arguments: '$(Pipeline.Workspace)/repository.chrisism/addons.xml $(Pipeline.Workspace)/repository.chrisism/plugin.program.akl/addon.xml'
                 script: |
                   import sys
                   from xml.etree import ElementTree
@@ -141,16 +141,18 @@ stages:
                   file_combined = sys.argv[1]
                   file_source = sys.argv[2]
 
+                  data_combined = ElementTree.parse(file_combined).getroot()
+                  data_in       = ElementTree.parse(file_source).getroot()
 
-                  first = None
-                  for filename in files:
-                      data = ElementTree.parse(filename).getroot()
-                      if first is None:
-                          first = data
-                      else:
-                          first.extend(data)
-                  if first is not None:
-                      print ElementTree.tostring(first)
+                  nodes = data_combined.findall("//addon[@id='script.module.akl']")
+                  for addon_node in nodes:
+                    data_combined.remove(addon_node)
+
+                  addons_node = data_combined.find('//addons')
+                  addon_node  = data_in.find('//addon')
+                  addons_node.append(addon_node)
+                  
+                  data_combined.write(file_combined)
                 workingDirectory: '$(Pipeline.Workspace)/repository.chrisism/'
                 
             - script: md5sum addons.xml > addons.xml.md5
