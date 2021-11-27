@@ -133,7 +133,7 @@ stages:
               displayName: 'Merge addon xml files for repository'
               inputs:
                 scriptSource: 'inline'
-                arguments: '$(Pipeline.Workspace)/repository.chrisism/addons.xml $(Pipeline.Workspace)/repository.chrisism/plugin.program.akl/addon.xml'
+                arguments: '$(Pipeline.Workspace)/repository.chrisism/addons.xml $(Pipeline.Workspace)/repository.chrisism/script.module.akl/addon.xml'
                 script: |
                   import sys
                   from xml.etree import ElementTree
