@@ -129,8 +129,31 @@ stages:
                 CleanTargetFolder: false
                 flattenFolders: false
 
-            - task: XmlMerge@1
+            - task: PythonScript@0
               displayName: 'Merge addon xml files'
+              inputs:
+                scriptSource: 'inline'
+                arguments: '$(Pipeline.Workspace)/repository.chrisism/addons.xml '
+                script: |
+                  import sys
+                  from xml.etree import ElementTree
+
+                  file_combined = sys.argv[1]
+                  file_source = sys.argv[2]
+
+
+                  first = None
+                  for filename in files:
+                      data = ElementTree.parse(filename).getroot()
+                      if first is None:
+                          first = data
+                      else:
+                          first.extend(data)
+                  if first is not None:
+                      print ElementTree.tostring(first)
+                workingDirectory: '$(Pipeline.Workspace)/repository.chrisism/'
+
+            - task: XmlMerge@1
               inputs:
                 remote1: 'Local'
                 path1: '$(Pipeline.Workspace)/repository.chrisism/addons.xml'
