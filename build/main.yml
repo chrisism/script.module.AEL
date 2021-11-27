@@ -152,7 +152,7 @@ stages:
 
                   addons.append(addon_in)
                   addons_xml.write(file_combined)
-                workingDirectory: '$(Pipeline.Workspace)/repository.chrisism/'
+                workingDirectory: '$(Pipeline.Workspace)/dev.repository.chrisism/'
                 
             - script: md5sum addons.xml > addons.xml.md5
               workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/
