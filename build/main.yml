@@ -129,6 +129,16 @@ stages:
                 CleanTargetFolder: false
                 flattenFolders: false
 
+            - task: XmlMerge@1
+              displayName: 'Merge addon xml files'
+              inputs:
+                remote1: 'Local'
+                path1: '$(Pipeline.Workspace)/repository.chrisism/addons.xml'
+                remote2: 'Local'
+                path2: '$(Pipeline.Workspace)/repository.chrisism/plugin.program.akl/addon.xml'
+                conflictVictor: 'file2'
+                remoteTarget: 'file1'
+
             - script: |
                 git add .
                 git commit -m "Release $(Build.BuildNumber)"
