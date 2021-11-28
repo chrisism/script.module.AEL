@@ -29,7 +29,7 @@ stages:
         displayName: 'Executing gitversion'
 
       - script: |
-            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.NuGetVersionV2)
+            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.LegacySemVer)
             echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
         condition: not(eq(${{variables.isMaster}}, true))
