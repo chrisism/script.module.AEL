@@ -29,16 +29,16 @@ stages:
         displayName: 'Executing gitversion'
 
       - script: |
-            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.NuGetVersionV2)
+            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.LegacySemVer)
             echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
-        condition: not(or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}}))
+        condition: not(eq(${{variables.isMaster}}, true))
         
       - script: |
             echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
             echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
-        condition: or(${{variables.isMaster}}, ${{variables.isDev}}, ${{variables.isReleaseCandidate}}, ${{variables.isHotfix}})
+        condition: eq(${{variables.isMaster}}, true)
 
       - task: RegExMatchReplace@2
         displayName: 'Set addon version'
@@ -165,7 +165,7 @@ stages:
               displayName: 'Git - Add and commit'    
 
             - script: |
-                git push https://$(github_token)@github.com/chrisism/dev.repository.chrisism.git master 
+                git push https://$(github_token)@github.com/chrisism/dev.repository.chrisism.git main 
               workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/script.module.akl
               displayName: 'Git - Push'    
 
