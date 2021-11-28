@@ -165,7 +165,7 @@ stages:
               displayName: 'Git - Add and commit'    
 
             - script: |
-                git push https://$(github_token)@github.com/chrisism/dev.repository.chrisism.git master 
+                git push https://$(github_token)@github.com/chrisism/dev.repository.chrisism.git main 
               workingDirectory: $(Pipeline.Workspace)/dev.repository.chrisism/script.module.akl
               displayName: 'Git - Push'    
 
