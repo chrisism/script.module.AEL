@@ -143,24 +143,24 @@ OBJ_VIRTUAL_TYPES = [
 
 # --- Content type property to be used by skins ---
 AKL_CONTENT_WINDOW_ID          = 10000
-AKL_CONTENT_LABEL              = 'AKL_Content'
+AKL_CONTENT_LABEL              = 'AEL_Content'
 AKL_CONTENT_VALUE_LAUNCHERS    = 'launchers'
 AKL_CONTENT_VALUE_ROMS         = 'roms'
 AKL_CONTENT_VALUE_CATEGORY     = 'category'
-AKL_CONTENT_VALUE_ROMCOLLECTION       = 'romcollection'
+AKL_CONTENT_VALUE_ROMCOLLECTION= 'romcollection'
 AKL_CONTENT_VALUE_STD_LAUNCHER = 'std_launcher'
 AKL_CONTENT_VALUE_ROM_LAUNCHER = 'rom_launcher'
 AKL_CONTENT_VALUE_ROM          = 'rom'
 AKL_CONTENT_VALUE_NONE         = ''
 
-AKL_LAUNCHER_NAME_LABEL        = 'AKL_Launch_Name'
-AKL_LAUNCHER_ICON_LABEL        = 'AKL_Launch_Icon'
-AKL_LAUNCHER_CLEARLOGO_LABEL   = 'AKL_Launch_Clearlogo'
-AKL_LAUNCHER_PLATFORM_LABEL    = 'AKL_Launch_Platform'
-AKL_LAUNCHER_BOXSIZE_LABEL     = 'AKL_Launch_Boxsize'
+AKL_LAUNCHER_NAME_LABEL        = 'AEL_Launch_Name'
+AKL_LAUNCHER_ICON_LABEL        = 'AEL_Launch_Icon'
+AKL_LAUNCHER_CLEARLOGO_LABEL   = 'AEL_Launch_Clearlogo'
+AKL_LAUNCHER_PLATFORM_LABEL    = 'AEL_Launch_Platform'
+AKL_LAUNCHER_BOXSIZE_LABEL     = 'AEL_Launch_Boxsize'
 
 # Value is the number of items inside a launcher.
-AKL_NUMITEMS_LABEL             = 'AKL_NumItems'
+AKL_NUMITEMS_LABEL             = 'AEL_NumItems'
 
 # --- ROM flags used by skins to display status icons ---
 AKL_INFAV_BOOL_LABEL                 = 'AKL_InFav'
