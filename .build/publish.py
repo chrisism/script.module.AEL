@@ -29,12 +29,12 @@ logger = logging.getLogger(__name__)
 
 def publish():
         
-    working_directory    = os.getenv('ADDON_WORKINGDIR')
+    working_directory    = os.getenv('PWD')
     source_paths_str     = os.getenv('ADDON_SRCPATHS')
     kodi_addon_directory = os.getenv('ADDON_KODI_DIR')
     addon_name           = os.getenv('ADDON_NAME')
     
-    source_paths = source_paths_str.split(',')
+    source_paths = source_paths_str.split(':')
     source_files = _get_files_for_addon(working_directory, source_paths)
     dest_directory = f'{kodi_addon_directory}{addon_name}/'
     

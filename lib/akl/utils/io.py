@@ -576,7 +576,7 @@ class FileName:
         return tree
 
     # Opens file and writes xml. Give xml root element.
-    def writeXml(self, xml_root):
+    def writeXml(self, xml_root:ET.Element):
         data = ET.tostring(xml_root)
         self.saveStrToFile(data)
         
