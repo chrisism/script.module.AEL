@@ -1419,7 +1419,8 @@ class Scraper(object):
             'developer' : '',
             'nplayers'  : '',
             'esrb'      : '',
-            'plot'      : ''
+            'plot'      : '',
+            'tags'      : []
         }
 
     # url_thumb is always returned by get_assets().
