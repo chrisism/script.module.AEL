@@ -938,6 +938,7 @@ class ScrapeStrategy(object):
         rom.set_number_of_players(gamedata['nplayers']) # <nplayers>
         rom.set_esrb_rating(gamedata['esrb'])           # <esrb>
         rom.set_plot(gamedata['plot'])                  # <plot>
+        rom.set_tags(gamedata['tags'])                  # <tags>
 
         return True
         
@@ -1497,29 +1498,29 @@ class Scraper(object):
 
     # Returns True if item is in the cache, False otherwise.
     # Lazy loads cache files from disk.
-    def _check_disk_cache(self, cache_type, cache_key):
+    def _check_disk_cache(self, cache_type:str, cache_key:str):
         self._lazy_load_disk_cache(cache_type)
 
         return True if cache_key in self.disk_caches[cache_type] else False
 
     # _check_disk_cache() must be called before this.
-    def _retrieve_from_disk_cache(self, cache_type, cache_key):
+    def _retrieve_from_disk_cache(self, cache_type:str, cache_key:str):
         return self.disk_caches[cache_type][cache_key]
 
     # _check_disk_cache() must be called before this.
-    def _delete_from_disk_cache(self, cache_type, cache_key):
+    def _delete_from_disk_cache(self, cache_type:str, cache_key:str):
         del self.disk_caches[cache_type][cache_key]
         self.disk_caches_dirty[cache_type] = True
 
     # Lazy loading should be done here because the internal cache for ScreenScraper
     # could be updated withouth being loaded first with _check_disk_cache().
-    def _update_disk_cache(self, cache_type, cache_key, data):
+    def _update_disk_cache(self, cache_type:str, cache_key:str, data):
         self._lazy_load_disk_cache(cache_type)
         self.disk_caches[cache_type][cache_key] = data
         self.disk_caches_dirty[cache_type] = True
 
     # --- Private global disk caches -------------------------------------------------------------
-    def _get_global_file_name(self, cache_type):
+    def _get_global_file_name(self, cache_type:str):
         json_fname = cache_type + '.json'
         json_full_path = os.path.join(self.scraper_cache_dir, json_fname)
 
