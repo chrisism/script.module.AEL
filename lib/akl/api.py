@@ -159,6 +159,9 @@ class MetaDataObj(object):
     def get_number_of_players(self):
         return self.entity_data['m_nplayers']
 
+    def get_number_of_players_online(self):
+        return self.entity_data['m_nplayers_online']
+
     def get_esrb_rating(self):
         return self.entity_data['m_esrb']
         
@@ -196,6 +199,9 @@ class MetaDataObj(object):
     def set_number_of_players(self, amount):
         self.entity_data['m_nplayers'] = amount
         
+    def set_number_of_players_online(self, amount):
+        self.entity_data['m_nplayers_online'] = amount
+
     def set_esrb_rating(self, esrb):
         self.entity_data['m_esrb'] = esrb
 
@@ -302,6 +308,7 @@ class ROMObj(MetaDataObj):
              'm_rating': '',
              'm_plot': '',
              'm_nplayers': '',
+             'm_nplayers_online': '',
              'm_esrb': '',
              'platform': '',
              'scanned_by_id': '',

@@ -932,13 +932,14 @@ class ScrapeStrategy(object):
             rom.set_name(rom_name)
             logger.debug("User wants scrapped name. Setting name to '{0}'".format(rom_name))
 
-        rom.set_releaseyear(gamedata['year'])           # <year>
-        rom.set_genre(gamedata['genre'])                # <genre>
-        rom.set_developer(gamedata['developer'])        # <developer>
-        rom.set_number_of_players(gamedata['nplayers']) # <nplayers>
-        rom.set_esrb_rating(gamedata['esrb'])           # <esrb>
-        rom.set_plot(gamedata['plot'])                  # <plot>
-        rom.set_tags(gamedata['tags'])                  # <tags>
+        rom.set_releaseyear(gamedata['year']) 
+        rom.set_genre(gamedata['genre'])         
+        rom.set_developer(gamedata['developer']) 
+        rom.set_number_of_players(gamedata['nplayers']) 
+        rom.set_number_of_players_online(gamedata['nplayers_online'])
+        rom.set_esrb_rating(gamedata['esrb'])
+        rom.set_plot(gamedata['plot'])
+        rom.set_tags(gamedata['tags'])                  
 
         return True
         
@@ -1195,7 +1196,7 @@ class Scraper(object):
         self.platform  = platform
         self.candidate = self._retrieve_from_disk_cache(Scraper.CACHE_CANDIDATES, self.cache_key)
 
-    def set_candidate(self, rom_identifier: str, platform, candidate):
+    def set_candidate(self, rom_identifier: str, platform, candidate:dict):
         self.cache_key = rom_identifier
         self.platform  = platform
         self.candidate = candidate
@@ -1413,14 +1414,15 @@ class Scraper(object):
 
     def _new_gamedata_dic(self):
         return {
-            'title'     : '',
-            'year'      : '',
-            'genre'     : '',
-            'developer' : '',
-            'nplayers'  : '',
-            'esrb'      : '',
-            'plot'      : '',
-            'tags'      : []
+            'title'           : '',
+            'year'            : '',
+            'genre'           : '',
+            'developer'       : '',
+            'nplayers'        : '',
+            'nplayers_online' : '',
+            'esrb'            : '',
+            'plot'            : '',
+            'tags'            : []
         }
 
     # url_thumb is always returned by get_assets().
