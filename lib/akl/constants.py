@@ -270,30 +270,14 @@ ESRB_LIST = [
 
 # m_nplayers values default ''
 NP_NOT_SET = ''
-NP_1P      = '1P'
-NP_2P_SIM  = '2P sim'
-NP_2P_ALT  = '2P alt'
-NP_3P_SIM  = '3P sim'
-NP_3P_ALT  = '3P alt'
-NP_4P_SIM  = '4P sim'
-NP_4P_ALT  = '4P alt'
-NP_6P_SIM  = '6P sim'
-NP_6P_ALT  = '6P alt'
-NP_8P_SIM  = '8P sim'
-NP_8P_ALT  = '8P alt'
-NPLAYERS_LIST = [
-    NP_1P,
-    NP_2P_SIM,
-    NP_2P_ALT,
-    NP_3P_SIM,
-    NP_3P_ALT,
-    NP_4P_SIM,
-    NP_4P_ALT,
-    NP_6P_SIM,
-    NP_6P_ALT,
-    NP_8P_SIM,
-    NP_8P_ALT,
-]
+NPLAYERS_LIST = {
+    '1P': 1,
+    '2P': 2,
+    '3P': 3,
+    '4P': 4,
+    '6P': 6,
+    '8P': 8
+}
 
 # Use unique string as IDs.
 META_TITLE_ID     = 'title'
