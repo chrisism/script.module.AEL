@@ -179,8 +179,8 @@ def browse(type = 1, text='Choose files', shares='files', mask='', preselected_p
 
 def dialog_numeric(title:str, default:int = None):
     if default is not None:
-        return xbmcgui.Dialog().numeric(heading=title, defaultt=str(default))
-    return xbmcgui.Dialog().numeric(heading=title)
+        return xbmcgui.Dialog().numeric(0, heading=title, defaultt=str(default))
+    return xbmcgui.Dialog().numeric(0, heading=title)
 
 def dialog_ipaddr(title:str, default:int = None):
     if default is not None:
