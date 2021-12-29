@@ -291,6 +291,32 @@ META_RATING_ID           = 'rating'
 META_PLOT_ID             = 'plot'
 META_TAGS_ID             = 'tags'
 
+METADATA_IDS = [
+    META_TITLE_ID,
+    META_YEAR_ID,
+    META_GENRE_ID,
+    META_DEVELOPER_ID,
+    META_NPLAYERS_ID,
+    META_NPLAYERS_ONLINE_ID,
+    META_ESRB_ID,
+    META_RATING_ID,
+    META_PLOT_ID,
+    META_TAGS_ID
+]
+
+METADATA_DESCRIPTIONS = {
+    META_TITLE_ID           : "Title",
+    META_YEAR_ID            : "Release year" ,
+    META_GENRE_ID           : "Genre",
+    META_DEVELOPER_ID       : "Developer" ,
+    META_NPLAYERS_ID        : "Number of players",
+    META_NPLAYERS_ONLINE_ID : "Number of players online",
+    META_ESRB_ID            : "ESRB rating",
+    META_RATING_ID          : "Rating/score",
+    META_PLOT_ID            : "Plot",
+    META_TAGS_ID            : "Tags"
+}
+
 DEFAULT_META_TITLE     = ''
 DEFAULT_META_YEAR      = ''
 DEFAULT_META_GENRE     = ''

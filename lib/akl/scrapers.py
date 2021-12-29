@@ -123,6 +123,7 @@ class ScraperSettings(object):
         self.game_selection_mode    = constants.SCRAPE_AUTOMATIC
         self.asset_selection_mode   = constants.SCRAPE_AUTOMATIC
         
+        self.metadata_IDs_to_scrape = constants.METADATA_IDS
         self.asset_IDs_to_scrape    = constants.ROM_ASSET_ID_LIST
         
         self.overwrite_existing     = False
