@@ -280,14 +280,16 @@ NPLAYERS_LIST = {
 }
 
 # Use unique string as IDs.
-META_TITLE_ID     = 'title'
-META_YEAR_ID      = 'year'
-META_GENRE_ID     = 'genre'
-META_DEVELOPER_ID = 'developer'
-META_NPLAYERS_ID  = 'nplayers'
-META_ESRB_ID      = 'esrb'
-META_RATING_ID    = 'rating'
-META_PLOT_ID      = 'plot'
+META_TITLE_ID            = 'title'
+META_YEAR_ID             = 'year'
+META_GENRE_ID            = 'genre'
+META_DEVELOPER_ID        = 'developer'
+META_NPLAYERS_ID         = 'nplayers'
+META_NPLAYERS_ONLINE_ID  = 'nplayers_online'
+META_ESRB_ID             = 'esrb'
+META_RATING_ID           = 'rating'
+META_PLOT_ID             = 'plot'
+META_TAGS_ID             = 'tags'
 
 DEFAULT_META_TITLE     = ''
 DEFAULT_META_YEAR      = ''
