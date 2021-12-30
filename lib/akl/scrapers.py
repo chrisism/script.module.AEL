@@ -279,7 +279,7 @@ class ScrapeStrategy(object):
                 self.scraper_settings.scrape_assets_policy   = constants.SCRAPE_ACTION_NONE
         
         if self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_TITLE_ONLY or \
-            self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_NFO_PREFERED or \
+            self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_ONLY or \
             self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_ACTION_NONE:
             self.meta_scraper_obj = Null_Scraper()
         if self.scraper_settings.scrape_assets_policy == constants.SCRAPE_ACTION_NONE:
@@ -526,7 +526,7 @@ class ScrapeStrategy(object):
             logger.debug('Metadata policy: Only cleaning ROM name.')
             self.metadata_action = ScrapeStrategy.ACTION_META_TITLE_ONLY
 
-        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_NFO_PREFERED:
+        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
             logger.debug('Metadata policy: Read NFO file ON | Scraper OFF')
             if NFO_file_found:
                 logger.debug('Metadata policy: NFO file found.')
@@ -535,7 +535,7 @@ class ScrapeStrategy(object):
                 logger.debug('Metadata policy: NFO file not found. Only cleaning ROM name')
                 self.metadata_action = ScrapeStrategy.ACTION_META_TITLE_ONLY
 
-        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_NFO_AND_SCRAPE:
+        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE:
             logger.debug('Metadata policy: Read NFO file ON | Scraper ON')
             if NFO_file_found:
                 logger.debug('Metadata policy: NFO file found. Scraper not used.')
@@ -1019,9 +1019,7 @@ class ScrapeStrategy(object):
     def _translate(self, key):
         if key == constants.SCRAPE_ACTION_NONE: return 'No action'
         if key == constants.SCRAPE_POLICY_TITLE_ONLY: return 'Use title only'
-        if key == constants.SCRAPE_POLICY_NFO_PREFERED : return 'Prefer NFO'
         if key == constants.SCRAPE_POLICY_LOCAL_ONLY: return 'Use local files only'
-        if key == constants.SCRAPE_POLICY_NFO_AND_SCRAPE: return 'NFO / Scrape'
         if key == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE: return 'Local / Scrape'
         if key == constants.SCRAPE_POLICY_SCRAPE_ONLY: return 'Scrape only'
         if key == constants.SCRAPE_MANUAL: return 'Manual selection'

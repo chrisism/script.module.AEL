@@ -427,6 +427,11 @@ class ProgressDialog(object):
         self.progressDialog.create(self.title, self.message)
         self.progressDialog.update(self.progress)
 
+    def setSteps(self, num_steps):
+        self.num_steps = num_steps
+        self.progress = 0
+        self.progress_step = 0
+
     def incrementStep(self, message = None):
         self.updateProgress(self.progress_step + 1, message)
         

@@ -583,21 +583,25 @@ class FileName:
     # ---------------------------------------------------------------------------------------------
     # Scanner functions
     # ---------------------------------------------------------------------------------------------
-    def scanFilesInPath(self, mask = '*.*'):
+    def scanFilesInPath(self, mask = '*.*', progress_total_function=None, progress_function=None):
         files: typing.List[FileName] = []
         all_files = self.list()
+        progress_total_function(len(all_files))
         
         for filename in fnmatch.filter(all_files, mask):
             files.append(self.pjoin(filename))
+            if progress_function is not None: progress_function()
             
         return files
     
-    def recursiveScanFilesInPath(self, mask = '*.*'):
+    def recursiveScanFilesInPath(self, mask = '*.*', progress_total_function=None, progress_function=None):
         files: typing.List[FileName] = []
         all_files = self.recursive_list()
+        progress_total_function(len(all_files))
         
         for filename in fnmatch.filter(all_files, mask):
             files.append(self.pjoin(filename))
+            if progress_function is not None: progress_function()
             
         return files
 
