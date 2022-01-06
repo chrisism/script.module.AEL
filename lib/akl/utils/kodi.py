@@ -463,6 +463,9 @@ class ProgressDialog(object):
             self.flag_dialog_canceled = self.progressDialog.iscanceled()
             return self.flag_dialog_canceled
 
+    def cancel(self):
+        self.flag_dialog_canceled = True
+
     def close(self):
         # Before closing the dialog check if the user pressed the Cancel button and remember
         # the user decision.
@@ -769,6 +772,8 @@ KODI_MESSAGE_NOTIFY      = 200
 KODI_MESSAGE_NOTIFY_WARN = 300
 # Kodi OK dialog to display a message.
 KODI_MESSAGE_DIALOG      = 400
+# Kodi notification to cancel current progress
+KODI_MESSAGE_CANCEL      = 500
 
 # If status_dic['status'] is True then everything is OK. If status_dic['status'] is False,
 # then display the notification.

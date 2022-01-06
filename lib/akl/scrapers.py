@@ -327,15 +327,16 @@ class ScrapeStrategy(object):
             except Exception as ex:
                 logger.error('(Exception) Object type "{}"'.format(type(ex)))
                 logger.error('(Exception) Message "{}"'.format(str(ex)))
-                msg = 'Could not scrape "{}"'.format(ROM_name)
+                msg = f'Could not scrape "{ROM_name}"'
                 logger.warning(msg)
                 kodi.notify_warn(msg)
             
             # ~~~ Check if user pressed the cancel button ~~~
             if self.pdialog.isCanceled():
                 self.pdialog.endProgress()
-                kodi.dialog_OK('Stopping ROM scraping.')
                 logger.info('User pressed Cancel button when scraping ROMs. ROM scraping stopped.')
+                if kodi.dialog_yesno('Stopping ROM scraping. Store currently scraped items anyway?'):
+                    return roms
                 return None
         
         self.pdialog.endProgress()
@@ -663,6 +664,9 @@ class ScrapeStrategy(object):
             # * In the scanner treat any scraper error message as a Kodi OK dialog.
             # * Once the error is displayed reset status_dic
             if not status_dic['status']:
+                if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                    self.pdialog.cancel()
+                    return
                 self.pdialog.close()
                 # Close error message dialog automatically 1 minute to keep scanning.
                 # kodi_dialog_OK(status_dic['msg'])
@@ -738,12 +742,17 @@ class ScrapeStrategy(object):
         status_dic = kodi.new_status_dic('No error')
         game_data = self.meta_scraper_obj.get_metadata(status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
+
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
             kodi.dialog_OK_timer(status_dic['msg'], 60000)
             self.pdialog.reopen()
             return
+
         scraper_applied = self._apply_candidate_on_metadata(game_data, rom)
     #
     # Returns a valid filename of the downloaded scrapped image, filename of local image
@@ -791,6 +800,9 @@ class ScrapeStrategy(object):
         # --- Grab list of images/assets for the selected candidate ---
         assetdata_list = self.asset_scraper_obj.get_assets(asset_info_id, status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -857,6 +869,9 @@ class ScrapeStrategy(object):
         image_url, image_url_log = self.asset_scraper_obj.resolve_asset_URL(
             selected_asset, status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -873,6 +888,9 @@ class ScrapeStrategy(object):
         image_ext = self.asset_scraper_obj.resolve_asset_URL_extension(
             selected_asset, image_url, status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -1077,7 +1095,12 @@ class Scraper(object):
         # logger.debug('Scraper.__init__() scraper_cache_dir "{}"'.format(self.scraper_cache_dir))
         if not self.scraper_cache_dir:
             self.scraper_cache_dir = kodi.getAddonDir().pjoin('cache', isdir=True).getPath()
+        
+        cache_dir_fn = io.FileName(self.scraper_cache_dir)
+        if not cache_dir_fn.exists():
+            cache_dir_fn.makedirs()
 
+        logger.info(f'Scraper cache dir set to: {self.scraper_cache_dir}')
         self.last_http_call = datetime.now()
         
         # --- Disk caches ---
