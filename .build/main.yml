@@ -21,6 +21,7 @@
 trigger:
 - main
 - release/*
+- dev
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -60,6 +61,23 @@ stages:
             echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
         condition: eq(${{variables.isMaster}}, true)
+
+      - task: UsePythonVersion@0
+        displayName: 'Use Python 3.x'
+
+      - bash: |
+          pip install pytest 
+        displayName: pip install 
+
+      - bash: 'pytest --junitxml=$(Build.StagingDirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
+        workingDirectory: 'tests'
+        displayName: 'Run tests'
+
+      - task: PublishTestResults@2
+        displayName: 'Publish test result'
+        inputs:
+          testResultsFiles: '$(Build.StagingDirectory)/$(addonName)_$(packageVersion)_testresults.xml'
+          testRunTitle: $(addonName)_$(packageVersion)
 
       - task: RegExMatchReplace@2
         displayName: 'Set addon version'
