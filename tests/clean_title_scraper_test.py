@@ -99,7 +99,7 @@ class Test_clean_title_scraper(unittest.TestCase):
       #
       # Regexp to decompose a string in tokens
       #
-      reg_exp = '\[.+?\]\s?|\(.+?\)\s?|\{.+?\}|[^\[\(\{]+'
+      reg_exp = r'\[.+?\]\s?|\(.+?\)\s?|\{.+?\}|[^\[\(\{]+'
       for ROM_filename, expected in Test_clean_title_scraper.ROM_title_list.items():
           tokens = re.findall(reg_exp, ROM_filename)
           print('---------> "{0}"'.format(ROM_filename))
