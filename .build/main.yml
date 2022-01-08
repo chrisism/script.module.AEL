@@ -73,8 +73,8 @@ stages:
       - task: CopyFiles@2
         displayName: 'Copy conftest file for testing'
         inputs:
-          SourceFolder: '$(build.artifactstagingdirectory)/$(addonName)/'
-          Contents: ./build/conftest.py
+          SourceFolder: '$(workingDirectory)/.build/'
+          Contents: conftest.py
           TargetFolder: '$(workingDirectory)'
           CleanTargetFolder: false
           flattenFolders: false
