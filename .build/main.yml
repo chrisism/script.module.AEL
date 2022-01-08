@@ -66,19 +66,24 @@ stages:
         displayName: 'Use Python 3.x'
 
       - bash: |
-          pip install pytest 
+          pip install pytest
+          pip install Kodistubs
         displayName: pip install 
 
-      - bash: 'pytest --junitxml=$(Build.StagingDirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
-        workingDirectory: 'tests'
-        displayName: 'Run tests'
-
-      - task: PublishTestResults@2
-        displayName: 'Publish test result'
+      - task: CopyFiles@2
+        displayName: 'Copy conftest file for testing'
         inputs:
-          testResultsFiles: '$(Build.StagingDirectory)/$(addonName)_$(packageVersion)_testresults.xml'
-          testRunTitle: $(addonName)_$(packageVersion)
+          SourceFolder: '$(build.artifactstagingdirectory)/$(addonName)/'
+          Contents: ./build/conftest.py
+          TargetFolder: '$(workingDirectory)'
+          CleanTargetFolder: false
+          flattenFolders: false
+          OverWrite: true
 
+      - bash: 'pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
+        workingDirectory: '$(workingDirectory)'
+        displayName: 'Run tests'
+        
       - task: RegExMatchReplace@2
         displayName: 'Set addon version'
         inputs:
@@ -89,25 +94,9 @@ stages:
       - task: PythonScript@0
         displayName: 'Add changelog in addon.xml'
         inputs:
-          scriptSource: 'inline'
+          scriptSource: 'filePath'
+          scriptPath: $(workingDirectory)/.build/update_news.py
           arguments: '$(workingDirectory)/addon.xml $(workingDirectory)/changelog.txt'
-          script: |
-            import sys, os, re
-
-            addon_file = sys.argv[1]
-            changelog_file = sys.argv[2]
-            addon_xml = '' 
-            changelog_txt = ''
-            
-            with open(addon_file, 'r') as f:
-              addon_xml = f.read()
-            with open(changelog_file, 'r') as f:
-              changelog_txt = f.read()
-
-            changelog_txt = changelog_txt.replace('\n', '[CR]')
-            addon_xml = re.sub(r'<news>(.*)?</news>', f'<news>{changelog_txt}</news>', addon_xml)
-            with open(addon_file, 'w') as f:
-              f.write(addon_xml)
           workingDirectory: '$(workingDirectory)'
           
       - task: CopyFiles@2
@@ -159,6 +148,12 @@ stages:
           PathtoPublish: '$(build.artifactstagingdirectory)/package/'
           ArtifactName: '$(addonName)'
           publishLocation: 'Container'
+
+      - task: PublishTestResults@2
+        displayName: 'Publish test result'
+        inputs:
+          testResultsFiles: '$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml'
+          testRunTitle: $(addonName)_$(packageVersion)
 
 - stage: DeployStaging
   displayName: Deployment on Staging
