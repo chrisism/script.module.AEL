@@ -44,7 +44,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'LinuxExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
                 
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -66,7 +66,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WindowsExecutor'
-        self.assertEqual(actual, expected)  
+        assert actual == expected  
         
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -88,7 +88,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WindowsBatchFileExecutor'
-        self.assertEqual(actual, expected)  
+        assert actual == expected  
         
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -110,7 +110,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WindowsLnkFileExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
         
     def test_if_xbmc_apppath_factory_loads_with_correct_executor(self):
          
@@ -125,7 +125,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'XbmcExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
         
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -147,7 +147,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'OSXExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
        
     def test_when_using_urls_the_correct_web_executor_loads(self):
         
@@ -162,7 +162,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WebBrowserExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
 if __name__ == '__main__':
     unittest.main()

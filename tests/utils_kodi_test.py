@@ -95,7 +95,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
 
         # assert
         self.assertIsNotNone(actual)
-        self.assertEqual(actual, expected)
+        assert actual == expected
     
     def test_when_using_a_condition_function_with_the_wizard_it_will_responsd_correctly(self):
 
@@ -109,7 +109,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
         actual = props['actual']
         
         # assert
-        self.assertEqual(expected, actual)
+        assert actual == expected
        
 if __name__ == '__main__':
     unittest.main()

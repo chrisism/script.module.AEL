@@ -1,9 +1,11 @@
-import unittest, os
+import unittest
 from unittest.mock import patch, MagicMock
 
 import logging
 import random
 import re
+
+from fakes import FakeFile
 
 from lib.akl.api import ROMObj
 from lib.akl.utils import io
@@ -16,23 +18,9 @@ logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
 
 class Test_clean_title_scraper(unittest.TestCase):
     
-    ROOT_DIR = ''
-    TEST_DIR = ''
-    TEST_ASSETS_DIR = ''
-
-    @classmethod
-    def setUpClass(cls):
-        cls.TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-        cls.ROOT_DIR = os.path.abspath(os.path.join(cls.TEST_DIR, os.pardir))
-        cls.TEST_ASSETS_DIR = os.path.abspath(os.path.join(cls.TEST_DIR,'assets/'))
-                
-        logger.info('ROOT DIR: {}'.format(cls.ROOT_DIR))
-        logger.info('TEST DIR: {}'.format(cls.TEST_DIR))
-        logger.info('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
-        logger.info('---------------------------------------------------------------------------')
-
+    @patch('lib.akl.scrapers.io.FileName', autospec=True, side_effect=FakeFile)
     @patch('lib.akl.scrapers.api.client_get_rom')
-    def test_scraping_metadata_for_game(self, api: MagicMock):
+    def test_scraping_metadata_for_game(self, api: MagicMock, fakefiles):
         
         # arrange
         settings = ScraperSettings()
@@ -40,7 +28,7 @@ class Test_clean_title_scraper(unittest.TestCase):
         settings.scrape_assets_policy = constants.SCRAPE_ACTION_NONE
         settings.clean_tags = True
                 
-        fakeFilePath = '\\fake\\castlevania [ROM] (test) v2.rom'
+        fakeFilePath = '/fake/castlevania [ROM] (test) v2.rom'
         fakeId = str(random.random())
         subject = ROMObj({
           'scanned_data': { 'file': fakeFilePath}
@@ -54,11 +42,12 @@ class Test_clean_title_scraper(unittest.TestCase):
                 
         # assert
         self.assertIsNotNone(actual)
-        self.assertEqual(u'castlevania v2', actual.get_name())
+        assert u'castlevania v2' == actual.get_name()
         logger.info(actual)
         
+    @patch('lib.akl.scrapers.io.FileName', autospec=True, side_effect=FakeFile)
     @patch('lib.akl.scrapers.api.client_get_rom')
-    def test_when_scraping_with_cleantitlescraper_it_will_give_the_correct_result(self, api: MagicMock):
+    def test_when_scraping_with_cleantitlescraper_it_will_give_the_correct_result(self, api: MagicMock, fakefiles):
         
         # arrange
         settings = ScraperSettings()
@@ -83,7 +72,7 @@ class Test_clean_title_scraper(unittest.TestCase):
         self.assertIsNotNone(actual)
         self.assertTrue(actual)
 
-        self.assertEqual(expected, actual.get_name())        
+        assert expected == actual.get_name()     
         
     ROM_title_list = {
       '[BIOS] CX4 (World)':                                       '[BIOS] CX4',
@@ -116,4 +105,4 @@ class Test_clean_title_scraper(unittest.TestCase):
           print('>>>>>>>>>> "{0}"'.format(new_title))
           print('')
           actual = new_title
-          self.assertEquals(actual , expected)
+          assert actual == expected

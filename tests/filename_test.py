@@ -40,7 +40,7 @@ class Test_filename_test(unittest.TestCase):
 
         # assert
         self.assertIsNotNone(actual)
-        self.assertEquals(u':\\database\\rdb', actual)
+        self.assertEqual(u':\\database\\rdb', actual)
         
     def test_parsing_strings_to_folders(self):
         # arrange
@@ -51,7 +51,7 @@ class Test_filename_test(unittest.TestCase):
                 
         # assert
         self.assertIsNotNone(actual)
-        self.assertEquals(u'/data/user/0/com.retroarch/cores/', actual.path_tr)
+        self.assertEqual(u'/data/user/0/com.retroarch/cores/', actual.path_tr)
         logger.info(actual.path_tr)
         
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ class Test_utilstests(unittest.TestCase):
         actual = io.get_URL_extension(url)
 
         # assert
-        self.assertEqual(expected, actual)
+        assert actual == expected
 
     def test_when_getting_url_extension_of_an_url_without_an_extension_it_will_return_empty(self):
 
@@ -48,7 +48,7 @@ class Test_utilstests(unittest.TestCase):
         actual = io.get_URL_extension(url)
 
         # assert
-        self.assertEqual(expected, actual)
+        assert actual == expected
         
     def test_when_getting_image_url_extension_it_returns_the_correct_extension(self):
 
@@ -60,7 +60,7 @@ class Test_utilstests(unittest.TestCase):
         actual = io.get_image_URL_extension(url)
 
         # assert
-        self.assertEqual(expected, actual)
+        assert actual == expected
                       
     def test_when_getting_image_url_extension_of_an_url_without_an_extension_it_will_return_jpg(self):
 
@@ -72,7 +72,7 @@ class Test_utilstests(unittest.TestCase):
         actual = io.get_image_URL_extension(url)
 
         # assert
-        self.assertEqual(expected, actual)
+        assert actual == expected
 
 
 if __name__ == '__main__':

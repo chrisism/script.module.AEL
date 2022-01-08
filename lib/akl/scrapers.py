@@ -1609,7 +1609,7 @@ class Scraper(object):
 # NULL scraper, does nothing.
 # ------------------------------------------------------------------------------------------------
 class Null_Scraper(Scraper):
-    def __init__(self): super(Null_Scraper, self).__init__('')
+    def __init__(self): super(Null_Scraper, self).__init__(None)
 
     def get_name(self): return 'Null'
 
