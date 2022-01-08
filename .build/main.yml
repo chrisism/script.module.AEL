@@ -146,6 +146,7 @@ stages:
         inputs:
           testResultsFiles: '$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml'
           testRunTitle: $(addonName)_$(packageVersion)
+        condition: succeededOrFailed()
 
 - stage: DeployStaging
   displayName: Deployment on Staging
