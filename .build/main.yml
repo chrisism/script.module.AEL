@@ -68,8 +68,6 @@ stages:
       - bash: |
           pip install pytest
           pip install Kodistubs
-        env:
-          PYTHONPATH: $(workingDirectory)/lib 
         displayName: pip install 
 
       # - task: CopyFiles@2
@@ -84,6 +82,8 @@ stages:
 
       - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
         workingDirectory: '$(workingDirectory)'
+        env:
+          PYTHONPATH: $(workingDirectory)/lib 
         displayName: 'Run tests'
         
       - task: RegExMatchReplace@2
