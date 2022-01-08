@@ -68,19 +68,21 @@ stages:
       - bash: |
           pip install pytest
           pip install Kodistubs
+        env:
+          PYTHONPATH: $(workingDirectory)/lib 
         displayName: pip install 
 
-      - task: CopyFiles@2
-        displayName: 'Copy conftest file for testing'
-        inputs:
-          SourceFolder: '$(workingDirectory)/.build/'
-          Contents: conftest.py
-          TargetFolder: '$(workingDirectory)'
-          CleanTargetFolder: false
-          flattenFolders: false
-          OverWrite: true
+      # - task: CopyFiles@2
+      #   displayName: 'Copy conftest file for testing'
+      #   inputs:
+      #     SourceFolder: '$(workingDirectory)/.build/'
+      #     Contents: conftest.py
+      #     TargetFolder: '$(workingDirectory)'
+      #     CleanTargetFolder: false
+      #     flattenFolders: false
+      #     OverWrite: true
 
-      - bash: 'pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
+      - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
         workingDirectory: '$(workingDirectory)'
         displayName: 'Run tests'
         

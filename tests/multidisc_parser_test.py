@@ -64,7 +64,7 @@ class Test_multidic_parser_tests(unittest.TestCase):
         DEBUG_TOKEN_PARSER = False
 
         # --- Parse ROM base_noext/basename_str into tokens ---
-        reg_exp = '\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
+        reg_exp = r'\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
         tokens_raw = re.findall(reg_exp, basename_str)
         if DEBUG_TOKEN_PARSER:
             logger.debug('text_get_ROM_basename_tokens() tokens_raw   {0}'.format(tokens_raw))
