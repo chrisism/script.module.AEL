@@ -66,9 +66,13 @@ stages:
         displayName: 'Use Python 3.x'
 
       - bash: |
-          pip install pytest
-          pip install Kodistubs
+          pip install -r requirements.txt
         displayName: pip install 
+
+      - task: TwineAuthenticate@1
+        displayName: Twine Authenticate
+        inputs:
+          artifactFeed: AKL/akl_libs  
 
       - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
         workingDirectory: '$(workingDirectory)'
@@ -140,6 +144,9 @@ stages:
           PathtoPublish: '$(build.artifactstagingdirectory)/package/'
           ArtifactName: '$(addonName)'
           publishLocation: 'Container'
+
+      - script: |
+          python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/
 
       - task: PublishTestResults@2
         displayName: 'Publish test result'
