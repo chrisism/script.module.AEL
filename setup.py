@@ -22,10 +22,10 @@ with io.open(os.path.join(here, 'addon.xml'), encoding='utf-8') as f:
     NAME = tree.get('name')
     VERSION = tree.get('version')
     AUTHOR = tree.get('provider-name')
-    AUTHOR_EMAIL = tree.findall('//email')[0].text
-    DESCRIPTION = tree.findall('//description')[0].text
-    PROJECT_URL = tree.findall('//website')[0].text
-    LICENSE = tree.findall('//license')[0].text
+    AUTHOR_EMAIL = tree.findall('.//email')[0].text
+    DESCRIPTION = tree.findall('.//description')[0].text
+    PROJECT_URL = tree.findall('.//website')[0].text
+    LICENSE = tree.findall('.//license')[0].text
 
 with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
