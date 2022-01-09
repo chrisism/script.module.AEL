@@ -65,7 +65,8 @@ stages:
       - task: UsePythonVersion@0
         displayName: 'Use Python 3.x'
 
-      - bash: |
+      - bash: -
+          python -m pip install -upgrade pip
           pip install -r requirements.txt
         displayName: pip install 
 
@@ -146,7 +147,8 @@ stages:
           publishLocation: 'Container'
 
       - script: |
-          python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/
+          python setup.py sdist bdist_wheel
+          python -m twine upload -r jnpro --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/*
 
       - task: PublishTestResults@2
         displayName: 'Publish test result'

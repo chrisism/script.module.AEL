@@ -2,5 +2,5 @@ pip==18.1
 pytest==6.2.5
 wheel==0.32.3
 twine==3.7.1
-setuptools==40.8.0
+setuptools==58.1.0
 kodistubs==19.0.3
