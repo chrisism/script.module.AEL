@@ -1,5 +1,4 @@
 # Advanced Kodi Launcher Module
-## script.module.akl
 
 | Release | Status | 
 |----|----|
@@ -9,3 +8,14 @@
 
 Main module to be used by all AKL plugins. Contains utility code and shared classes and API's. Also contains the base classes for building Launchers, Scanners or Scrapers for AKL.  
 For more information about how to build your own custom plugins, read the [wiki](https://github.com/chrisism/plugin.program.akl/wiki/Extend-AKL) pages.
+
+## script.module.akl
+Python package can also be installed through pip from this [feed](https://dev.azure.com/jnpro/AKL/_packaging?_a=feed&feed=akl_libs): https://dev.azure.com/jnpro/AKL/_packaging?_a=feed&feed=akl_libs
+
+**Install custom pip feed**  
+Follow the instructions here: https://dev.azure.com/jnpro/AKL/_packaging?_a=connect&feed=akl_libs
+  
+**Install module**  
+``
+pip install script.module.akl
+``

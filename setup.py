@@ -40,6 +40,12 @@ setup(
     long_description_content_type='text/markdown',
     url=PROJECT_URL,
     license=LICENSE,
-    packages=find_packages(exclude=[".build", "tests"]),
-    classifiers=[]
+    package_dir={"": "lib"},
+    packages=find_packages(where="lib"),
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent"
+    ],
+    python_requires=">=3.6"
 )
