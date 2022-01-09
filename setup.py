@@ -19,7 +19,7 @@ with io.open(os.path.join(here, 'addon.xml'), encoding='utf-8') as f:
     str_data = f.read()
     tree = ET.fromstring(str_data)
     
-    NAME = tree.get('name')
+    NAME = tree.get('id')
     VERSION = tree.get('version')
     AUTHOR = tree.get('provider-name')
     AUTHOR_EMAIL = tree.findall('.//email')[0].text

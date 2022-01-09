@@ -70,11 +70,6 @@ stages:
           pip install -r requirements.txt
         displayName: pip install 
 
-      - task: TwineAuthenticate@1
-        displayName: Twine Authenticate
-        inputs:
-          artifactFeed: AKL/akl_libs  
-
       - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
         workingDirectory: '$(workingDirectory)'
         env:
@@ -146,9 +141,18 @@ stages:
           ArtifactName: '$(addonName)'
           publishLocation: 'Container'
 
+      - task: TwineAuthenticate@1
+        displayName: Twine Authenticate
+        inputs:
+          artifactFeed: AKL/akl_libs  
+
       - script: |
           python setup.py sdist bdist_wheel
-          python -m twine upload -r jnpro --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/*
+        displayName: Build python package
+
+      - script: |
+          python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/*
+        displayName: Upload python package
 
       - task: PublishTestResults@2
         displayName: 'Publish test result'
