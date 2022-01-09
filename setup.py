@@ -23,19 +23,22 @@ with io.open(os.path.join(here, 'addon.xml'), encoding='utf-8') as f:
     VERSION = tree.get('version')
     AUTHOR = tree.get('provider-name')
     AUTHOR_EMAIL = tree.find('email').text
-    DESCRIPTION = tree.find('summary').text
-    LONG_DESCRIPTION = tree.find('description').text
+    DESCRIPTION = tree.find('description').text
     PROJECT_URL = tree.find('website').text
     LICENSE = tree.find('license').text
 
+with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
+
 setup(
     name=NAME,
-    version=VERSION
+    version=VERSION,
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
     description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION
-    url=PROJECT_URL
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
+    url=PROJECT_URL,
     license=LICENSE,
     packages=find_packages(exclude=[".build", "tests"]),
     classifiers=[]
