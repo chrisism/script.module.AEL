@@ -151,7 +151,7 @@ stages:
         displayName: Build python package
 
       - script: |
-          python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/*
+          python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) $(build.artifactstagingdirectory)/$(addonName)/lib/akl/*
         displayName: Upload python package
 
       - task: PublishTestResults@2
