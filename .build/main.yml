@@ -65,7 +65,7 @@ stages:
       - task: UsePythonVersion@0
         displayName: 'Use Python 3.x'
 
-      - bash: -
+      - bash: |
           python -m pip install -upgrade pip
           pip install -r requirements.txt
         displayName: pip install 
