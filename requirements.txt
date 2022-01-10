@@ -1,6 +1,6 @@
-pip==18.1
+kodi.tools==1.0.0rc3
+Kodistubs==19.0.3
 pytest==6.2.5
-wheel==0.32.3
 twine==3.7.1
-setuptools==58.1.0
-kodistubs==19.0.3
+setuptools==59.6.0
+wheel==0.37.1

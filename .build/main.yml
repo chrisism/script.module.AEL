@@ -66,15 +66,14 @@ stages:
         displayName: 'Use Python 3.x'
 
       - bash: |
-          python -m pip install -upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
         displayName: pip install 
 
-      - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
-        workingDirectory: '$(workingDirectory)'
-        env:
-          PYTHONPATH: $(workingDirectory)/lib 
-        displayName: 'Run tests'
+      - task: TwineAuthenticate@1
+        displayName: Twine Authenticate
+        inputs:
+          artifactFeed: AKL/akl_libs  
         
       - task: RegExMatchReplace@2
         displayName: 'Set addon version'
@@ -83,14 +82,21 @@ stages:
           RegEx: 'version="\d+\.\d+\.\d+.*" provider'
           ValueToReplace: 'version="$(packageVersion)" provider'
     
-      - task: PythonScript@0
+      - bash: merge-addon-xml $(workingDirectory)/addon.xml $(workingDirectory)/changelog.txt
         displayName: 'Add changelog in addon.xml'
         inputs:
-          scriptSource: 'filePath'
-          scriptPath: $(workingDirectory)/.build/update_news.py
-          arguments: '$(workingDirectory)/addon.xml $(workingDirectory)/changelog.txt'
           workingDirectory: '$(workingDirectory)'
-          
+
+      - script: |
+          python setup.py bdist_wheel
+        displayName: Build python package          
+
+      - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
+        workingDirectory: '$(workingDirectory)'
+        env:
+          PYTHONPATH: $(workingDirectory)/lib 
+        displayName: 'Run tests'
+
       - task: CopyFiles@2
         displayName: 'Copy addon files for package'
         inputs:
@@ -99,6 +105,7 @@ stages:
               *.md
               *.xml
               *.txt
+              !requirements.txt
               lib/**/*.*
               media/**/*.*
           TargetFolder: '$(build.artifactstagingdirectory)/$(addonName)/'
@@ -140,15 +147,6 @@ stages:
           PathtoPublish: '$(build.artifactstagingdirectory)/package/'
           ArtifactName: '$(addonName)'
           publishLocation: 'Container'
-
-      - task: TwineAuthenticate@1
-        displayName: Twine Authenticate
-        inputs:
-          artifactFeed: AKL/akl_libs  
-
-      - script: |
-          python setup.py bdist_wheel
-        displayName: Build python package
 
       - script: |
           python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) dist/*.whl
