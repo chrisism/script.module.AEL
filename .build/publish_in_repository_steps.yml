@@ -19,7 +19,7 @@ steps:
     displayName: 'Configure git settings'
 
   - task: UsePythonVersion@0
-      displayName: 'Use Python 3.x'
+    displayName: 'Use Python 3.x'
 
   - task: PipAuthenticate@0
     displayName: Authenticate with artifact feed
