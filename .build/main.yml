@@ -84,8 +84,7 @@ stages:
     
       - bash: merge-addon-xml $(workingDirectory)/addon.xml $(workingDirectory)/changelog.txt
         displayName: 'Add changelog in addon.xml'
-        inputs:
-          workingDirectory: '$(workingDirectory)'
+        workingDirectory: '$(workingDirectory)'
 
       - script: |
           python setup.py bdist_wheel
