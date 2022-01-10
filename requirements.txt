@@ -1,4 +1,4 @@
-kodi.tools==1.0.0rc4
+kodi.tools==1.0.0
 Kodistubs==19.0.3
 pytest==6.2.5
 twine==3.7.1
