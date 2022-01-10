@@ -65,6 +65,11 @@ stages:
       - task: UsePythonVersion@0
         displayName: 'Use Python 3.x'
 
+      - task: PipAuthenticate@0
+        displayName: Authenticate with artifact feed
+        inputs:
+          artifactFeeds: akl_libs
+          
       - bash: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
