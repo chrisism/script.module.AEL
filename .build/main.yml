@@ -68,7 +68,7 @@ stages:
       - task: PipAuthenticate@0
         displayName: Authenticate with artifact feed
         inputs:
-          artifactFeeds: akl_libs
+          artifactFeeds: AKL/akl_libs
           
       - bash: |
           python -m pip install --upgrade pip
