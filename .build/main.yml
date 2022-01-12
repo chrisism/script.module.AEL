@@ -112,8 +112,9 @@ stages:
               lib/**/*.*
               media/**/*.*
               !requirements.txt
-              !__pycache__/
-              !*.egg-info/
+              !**/*.pyc
+              !**/__pycache__/**/*.*
+              !**/script.module.akl.egg-info/**/*.*
           TargetFolder: '$(build.artifactstagingdirectory)/$(addonName)/'
           CleanTargetFolder: true
           flattenFolders: false
