@@ -109,9 +109,11 @@ stages:
               *.md
               *.xml
               *.txt
-              !requirements.txt
               lib/**/*.*
               media/**/*.*
+              !requirements.txt
+              !__pycache__/
+              !*.egg-info/
           TargetFolder: '$(build.artifactstagingdirectory)/$(addonName)/'
           CleanTargetFolder: true
           flattenFolders: false
