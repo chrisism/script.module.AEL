@@ -5,7 +5,7 @@ import logging
 import random
 import re
 
-from fakes import FakeFile
+from tests.fakes import FakeFile
 
 from lib.akl.api import ROMObj
 from lib.akl.utils import io

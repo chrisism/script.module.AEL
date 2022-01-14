@@ -102,14 +102,10 @@ def download_img(img_url, file_path:io.FileName):
     # This must be fixed. If an error happened when downloading stuff caller code must
     # known to take action.
     except IOError as ex:
-        logger.error('(IOError) In download_img(), network code.')
-        logger.error('(IOError) Object type "{}"'.format(type(ex)))
-        logger.error('(IOError) Message "{0}"'.format(str(ex)))
+        logger.exception('(IOError) In download_img(), network code.')
         return
     except Exception as ex:
-        logger.error('(Exception) In download_img(), network code.', ex)
-        logger.error('(Exception) Object type "{}"'.format(type(ex)))
-        logger.error('(Exception) Message "{0}"'.format(str(ex)))
+        logger.exception('(Exception) In download_img(), network code.')
         return
 
     # --- Write image file to disk ---
@@ -119,13 +115,9 @@ def download_img(img_url, file_path:io.FileName):
         f.write(img_buf)
         f.close()
     except IOError as ex:
-        logger.error('(IOError) In download_img(), disk code.', ex)
-        logger.error('(IOError) Object type "{}"'.format(type(ex)))
-        logger.error('(IOError) Message "{0}"'.format(str(ex)))
+        logger.exception('(IOError) In download_img(), disk code.')
     except Exception as ex:
-        logger.error('(Exception) In download_img(), disk code.', ex)
-        logger.error('(download_img) Object type "{}"'.format(type(ex)))
-        logger.error('(Exception) Message "{0}"'.format(str(ex)))
+        logger.exception('(Exception) In download_img(), disk code.')
 
 #
 # User agent is fixed and defined in global var USER_AGENT
@@ -164,15 +156,11 @@ def get_URL(url, url_log = None, headers = None):
             ex.close()
         except:
             page_bytes = str(ex.reason)
-        logger.error('(HTTPError) In net_get_URL()')
-        logger.error('(HTTPError) Object type "{}"'.format(type(ex)))
-        logger.error('(HTTPError) Message "{}"'.format(str(ex)))
-        logger.error('(HTTPError) Code {}'.format(http_code))
+        logger.exception('(HTTPError) In net_get_URL()')
+        logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
     except Exception as ex:
-        logger.error('(Exception) In net_get_URL()')
-        logger.error('(Exception) Object type "{}"'.format(type(ex)))
-        logger.error('(Exception) Message "{}"'.format(str(ex)))
+        logger.exception('(Exception) In net_get_URL()')
         return page_bytes, http_code
     
        
@@ -218,18 +206,14 @@ def post_URL(url, data):
             ex.close()
         except:
             page_bytes = str(ex.reason)
-        logger.error('(HTTPError) In post_URL()')
-        logger.error('(HTTPError) Object type "{}"'.format(type(ex)))
-        logger.error('(HTTPError) Message "{}"'.format(str(ex)))
-        logger.error('(HTTPError) Code {}'.format(http_code))
+        logger.exception('(HTTPError) In post_URL()')
+        logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
     except IOError as ex:
-        logger.error('(IOError exception) In get_URL()')
-        logger.error('Message: {0}'.format(str(ex)))
+        logger.exception('(IOError exception) In get_URL()')
         return page_data, http_code
     except Exception as ex:
-        logger.error('(General exception) In get_URL()')
-        logger.error('Message: {0}'.format(str(ex)))
+        logger.exception('(General exception) In get_URL()')
         return page_data, http_code
 
     num_bytes = len(page_bytes)
@@ -261,18 +245,14 @@ def post_JSON_URL(url, data_obj: any):
             ex.close()
         except:
             page_bytes = str(ex.reason)
-        logger.error('(HTTPError) In post_JSON_URL()')
-        logger.error('(HTTPError) Object type "{}"'.format(type(ex)))
-        logger.error('(HTTPError) Message "{}"'.format(str(ex)))
-        logger.error('(HTTPError) Code {}'.format(http_code))
+        logger.exception('(HTTPError) In post_JSON_URL()')
+        logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
     except IOError as ex:
-        logger.error('(IOError exception) In get_URL()')
-        logger.error('Message: {0}'.format(str(ex)))
+        logger.exception('(IOError exception) In get_URL()')
         return page_data, http_code
     except Exception as ex:
-        logger.error('(General exception) In get_URL()')
-        logger.error('Message: {0}'.format(str(ex)))
+        logger.exception('(General exception) In get_URL()')
         return page_data, http_code
 
     num_bytes = len(page_bytes)

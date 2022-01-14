@@ -63,7 +63,7 @@ def jsonrpc_query(method=None, params=None, verbose = False):
         if verbose:
             logger.debug('jsonrpc_query() response = \n{}'.format(pprint.pformat(response)))
     except Exception as exc:
-        logger.error(u'jsonrpc_query(): JSONRPC Error:\n{}'.format(exc), 1)
+        logger.exception(u'jsonrpc_query(): JSONRPC Error:\n{}'.format(exc), 1)
         response = {}    
     return response
 
@@ -915,7 +915,7 @@ def update_image_cache(img_path):
         shutil.copy2(encoded_img_path, encoded_cached_thumb)
     except OSError:
         notify_warn(title='AKL warning', text='Cannot update cached image (OSError)')
-        logger.error('Exception in update_image_cache()')
+        logger.exception('Exception in update_image_cache()')
         logger.error('(OSError) Cannot update cached image')
 
     # Is this really needed?

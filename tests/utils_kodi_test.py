@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock, call
 
 import logging
 
-from fakes import FakeClass
+from tests.fakes import FakeClass
 from lib.akl.utils import kodi
 
 logger = logging.getLogger(__name__)

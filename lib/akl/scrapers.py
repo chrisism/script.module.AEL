@@ -305,7 +305,7 @@ class ScrapeStrategy(object):
         try:
             roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, romcollection_id)
         except Exception as ex:
-            logger.error('Failure while retrieving ROMs from collection', exc_info=ex)
+            logger.exception('Failure while retrieving ROMs from collection')
             return
         
         num_items = len(roms)
@@ -325,11 +325,8 @@ class ScrapeStrategy(object):
             try:
                 self._process_ROM(rom)
             except Exception as ex:
-                logger.error('(Exception) Object type "{}"'.format(type(ex)))
-                logger.error('(Exception) Message "{}"'.format(str(ex)))
-                msg = f'Could not scrape "{ROM_name}"'
-                logger.warning(msg)
-                kodi.notify_warn(msg)
+                logger.exception(f'Could not scrape "{ROM_name}"')
+                kodi.notify_warn(f'Could not scrape "{ROM_name}"')
             
             # ~~~ Check if user pressed the cancel button ~~~
             if self.pdialog.isCanceled():
@@ -347,7 +344,7 @@ class ScrapeStrategy(object):
         try:
             rom = api.client_get_rom(self.webservice_host, self.webservice_port, rom_id)
         except Exception as ex:
-            logger.error('Failure while retrieving ROMs from collection', exc_info=ex)
+            logger.exception('Failure while retrieving ROMs from collection')
             return
         
         ROM_name = rom.get_identifier()            
@@ -357,11 +354,8 @@ class ScrapeStrategy(object):
         try:
             self._process_ROM(rom)
         except Exception as ex:
-            logger.error('(Exception) Object type "{}"'.format(type(ex)))
-            logger.error('(Exception) Message "{}"'.format(str(ex)))
-            msg = 'Could not scrape "{}"'.format(ROM_name)
-            logger.warning(msg)
-            kodi.notify_warn(msg)
+            logger.exception(f'Could not scrape "{ROM_name}"')
+            kodi.notify_warn(f'Could not scrape "{ROM_name}"')
             return None
         
         return rom
@@ -913,7 +907,7 @@ class ScrapeStrategy(object):
         try:
             image_local_path = self.asset_scraper_obj.download_image(image_url, image_local_path)
         except Exception as ex:
-            logger.error('(Exception) In scraper.download_image.', ex)
+            logger.exception('(Exception) In scraper.download_image.')
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -1486,8 +1480,7 @@ class Scraper(object):
     # This function is called when an exception in the scraper code happens.
     # All messages from the scrapers are KODI_MESSAGE_DIALOG.
     def _handle_exception(self, ex, status_dic, user_msg):
-        logger.error('(Exception) Object type "{}"'.format(type(ex)), ex)
-        logger.error('(Exception) Message "{}"'.format(str(ex)))
+        logger.exception(f'(Exception) Message "{user_msg}"')
         self._handle_error(status_dic, user_msg)
 
     # --- Private disk cache functions -----------------------------------------------------------
