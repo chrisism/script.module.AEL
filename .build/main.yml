@@ -174,7 +174,7 @@ stages:
           repositoryName: chrisism/script.module.akl
           action: 'create'
           target: '$(Build.SourceVersion)'
-          tagSource: 'Git tag'
+          tagSource: 'userSpecifiedTag'
           tag: $(packageVersion)
           title: $(Build.BuildNumber)
           releaseNotesSource: file
