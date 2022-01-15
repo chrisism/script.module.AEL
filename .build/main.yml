@@ -166,6 +166,25 @@ stages:
           testRunTitle: $(addonName)_$(packageVersion)
         condition: succeededOrFailed()
 
+      - task: GithubRelease@1 
+        displayName: 'Create GitHub Release'
+        condition: and(succeeded(), or(eq(${{variables.isReleaseCandidate}}, true),eq(${{variables.isHotfix}}, true),eq(${{variables.isMaster}}, true)))  
+        inputs:
+          gitHubConnection: chrisism
+          repositoryName: chrisism/script.module.akl
+          action: 'create'
+          target: '$(Build.SourceVersion)'
+          tagSource: 'Git tag'
+          tag: $(packageVersion)
+          title: $(Build.BuildNumber)
+          releaseNotesSource: file
+          releaseNotesFilePath: $(workingDirectory)/release.md 
+          isPreRelease: not(${{variables.isMaster}}
+          addChangeLog: true
+          assets: |
+            $(build.artifactstagingdirectory)/*.*
+            $(workingDirectory)/changelog.txt
+
 - stage: DeployStaging
   displayName: Deployment on Staging
   condition: and(succeeded(), or(eq(${{variables.isReleaseCandidate}}, true),eq(${{variables.isHotfix}}, true),eq(${{variables.isMaster}}, true)))
