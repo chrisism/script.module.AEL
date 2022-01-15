@@ -170,7 +170,7 @@ stages:
         displayName: 'Create GitHub Release'
         condition: and(succeeded(), or(eq(${{variables.isReleaseCandidate}}, true),eq(${{variables.isHotfix}}, true),eq(${{variables.isMaster}}, true)))  
         inputs:
-          gitHubConnection: chrisism
+          gitHubConnection: 'github.com_chrisism'
           repositoryName: chrisism/script.module.akl
           action: 'create'
           target: '$(Build.SourceVersion)'
