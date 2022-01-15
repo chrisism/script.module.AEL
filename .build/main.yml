@@ -177,7 +177,7 @@ stages:
           tagSource: 'userSpecifiedTag'
           tag: $(packageVersion)
           title: $(Build.BuildNumber)
-          releaseNotesSource: file
+          releaseNotesSource: filePath
           releaseNotesFilePath: $(workingDirectory)/release.md 
           isPreRelease: not(${{variables.isMaster}}
           addChangeLog: true
