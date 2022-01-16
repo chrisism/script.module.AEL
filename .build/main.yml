@@ -179,7 +179,7 @@ stages:
           title: $(Build.BuildNumber)
           releaseNotesSource: filePath
           releaseNotesFilePath: $(workingDirectory)/release.md 
-          isPreRelease: not(${{variables.isMaster}})
+          isPreRelease: "not(${{variables.isMaster}})"          
           addChangeLog: true
           assets: |
             $(build.artifactstagingdirectory)/package/*.*
