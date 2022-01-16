@@ -11,21 +11,6 @@ logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
 
 class Test_executortests(unittest.TestCase):
     
-    ROOT_DIR = ''
-    TEST_DIR = ''
-    TEST_ASSETS_DIR = ''
-
-    @classmethod
-    def setUpClass(cls):        
-        cls.TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-        cls.ROOT_DIR = os.path.abspath(os.path.join(cls.TEST_DIR, os.pardir))
-        cls.TEST_ASSETS_DIR = os.path.abspath(os.path.join(cls.TEST_DIR,'assets/'))
-                
-        print('ROOT DIR: {}'.format(cls.ROOT_DIR))
-        print('TEST DIR: {}'.format(cls.TEST_DIR))
-        print('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
-        print('---------------------------------------------------------------------------')
-        
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_linux')            
     def test_if_on_linux_factory_loads_with_correct_executor(self, is_linux_mock:MagicMock, is_windows_mock:MagicMock):
@@ -44,7 +29,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'LinuxExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
                 
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -66,7 +51,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WindowsExecutor'
-        self.assertEqual(actual, expected)  
+        assert actual == expected  
         
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -88,7 +73,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WindowsBatchFileExecutor'
-        self.assertEqual(actual, expected)  
+        assert actual == expected  
         
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -110,7 +95,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WindowsLnkFileExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
         
     def test_if_xbmc_apppath_factory_loads_with_correct_executor(self):
          
@@ -125,7 +110,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'XbmcExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
         
     @patch('lib.akl.executors.io.is_windows')
     @patch('lib.akl.executors.io.is_osx')
@@ -147,7 +132,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'OSXExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
        
     def test_when_using_urls_the_correct_web_executor_loads(self):
         
@@ -162,7 +147,7 @@ class Test_executortests(unittest.TestCase):
         # assert
         actual = executor.__class__.__name__
         expected = 'WebBrowserExecutor'
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
 if __name__ == '__main__':
     unittest.main()

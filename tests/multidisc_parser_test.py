@@ -32,22 +32,6 @@ logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
 
 class Test_multidic_parser_tests(unittest.TestCase):
     
-    ROOT_DIR = ''
-    TEST_DIR = ''
-    TEST_ASSETS_DIR = ''
-
-    @classmethod
-    def setUpClass(cls):
-        
-        cls.TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-        cls.ROOT_DIR = os.path.abspath(os.path.join(cls.TEST_DIR, os.pardir))
-        cls.TEST_ASSETS_DIR = os.path.abspath(os.path.join(cls.TEST_DIR,'assets/'))
-                
-        print('ROOT DIR: {}'.format(cls.ROOT_DIR))
-        print('TEST DIR: {}'.format(cls.TEST_DIR))
-        print('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
-        print('---------------------------------------------------------------------------')
-
     # --- Main ----------------------------------------------------------------------------------------
     ROM_title_list = [
         'Final Fantasy I (USA) (Disc 1 of 2).iso',    # TOSEC
@@ -64,7 +48,7 @@ class Test_multidic_parser_tests(unittest.TestCase):
         DEBUG_TOKEN_PARSER = False
 
         # --- Parse ROM base_noext/basename_str into tokens ---
-        reg_exp = '\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
+        reg_exp = r'\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
         tokens_raw = re.findall(reg_exp, basename_str)
         if DEBUG_TOKEN_PARSER:
             logger.debug('text_get_ROM_basename_tokens() tokens_raw   {0}'.format(tokens_raw))

@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock, call
 
 import logging
 
-from fakes import FakeClass
+from tests.fakes import FakeClass
 from lib.akl.utils import kodi
 
 logger = logging.getLogger(__name__)
@@ -12,22 +12,6 @@ logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
 
 class Test_utils_kodi_tests(unittest.TestCase):
     
-    ROOT_DIR = ''
-    TEST_DIR = ''
-    TEST_ASSETS_DIR = ''
-
-    @classmethod
-    def setUpClass(cls):
-        
-        cls.TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-        cls.ROOT_DIR = os.path.abspath(os.path.join(cls.TEST_DIR, os.pardir))
-        cls.TEST_ASSETS_DIR = os.path.abspath(os.path.join(cls.TEST_DIR,'assets/'))
-                
-        print('ROOT DIR: {}'.format(cls.ROOT_DIR))
-        print('TEST DIR: {}'.format(cls.TEST_DIR))
-        print('TEST ASSETS DIR: {}'.format(cls.TEST_ASSETS_DIR))
-        print('---------------------------------------------------------------------------')
-
     def test_building_a_wizards_works(self):
         
         page1 = kodi.WizardDialog_Keyboard(None, 'x', 'abc')
@@ -95,7 +79,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
 
         # assert
         self.assertIsNotNone(actual)
-        self.assertEqual(actual, expected)
+        assert actual == expected
     
     def test_when_using_a_condition_function_with_the_wizard_it_will_responsd_correctly(self):
 
@@ -109,7 +93,7 @@ class Test_utils_kodi_tests(unittest.TestCase):
         actual = props['actual']
         
         # assert
-        self.assertEqual(expected, actual)
+        assert actual == expected
        
 if __name__ == '__main__':
     unittest.main()

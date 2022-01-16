@@ -194,7 +194,7 @@ class LauncherABC(object):
                                                                                 self.romcollection_id, self.launcher_id)
             self.launcher_settings = launcher_settings
         except Exception as ex:
-            logger.error('Failure while loading launcher settings', exc_info=ex)
+            logger.exception('Failure while loading launcher settings')
             self.launcher_settings = {}
         
     #

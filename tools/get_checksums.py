@@ -9,7 +9,6 @@
 # Sega Master System  | sega-sms       | sms
 
 # --- Python standard library ---
-# --- Python standard library ---
 from __future__ import unicode_literals
 import copy
 import os

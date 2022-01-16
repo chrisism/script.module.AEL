@@ -184,7 +184,7 @@ class ScannerStrategyABC(object):
             
             self.scanner_settings = scanner_settings
         except Exception as ex:
-            logger.error('Failure while loading scanner settings', exc_info=ex)
+            logger.exception('Failure while loading scanner settings')
             self.scanner_settings = {}
         
     #
@@ -310,7 +310,7 @@ class RomScannerStrategy(ScannerStrategyABC):
         try:
             roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
         except Exception as ex:
-            logger.error('Failure retrieving existing ROMs', exc_info=ex)
+            logger.exception('Failure retrieving existing ROMs')
             roms = []
         
         roms_by_scanner = [rom for rom in roms if rom.get_scanned_by() == self.scanner_id]
@@ -378,7 +378,7 @@ class RomScannerStrategy(ScannerStrategyABC):
         try:
             roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
         except Exception as ex:
-            logger.error('Failure retrieving existing ROMs', exc_info=ex)
+            logger.exception('Failure retrieving existing ROMs')
             roms = []
         
         if roms is None:
