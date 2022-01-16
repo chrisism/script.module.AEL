@@ -1,4 +1,6 @@
-# Advanced Kodi Launcher Module
+# Advanced Kodi Launcher: Library Module
+Main module to be used by all AKL plugins. Contains utility code and shared classes and API's. Also contains the base classes for building Launchers, Scanners or Scrapers for AKL. To create your own scripts for AKL, start using this library.
+## script.module.akl
 
 | Release | Status | 
 |----|----|
@@ -19,3 +21,13 @@ Follow the instructions here: https://dev.azure.com/jnpro/AKL/_packaging?_a=conn
 ``
 pip install script.module.akl
 ``
+### Kodi forum thread ###
+
+More information and discussion about AKL can be found in the [Advanced Kodi Launcher thread] 
+in the Kodi forum.
+
+[Advanced Kodi Launcher thread]: https://forum.kodi.tv/showthread.php?tid=366351
+
+### Documentation ###
+
+Read more about AKL on the main plugin's [ReadMe](https://github.com/chrisism/plugin.program.akl/blob/master/README.md) page.
