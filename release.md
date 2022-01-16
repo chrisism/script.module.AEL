@@ -1,2 +1,1 @@
-# v1.0.1
-First official release of the library module
+First official release of the library module.
