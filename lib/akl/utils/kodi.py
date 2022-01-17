@@ -63,7 +63,7 @@ def jsonrpc_query(method=None, params=None, verbose = False):
         if verbose:
             logger.debug('jsonrpc_query() response = \n{}'.format(pprint.pformat(response)))
     except Exception as exc:
-        logger.error(u'jsonrpc_query(): JSONRPC Error:\n{}'.format(exc), 1)
+        logger.exception(u'jsonrpc_query(): JSONRPC Error:\n{}'.format(exc), 1)
         response = {}    
     return response
 
@@ -179,8 +179,8 @@ def browse(type = 1, text='Choose files', shares='files', mask='', preselected_p
 
 def dialog_numeric(title:str, default:int = None):
     if default is not None:
-        return xbmcgui.Dialog().numeric(heading=title, defaultt=str(default))
-    return xbmcgui.Dialog().numeric(heading=title)
+        return xbmcgui.Dialog().numeric(0, heading=title, defaultt=str(default))
+    return xbmcgui.Dialog().numeric(0, heading=title)
 
 def dialog_ipaddr(title:str, default:int = None):
     if default is not None:
@@ -427,6 +427,11 @@ class ProgressDialog(object):
         self.progressDialog.create(self.title, self.message)
         self.progressDialog.update(self.progress)
 
+    def setSteps(self, num_steps):
+        self.num_steps = num_steps
+        self.progress = 0
+        self.progress_step = 0
+
     def incrementStep(self, message = None):
         self.updateProgress(self.progress_step + 1, message)
         
@@ -457,6 +462,9 @@ class ProgressDialog(object):
         else:
             self.flag_dialog_canceled = self.progressDialog.iscanceled()
             return self.flag_dialog_canceled
+
+    def cancel(self):
+        self.flag_dialog_canceled = True
 
     def close(self):
         # Before closing the dialog check if the user pressed the Cancel button and remember
@@ -764,6 +772,8 @@ KODI_MESSAGE_NOTIFY      = 200
 KODI_MESSAGE_NOTIFY_WARN = 300
 # Kodi OK dialog to display a message.
 KODI_MESSAGE_DIALOG      = 400
+# Kodi notification to cancel current progress
+KODI_MESSAGE_CANCEL      = 500
 
 # If status_dic['status'] is True then everything is OK. If status_dic['status'] is False,
 # then display the notification.
@@ -905,7 +915,7 @@ def update_image_cache(img_path):
         shutil.copy2(encoded_img_path, encoded_cached_thumb)
     except OSError:
         notify_warn(title='AKL warning', text='Cannot update cached image (OSError)')
-        logger.error('Exception in update_image_cache()')
+        logger.exception('Exception in update_image_cache()')
         logger.error('(OSError) Cannot update cached image')
 
     # Is this really needed?

@@ -143,24 +143,24 @@ OBJ_VIRTUAL_TYPES = [
 
 # --- Content type property to be used by skins ---
 AKL_CONTENT_WINDOW_ID          = 10000
-AKL_CONTENT_LABEL              = 'AKL_Content'
+AKL_CONTENT_LABEL              = 'AEL_Content'
 AKL_CONTENT_VALUE_LAUNCHERS    = 'launchers'
 AKL_CONTENT_VALUE_ROMS         = 'roms'
 AKL_CONTENT_VALUE_CATEGORY     = 'category'
-AKL_CONTENT_VALUE_ROMCOLLECTION       = 'romcollection'
+AKL_CONTENT_VALUE_ROMCOLLECTION= 'romcollection'
 AKL_CONTENT_VALUE_STD_LAUNCHER = 'std_launcher'
 AKL_CONTENT_VALUE_ROM_LAUNCHER = 'rom_launcher'
 AKL_CONTENT_VALUE_ROM          = 'rom'
 AKL_CONTENT_VALUE_NONE         = ''
 
-AKL_LAUNCHER_NAME_LABEL        = 'AKL_Launch_Name'
-AKL_LAUNCHER_ICON_LABEL        = 'AKL_Launch_Icon'
-AKL_LAUNCHER_CLEARLOGO_LABEL   = 'AKL_Launch_Clearlogo'
-AKL_LAUNCHER_PLATFORM_LABEL    = 'AKL_Launch_Platform'
-AKL_LAUNCHER_BOXSIZE_LABEL     = 'AKL_Launch_Boxsize'
+AKL_LAUNCHER_NAME_LABEL        = 'AEL_Launch_Name'
+AKL_LAUNCHER_ICON_LABEL        = 'AEL_Launch_Icon'
+AKL_LAUNCHER_CLEARLOGO_LABEL   = 'AEL_Launch_Clearlogo'
+AKL_LAUNCHER_PLATFORM_LABEL    = 'AEL_Launch_Platform'
+AKL_LAUNCHER_BOXSIZE_LABEL     = 'AEL_Launch_Boxsize'
 
 # Value is the number of items inside a launcher.
-AKL_NUMITEMS_LABEL             = 'AKL_NumItems'
+AKL_NUMITEMS_LABEL             = 'AEL_NumItems'
 
 # --- ROM flags used by skins to display status icons ---
 AKL_INFAV_BOOL_LABEL                 = 'AKL_InFav'
@@ -270,40 +270,52 @@ ESRB_LIST = [
 
 # m_nplayers values default ''
 NP_NOT_SET = ''
-NP_1P      = '1P'
-NP_2P_SIM  = '2P sim'
-NP_2P_ALT  = '2P alt'
-NP_3P_SIM  = '3P sim'
-NP_3P_ALT  = '3P alt'
-NP_4P_SIM  = '4P sim'
-NP_4P_ALT  = '4P alt'
-NP_6P_SIM  = '6P sim'
-NP_6P_ALT  = '6P alt'
-NP_8P_SIM  = '8P sim'
-NP_8P_ALT  = '8P alt'
-NPLAYERS_LIST = [
-    NP_1P,
-    NP_2P_SIM,
-    NP_2P_ALT,
-    NP_3P_SIM,
-    NP_3P_ALT,
-    NP_4P_SIM,
-    NP_4P_ALT,
-    NP_6P_SIM,
-    NP_6P_ALT,
-    NP_8P_SIM,
-    NP_8P_ALT,
-]
+NPLAYERS_LIST = {
+    '1P': 1,
+    '2P': 2,
+    '3P': 3,
+    '4P': 4,
+    '6P': 6,
+    '8P': 8
+}
 
 # Use unique string as IDs.
-META_TITLE_ID     = 'title'
-META_YEAR_ID      = 'year'
-META_GENRE_ID     = 'genre'
-META_DEVELOPER_ID = 'developer'
-META_NPLAYERS_ID  = 'nplayers'
-META_ESRB_ID      = 'esrb'
-META_RATING_ID    = 'rating'
-META_PLOT_ID      = 'plot'
+META_TITLE_ID            = 'title'
+META_YEAR_ID             = 'year'
+META_GENRE_ID            = 'genre'
+META_DEVELOPER_ID        = 'developer'
+META_NPLAYERS_ID         = 'nplayers'
+META_NPLAYERS_ONLINE_ID  = 'nplayers_online'
+META_ESRB_ID             = 'esrb'
+META_RATING_ID           = 'rating'
+META_PLOT_ID             = 'plot'
+META_TAGS_ID             = 'tags'
+
+METADATA_IDS = [
+    META_TITLE_ID,
+    META_YEAR_ID,
+    META_GENRE_ID,
+    META_DEVELOPER_ID,
+    META_NPLAYERS_ID,
+    META_NPLAYERS_ONLINE_ID,
+    META_ESRB_ID,
+    META_RATING_ID,
+    META_PLOT_ID,
+    META_TAGS_ID
+]
+
+METADATA_DESCRIPTIONS = {
+    META_TITLE_ID           : "Title",
+    META_YEAR_ID            : "Release year" ,
+    META_GENRE_ID           : "Genre",
+    META_DEVELOPER_ID       : "Developer" ,
+    META_NPLAYERS_ID        : "Number of players",
+    META_NPLAYERS_ONLINE_ID : "Number of players online",
+    META_ESRB_ID            : "ESRB rating",
+    META_RATING_ID          : "Rating/score",
+    META_PLOT_ID            : "Plot",
+    META_TAGS_ID            : "Tags"
+}
 
 DEFAULT_META_TITLE     = ''
 DEFAULT_META_YEAR      = ''
@@ -439,9 +451,7 @@ SCRAPER_CACHE_HUMAN_JSON = True
 
 SCRAPE_ACTION_NONE             = 20000
 SCRAPE_POLICY_TITLE_ONLY       = 20010
-SCRAPE_POLICY_NFO_PREFERED     = 20020
 SCRAPE_POLICY_LOCAL_ONLY       = 20030
-SCRAPE_POLICY_NFO_AND_SCRAPE   = 20040
 SCRAPE_POLICY_LOCAL_AND_SCRAPE = 20050
 SCRAPE_POLICY_SCRAPE_ONLY      = 20060
 

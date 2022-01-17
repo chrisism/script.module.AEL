@@ -130,8 +130,8 @@ class MetaDataObj(object):
 
     def get_id(self) -> str:
         return self.entity_data['id'] if 'id' in self.entity_data else None
-
     def get_data_dic(self):
+
         return self.entity_data
 
     def get_custom_attribute(self, key, default_value = None):
@@ -158,6 +158,9 @@ class MetaDataObj(object):
         
     def get_number_of_players(self):
         return self.entity_data['m_nplayers']
+
+    def get_number_of_players_online(self):
+        return self.entity_data['m_nplayers_online']
 
     def get_esrb_rating(self):
         return self.entity_data['m_esrb']
@@ -196,6 +199,9 @@ class MetaDataObj(object):
     def set_number_of_players(self, amount):
         self.entity_data['m_nplayers'] = amount
         
+    def set_number_of_players_online(self, amount):
+        self.entity_data['m_nplayers_online'] = amount
+
     def set_esrb_rating(self, esrb):
         self.entity_data['m_esrb'] = esrb
 
@@ -242,6 +248,13 @@ class ROMObj(MetaDataObj):
     def get_platform(self): 
         return self.entity_data['platform']
     
+    def get_tags(self) -> typing.List[str]:
+        if not 'tags' in self.entity_data: return []
+        return self.entity_data['tags']
+
+    def set_tags(self, tags:typing.List[str]):
+        self.entity_data['tags'] = tags
+
     def get_asset_path(self, assetinfo_id: str) -> io.FileName:
         asset_paths = self.entity_data['asset_paths'] if 'asset_paths' in self.entity_data else {}
         asset_path_str = asset_paths[assetinfo_id] if assetinfo_id in asset_paths else None
@@ -295,10 +308,12 @@ class ROMObj(MetaDataObj):
              'm_rating': '',
              'm_plot': '',
              'm_nplayers': '',
+             'm_nplayers_online': '',
              'm_esrb': '',
              'platform': '',
              'scanned_by_id': '',
              'scanned_data': {},
              'assets': {},
-             'asset_paths': {}
+             'asset_paths': {},
+             'tags': []
          }

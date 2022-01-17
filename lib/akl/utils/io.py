@@ -448,10 +448,10 @@ class FileName:
             try:
                 shutil.copy(source_bytes, dest_bytes)
             except OSError:
-                logger.error('FileName::copy() OSError exception copying image')
+                logger.exception('FileName::copy() OSError exception copying image')
                 raise constants.AddonError('OSError exception copying image')
             except IOError:
-                logger.error('FileName::copy() IOError exception copying image')
+                logger.exception('FileName::copy() IOError exception copying image')
                 raise constants.AddonError('IOError exception copying image')
         else:
             if FILENAME_VERBOSE:
@@ -480,11 +480,11 @@ class FileName:
             file_bytes = self.read()
             self.close()
         except OSError:
-            logger.error('(OSError) Exception in FileName::loadFileToStr()')
+            logger.exception('(OSError) Exception in FileName::loadFileToStr()')
             logger.error('(OSError) Cannot read {0} file'.format(self.path_tr))
             raise constants.AddonError('(OSError) Cannot read {0} file'.format(self.path_tr))
         except IOError as Ex:
-            logger.error('(IOError) Exception in FileName::loadFileToStr()')
+            logger.exception('(IOError) Exception in FileName::loadFileToStr()')
             logger.error('(IOError) errno = {0}'.format(Ex.errno))
             if Ex.errno == errno.ENOENT: logger.error('(IOError) No such file or directory.')
             else:                        logger.error('(IOError) Unhandled errno value.')
@@ -517,11 +517,11 @@ class FileName:
             self.write(data_str)
             self.close()
         except OSError:
-            logger.error('(OSError) Exception in saveStrToFile()')
+            logger.exception('(OSError) Exception in saveStrToFile()')
             logger.error('(OSError) Cannot write {0} file'.format(self.path_tr))
             raise constants.AddonError('(OSError) Cannot write {0} file'.format(self.path_tr))
         except IOError as e:
-            logger.error('(IOError) Exception in saveStrToFile()')
+            logger.exception('(IOError) Exception in saveStrToFile()')
             logger.error('(IOError) errno = {0}'.format(e.errno))
             if e.errno == errno.ENOENT: logger.error('(IOError) No such file or directory.')
             else:                       logger.error('(IOError) Unhandled errno value.')
@@ -570,34 +570,38 @@ class FileName:
             str_data = self.loadFileToStr()
             tree = ET.fromstring(str_data)
         except ET.ParseError as e:
-            logger.error('(ParseError) Exception parsing XML {}'.format(self.getPath()))
+            logger.exception('(ParseError) Exception parsing XML {}'.format(self.getPath()))
             logger.error('(ParseError) {0}'.format(str(e)))
     
         return tree
 
     # Opens file and writes xml. Give xml root element.
-    def writeXml(self, xml_root):
+    def writeXml(self, xml_root:ET.Element):
         data = ET.tostring(xml_root)
         self.saveStrToFile(data)
         
     # ---------------------------------------------------------------------------------------------
     # Scanner functions
     # ---------------------------------------------------------------------------------------------
-    def scanFilesInPath(self, mask = '*.*'):
+    def scanFilesInPath(self, mask = '*.*', progress_total_function=None, progress_function=None):
         files: typing.List[FileName] = []
         all_files = self.list()
+        if progress_total_function is not None: progress_total_function(len(all_files))
         
         for filename in fnmatch.filter(all_files, mask):
             files.append(self.pjoin(filename))
+            if progress_function is not None: progress_function()
             
         return files
     
-    def recursiveScanFilesInPath(self, mask = '*.*'):
+    def recursiveScanFilesInPath(self, mask = '*.*', progress_total_function=None, progress_function=None):
         files: typing.List[FileName] = []
         all_files = self.recursive_list()
+        if progress_total_function is not None: progress_total_function(len(all_files))
         
         for filename in fnmatch.filter(all_files, mask):
             files.append(self.pjoin(filename))
+            if progress_function is not None: progress_function()
             
         return files
 
@@ -760,7 +764,7 @@ def misc_calculate_checksums(full_file_path: FileName):
         size = full_file_path.stat().st_size
         #os.path.getsize(full_file_path)
     except Exception as ex:
-        logger.fatal('Exception in plugin', exc_info=ex)
+        logger.exception('Exception in plugin')
         logger.debug('(Exception) In misc_calculate_checksums()')
         logger.debug('Returning None')
         return None

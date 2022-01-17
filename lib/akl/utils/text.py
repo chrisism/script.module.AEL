@@ -161,7 +161,7 @@ def unescape_HTML(s:str) -> str:
 
 # Remove HTML tags from string.
 def remove_HTML_tags(s):
-    p = re.compile('<.*?>')
+    p = re.compile(r'<.*?>')
     s = p.sub('', s)
 
     return s
@@ -186,8 +186,8 @@ def str_2_Uni(string):
     return unicode_str
 
 def remove_Kodi_color_tags(s):
-    s = re.sub('\[COLOR \S+?\]', '', s)
-    s = re.sub('\[color \S+?\]', '', s)
+    s = re.sub(r'\[COLOR \S+?\]', '', s)
+    s = re.sub(r'\[color \S+?\]', '', s)
     s = s.replace('[/color]', '')
     s = s.replace('[/COLOR]', '')
 
@@ -214,9 +214,9 @@ def misc_generate_random_SID() -> str:
 # 2) Substitutes some characters by spaces
 #
 def format_ROM_name_for_scraping(title):
-    title = re.sub('\[.*?\]', '', title)
-    title = re.sub('\(.*?\)', '', title)
-    title = re.sub('\{.*?\}', '', title)
+    title = re.sub(r'\[.*?\]', '', title)
+    title = re.sub(r'\(.*?\)', '', title)
+    title = re.sub(r'\{.*?\}', '', title)
     
     title = title.replace('_', ' ')
     title = title.replace('-', ' ')
@@ -240,7 +240,7 @@ def  format_ROM_title(title, clean_tags):
     # Regexp to decompose a string in tokens
     #
     if clean_tags:
-        reg_exp = '\[.+?\]\s?|\(.+?\)\s?|\{.+?\}|[^\[\(\{]+'
+        reg_exp = r'\[.+?\]\s?|\(.+?\)\s?|\{.+?\}|[^\[\(\{]+'
         tokens = re.findall(reg_exp, title)
         str_list = []
         for token in tokens:
@@ -271,7 +271,7 @@ def get_ROM_basename_tokens(basename_str):
     DEBUG_TOKEN_PARSER = False
 
     # --- Parse ROM base_noext/basename_str into tokens ---
-    reg_exp = '\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
+    reg_exp = r'\[.+?\]|\(.+?\)|\{.+?\}|[^\[\(\{]+'
     tokens_raw = re.findall(reg_exp, basename_str)
     if DEBUG_TOKEN_PARSER:
         logger.debug('get_ROM_basename_tokens() tokens_raw   {0}'.format(tokens_raw))

@@ -123,6 +123,7 @@ class ScraperSettings(object):
         self.game_selection_mode    = constants.SCRAPE_AUTOMATIC
         self.asset_selection_mode   = constants.SCRAPE_AUTOMATIC
         
+        self.metadata_IDs_to_scrape = constants.METADATA_IDS
         self.asset_IDs_to_scrape    = constants.ROM_ASSET_ID_LIST
         
         self.overwrite_existing     = False
@@ -278,7 +279,7 @@ class ScrapeStrategy(object):
                 self.scraper_settings.scrape_assets_policy   = constants.SCRAPE_ACTION_NONE
         
         if self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_TITLE_ONLY or \
-            self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_NFO_PREFERED or \
+            self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_ONLY or \
             self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_ACTION_NONE:
             self.meta_scraper_obj = Null_Scraper()
         if self.scraper_settings.scrape_assets_policy == constants.SCRAPE_ACTION_NONE:
@@ -304,7 +305,7 @@ class ScrapeStrategy(object):
         try:
             roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, romcollection_id)
         except Exception as ex:
-            logger.error('Failure while retrieving ROMs from collection', exc_info=ex)
+            logger.exception('Failure while retrieving ROMs from collection')
             return
         
         num_items = len(roms)
@@ -324,17 +325,15 @@ class ScrapeStrategy(object):
             try:
                 self._process_ROM(rom)
             except Exception as ex:
-                logger.error('(Exception) Object type "{}"'.format(type(ex)))
-                logger.error('(Exception) Message "{}"'.format(str(ex)))
-                msg = 'Could not scrape "{}"'.format(ROM_name)
-                logger.warning(msg)
-                kodi.notify_warn(msg)
+                logger.exception(f'Could not scrape "{ROM_name}"')
+                kodi.notify_warn(f'Could not scrape "{ROM_name}"')
             
             # ~~~ Check if user pressed the cancel button ~~~
             if self.pdialog.isCanceled():
                 self.pdialog.endProgress()
-                kodi.dialog_OK('Stopping ROM scraping.')
                 logger.info('User pressed Cancel button when scraping ROMs. ROM scraping stopped.')
+                if kodi.dialog_yesno('Stopping ROM scraping. Store currently scraped items anyway?'):
+                    return roms
                 return None
         
         self.pdialog.endProgress()
@@ -345,7 +344,7 @@ class ScrapeStrategy(object):
         try:
             rom = api.client_get_rom(self.webservice_host, self.webservice_port, rom_id)
         except Exception as ex:
-            logger.error('Failure while retrieving ROMs from collection', exc_info=ex)
+            logger.exception('Failure while retrieving ROMs from collection')
             return
         
         ROM_name = rom.get_identifier()            
@@ -355,11 +354,8 @@ class ScrapeStrategy(object):
         try:
             self._process_ROM(rom)
         except Exception as ex:
-            logger.error('(Exception) Object type "{}"'.format(type(ex)))
-            logger.error('(Exception) Message "{}"'.format(str(ex)))
-            msg = 'Could not scrape "{}"'.format(ROM_name)
-            logger.warning(msg)
-            kodi.notify_warn(msg)
+            logger.exception(f'Could not scrape "{ROM_name}"')
+            kodi.notify_warn(f'Could not scrape "{ROM_name}"')
             return None
         
         return rom
@@ -525,7 +521,7 @@ class ScrapeStrategy(object):
             logger.debug('Metadata policy: Only cleaning ROM name.')
             self.metadata_action = ScrapeStrategy.ACTION_META_TITLE_ONLY
 
-        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_NFO_PREFERED:
+        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
             logger.debug('Metadata policy: Read NFO file ON | Scraper OFF')
             if NFO_file_found:
                 logger.debug('Metadata policy: NFO file found.')
@@ -534,7 +530,7 @@ class ScrapeStrategy(object):
                 logger.debug('Metadata policy: NFO file not found. Only cleaning ROM name')
                 self.metadata_action = ScrapeStrategy.ACTION_META_TITLE_ONLY
 
-        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_NFO_AND_SCRAPE:
+        elif self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE:
             logger.debug('Metadata policy: Read NFO file ON | Scraper ON')
             if NFO_file_found:
                 logger.debug('Metadata policy: NFO file found. Scraper not used.')
@@ -662,6 +658,9 @@ class ScrapeStrategy(object):
             # * In the scanner treat any scraper error message as a Kodi OK dialog.
             # * Once the error is displayed reset status_dic
             if not status_dic['status']:
+                if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                    self.pdialog.cancel()
+                    return
                 self.pdialog.close()
                 # Close error message dialog automatically 1 minute to keep scanning.
                 # kodi_dialog_OK(status_dic['msg'])
@@ -737,12 +736,17 @@ class ScrapeStrategy(object):
         status_dic = kodi.new_status_dic('No error')
         game_data = self.meta_scraper_obj.get_metadata(status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
+
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
             kodi.dialog_OK_timer(status_dic['msg'], 60000)
             self.pdialog.reopen()
             return
+
         scraper_applied = self._apply_candidate_on_metadata(game_data, rom)
     #
     # Returns a valid filename of the downloaded scrapped image, filename of local image
@@ -790,6 +794,9 @@ class ScrapeStrategy(object):
         # --- Grab list of images/assets for the selected candidate ---
         assetdata_list = self.asset_scraper_obj.get_assets(asset_info_id, status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -856,6 +863,9 @@ class ScrapeStrategy(object):
         image_url, image_url_log = self.asset_scraper_obj.resolve_asset_URL(
             selected_asset, status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -872,6 +882,9 @@ class ScrapeStrategy(object):
         image_ext = self.asset_scraper_obj.resolve_asset_URL_extension(
             selected_asset, image_url, status_dic)
         if not status_dic['status']:
+            if status_dic['dialog'] == kodi.KODI_MESSAGE_CANCEL:
+                self.pdialog.cancel()
+                return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -894,7 +907,7 @@ class ScrapeStrategy(object):
         try:
             image_local_path = self.asset_scraper_obj.download_image(image_url, image_local_path)
         except Exception as ex:
-            logger.error('(Exception) In scraper.download_image.', ex)
+            logger.exception('(Exception) In scraper.download_image.')
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
             # kodi_dialog_OK(status_dic['msg'])
@@ -932,12 +945,14 @@ class ScrapeStrategy(object):
             rom.set_name(rom_name)
             logger.debug("User wants scrapped name. Setting name to '{0}'".format(rom_name))
 
-        rom.set_releaseyear(gamedata['year'])           # <year>
-        rom.set_genre(gamedata['genre'])                # <genre>
-        rom.set_developer(gamedata['developer'])        # <developer>
-        rom.set_number_of_players(gamedata['nplayers']) # <nplayers>
-        rom.set_esrb_rating(gamedata['esrb'])           # <esrb>
-        rom.set_plot(gamedata['plot'])                  # <plot>
+        rom.set_releaseyear(gamedata['year']) 
+        rom.set_genre(gamedata['genre'])         
+        rom.set_developer(gamedata['developer']) 
+        rom.set_number_of_players(gamedata['nplayers']) 
+        rom.set_number_of_players_online(gamedata['nplayers_online'])
+        rom.set_esrb_rating(gamedata['esrb'])
+        rom.set_plot(gamedata['plot'])
+        rom.set_tags(gamedata['tags'])                  
 
         return True
         
@@ -1016,9 +1031,7 @@ class ScrapeStrategy(object):
     def _translate(self, key):
         if key == constants.SCRAPE_ACTION_NONE: return 'No action'
         if key == constants.SCRAPE_POLICY_TITLE_ONLY: return 'Use title only'
-        if key == constants.SCRAPE_POLICY_NFO_PREFERED : return 'Prefer NFO'
         if key == constants.SCRAPE_POLICY_LOCAL_ONLY: return 'Use local files only'
-        if key == constants.SCRAPE_POLICY_NFO_AND_SCRAPE: return 'NFO / Scrape'
         if key == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE: return 'Local / Scrape'
         if key == constants.SCRAPE_POLICY_SCRAPE_ONLY: return 'Scrape only'
         if key == constants.SCRAPE_MANUAL: return 'Manual selection'
@@ -1076,7 +1089,12 @@ class Scraper(object):
         # logger.debug('Scraper.__init__() scraper_cache_dir "{}"'.format(self.scraper_cache_dir))
         if not self.scraper_cache_dir:
             self.scraper_cache_dir = kodi.getAddonDir().pjoin('cache', isdir=True).getPath()
+        
+        cache_dir_fn = io.FileName(self.scraper_cache_dir)
+        if not cache_dir_fn.exists():
+            cache_dir_fn.makedirs()
 
+        logger.info(f'Scraper cache dir set to: {self.scraper_cache_dir}')
         self.last_http_call = datetime.now()
         
         # --- Disk caches ---
@@ -1194,7 +1212,7 @@ class Scraper(object):
         self.platform  = platform
         self.candidate = self._retrieve_from_disk_cache(Scraper.CACHE_CANDIDATES, self.cache_key)
 
-    def set_candidate(self, rom_identifier: str, platform, candidate):
+    def set_candidate(self, rom_identifier: str, platform, candidate:dict):
         self.cache_key = rom_identifier
         self.platform  = platform
         self.candidate = candidate
@@ -1412,13 +1430,15 @@ class Scraper(object):
 
     def _new_gamedata_dic(self):
         return {
-            'title'     : '',
-            'year'      : '',
-            'genre'     : '',
-            'developer' : '',
-            'nplayers'  : '',
-            'esrb'      : '',
-            'plot'      : ''
+            'title'           : '',
+            'year'            : '',
+            'genre'           : '',
+            'developer'       : '',
+            'nplayers'        : '',
+            'nplayers_online' : '',
+            'esrb'            : '',
+            'plot'            : '',
+            'tags'            : []
         }
 
     # url_thumb is always returned by get_assets().
@@ -1460,8 +1480,7 @@ class Scraper(object):
     # This function is called when an exception in the scraper code happens.
     # All messages from the scrapers are KODI_MESSAGE_DIALOG.
     def _handle_exception(self, ex, status_dic, user_msg):
-        logger.error('(Exception) Object type "{}"'.format(type(ex)), ex)
-        logger.error('(Exception) Message "{}"'.format(str(ex)))
+        logger.exception(f'(Exception) Message "{user_msg}"')
         self._handle_error(status_dic, user_msg)
 
     # --- Private disk cache functions -----------------------------------------------------------
@@ -1497,29 +1516,29 @@ class Scraper(object):
 
     # Returns True if item is in the cache, False otherwise.
     # Lazy loads cache files from disk.
-    def _check_disk_cache(self, cache_type, cache_key):
+    def _check_disk_cache(self, cache_type:str, cache_key:str):
         self._lazy_load_disk_cache(cache_type)
 
         return True if cache_key in self.disk_caches[cache_type] else False
 
     # _check_disk_cache() must be called before this.
-    def _retrieve_from_disk_cache(self, cache_type, cache_key):
+    def _retrieve_from_disk_cache(self, cache_type:str, cache_key:str):
         return self.disk_caches[cache_type][cache_key]
 
     # _check_disk_cache() must be called before this.
-    def _delete_from_disk_cache(self, cache_type, cache_key):
+    def _delete_from_disk_cache(self, cache_type:str, cache_key:str):
         del self.disk_caches[cache_type][cache_key]
         self.disk_caches_dirty[cache_type] = True
 
     # Lazy loading should be done here because the internal cache for ScreenScraper
     # could be updated withouth being loaded first with _check_disk_cache().
-    def _update_disk_cache(self, cache_type, cache_key, data):
+    def _update_disk_cache(self, cache_type:str, cache_key:str, data):
         self._lazy_load_disk_cache(cache_type)
         self.disk_caches[cache_type][cache_key] = data
         self.disk_caches_dirty[cache_type] = True
 
     # --- Private global disk caches -------------------------------------------------------------
-    def _get_global_file_name(self, cache_type):
+    def _get_global_file_name(self, cache_type:str):
         json_fname = cache_type + '.json'
         json_full_path = os.path.join(self.scraper_cache_dir, json_fname)
 
@@ -1583,7 +1602,7 @@ class Scraper(object):
 # NULL scraper, does nothing.
 # ------------------------------------------------------------------------------------------------
 class Null_Scraper(Scraper):
-    def __init__(self): super(Null_Scraper, self).__init__('')
+    def __init__(self): super(Null_Scraper, self).__init__(None)
 
     def get_name(self): return 'Null'
 
