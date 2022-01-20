@@ -1,1 +1,2 @@
-First official release of the library module.
+## Bug fixes
+- Fix for scraper cache dirs.

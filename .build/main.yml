@@ -51,14 +51,14 @@ stages:
         displayName: 'Executing gitversion'
 
       - script: |
-            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.LegacySemVer)
-            echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
+            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)$(GitVersion.PreReleaseLabelWithDash).$(GitVersion.BuildMetaData)
+            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)~$(GitVersion.PreReleaseLabel).$(GitVersion.BuildMetaData)
         displayName: 'Setting version variables'
         condition: not(eq(${{variables.isMaster}}, true))
         
       - script: |
             echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
-            echo '##vso[task.setvariable variable=projectVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
+            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
         condition: eq(${{variables.isMaster}}, true)
 
@@ -85,7 +85,7 @@ stages:
         inputs:
           PathToFile: 'addon.xml'
           RegEx: 'version="\d+\.\d+\.\d+.*" provider'
-          ValueToReplace: 'version="$(packageVersion)" provider'
+          ValueToReplace: 'version="$(addonVersion)" provider'
     
       - bash: update_addon_news $(workingDirectory)/addon.xml $(workingDirectory)/changelog.txt
         displayName: 'Add changelog in addon.xml'
@@ -158,6 +158,7 @@ stages:
       - script: |
           python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) dist/*.whl
         displayName: Upload python package
+        condition: or(eq(${{variables.isMaster}}, true), eq(${{variables.isReleaseCandidate}}, true), eq(${{variables.isReleaseCandidate}}, true))
 
       - task: PublishTestResults@2
         displayName: 'Publish test result'
