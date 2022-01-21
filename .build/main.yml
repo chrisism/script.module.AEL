@@ -52,12 +52,12 @@ stages:
         displayName: 'Executing gitversion'
 
       - script: |
-            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)~$(GitVersion.PreReleaseTag)
+            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)~$(GitVersion.PreReleaseTag)'
         displayName: 'Setting version variables'
         condition: not(eq(${{variables.isMaster}}, true))
         
       - script: |
-            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
+            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)'
         displayName: 'Setting version variables'
         condition: eq(${{variables.isMaster}}, true)
 
