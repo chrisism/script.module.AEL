@@ -20,7 +20,7 @@ with io.open(os.path.join(here, 'addon.xml'), encoding='utf-8') as f:
     tree = ET.fromstring(str_data)
     
     NAME = tree.get('id')
-    VERSION = tree.get('version')
+    VERSION = tree.get('version').replace("~", "-")
     AUTHOR = tree.get('provider-name')
     AUTHOR_EMAIL = tree.findall('.//email')[0].text
     DESCRIPTION = tree.findall('.//description')[0].text

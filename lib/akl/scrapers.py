@@ -1070,8 +1070,8 @@ class Scraper(object):
     JSON_separators = (',', ':')
 
     # --- Constructor ----------------------------------------------------------------------------
-    # @param cache_dir: [str] Path to scraper cache dir.
-    def __init__(self, cache_dir:str):
+    # @param cache_dir: [io.FileName] Path to scraper cache dir.
+    def __init__(self, cache_dir:io.FileName):
         
         self.verbose_flag = False
         self.dump_file_flag = False # Dump DEBUG files only if this is true.
@@ -1085,16 +1085,16 @@ class Scraper(object):
         self.scraper_disabled = False
         # Directory to store on-disk scraper caches.
         self.scraper_cache_dir = cache_dir
-        # Do not log here. Otherwise the same thing will be printed for every scraper instantiated.
-        # logger.debug('Scraper.__init__() scraper_cache_dir "{}"'.format(self.scraper_cache_dir))
         if not self.scraper_cache_dir:
-            self.scraper_cache_dir = kodi.getAddonDir().pjoin('cache', isdir=True).getPath()
+            self.scraper_cache_dir = kodi.getAddonDir().pjoin('cache', isdir=True)
         
-        cache_dir_fn = io.FileName(self.scraper_cache_dir)
-        if not cache_dir_fn.exists():
-            cache_dir_fn.makedirs()
+        if isinstance(self.scraper_cache_dir, str):
+            self.scraper_cache_dir = io.FileName(self.scraper_cache_dir, isdir=True)
 
-        logger.info(f'Scraper cache dir set to: {self.scraper_cache_dir}')
+        if not self.scraper_cache_dir.exists():
+            self.scraper_cache_dir.makedirs()
+
+        logger.info(f'Scraper cache dir set to: {self.scraper_cache_dir.getPath()}')
         self.last_http_call = datetime.now()
         
         # --- Disk caches ---
@@ -1487,7 +1487,7 @@ class Scraper(object):
     def _get_scraper_file_name(self, cache_type, platform):
         scraper_filename = self.get_filename()
         json_fname = scraper_filename + '__' + platform + '__' + cache_type + '.json'
-        json_full_path = os.path.join(self.scraper_cache_dir, json_fname)
+        json_full_path = self.scraper_cache_dir.pjoin(json_fname).getPath()
 
         return json_full_path, json_fname
 
@@ -1540,7 +1540,7 @@ class Scraper(object):
     # --- Private global disk caches -------------------------------------------------------------
     def _get_global_file_name(self, cache_type:str):
         json_fname = cache_type + '.json'
-        json_full_path = os.path.join(self.scraper_cache_dir, json_fname)
+        json_full_path = self.scraper_cache_dir.pjoin(json_fname).getPath()
 
         return json_full_path, json_fname
 
