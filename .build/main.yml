@@ -52,13 +52,11 @@ stages:
         displayName: 'Executing gitversion'
 
       - script: |
-            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)$(GitVersion.PreReleaseTagWithDash)
             echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)~$(GitVersion.PreReleaseTag)
         displayName: 'Setting version variables'
         condition: not(eq(${{variables.isMaster}}, true))
         
       - script: |
-            echo '##vso[task.setvariable variable=packageVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
             echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
         condition: eq(${{variables.isMaster}}, true)
@@ -96,7 +94,7 @@ stages:
           python setup.py bdist_wheel
         displayName: Build python package          
 
-      - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml' 
+      - bash: 'python -m pytest --junitxml=$(build.artifactstagingdirectory)/$(addonName)_$(addonVersion)_testresults.xml' 
         workingDirectory: '$(workingDirectory)'
         env:
           PYTHONPATH: $(workingDirectory)/lib 
@@ -126,7 +124,7 @@ stages:
           rootFolderOrFile: '$(build.artifactstagingdirectory)/$(addonName)'
           includeRootFolder: true
           archiveType: 'zip'
-          archiveFile: '$(build.artifactstagingdirectory)/package/$(addonName)-$(packageVersion).zip'
+          archiveFile: '$(build.artifactstagingdirectory)/package/$(addonName)-$(addonVersion).zip'
           replaceExistingArchive: true
  
       - task: CopyFiles@2
@@ -141,7 +139,7 @@ stages:
           flattenFolders: false
           OverWrite: true
 
-      - script: md5sum $(addonName)-$(packageVersion).zip > $(addonName)-$(packageVersion).zip.md5
+      - script: md5sum $(addonName)-$(addonVersion).zip > $(addonName)-$(addonVersion).zip.md5
         workingDirectory: $(build.artifactstagingdirectory)/package/
         displayName: 'Creating md5 file for zipfile'
 
@@ -164,8 +162,8 @@ stages:
       - task: PublishTestResults@2
         displayName: 'Publish test result'
         inputs:
-          testResultsFiles: '$(build.artifactstagingdirectory)/$(addonName)_$(packageVersion)_testresults.xml'
-          testRunTitle: $(addonName)_$(packageVersion)
+          testResultsFiles: '$(build.artifactstagingdirectory)/$(addonName)_$(addonVersion)_testresults.xml'
+          testRunTitle: $(addonName)_$(addonVersion)
         condition: succeededOrFailed()
 
       - task: GithubRelease@1 
@@ -177,7 +175,7 @@ stages:
           action: 'create'
           target: '$(Build.SourceVersion)'
           tagSource: 'userSpecifiedTag'
-          tag: $(packageVersion)
+          tag: $(addonVersion)
           title: $(Build.BuildNumber)
           releaseNotesSource: filePath
           releaseNotesFilePath: $(workingDirectory)/release.md  
