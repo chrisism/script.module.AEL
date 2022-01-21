@@ -157,7 +157,7 @@ stages:
       - script: |
           python -m twine upload -r akl_libs --config-file $(PYPIRC_PATH) dist/*.whl
         displayName: Upload python package
-        condition: or(eq(${{variables.isMaster}}, true), eq(${{variables.isReleaseCandidate}}, true), eq(${{variables.isReleaseCandidate}}, true))
+        condition: or(eq(${{variables.isMaster}}, true), eq(${{variables.isReleaseCandidate}}, true), eq(${{variables.isHotfix}}, true))
 
       - task: PublishTestResults@2
         displayName: 'Publish test result'
