@@ -10,7 +10,7 @@ from tests.fakes import FakeFile
 from lib.akl.api import ROMObj
 from lib.akl.utils import io
 from lib.akl import constants
-from lib.akl.scrapers import Null_Scraper, ScrapeStrategy, ScraperSettings
+from lib.akl.scrapers import Null_Scraper, ScrapeStrategy, Scraper, ScraperSettings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
@@ -106,3 +106,14 @@ class Test_clean_title_scraper(unittest.TestCase):
           print('')
           actual = new_title
           assert actual == expected
+
+    @patch('lib.akl.scrapers.io.FileName', autospec=True, side_effect=FakeFile)
+    def test_calling_scraper_with_str_as_cache_dir_is_ok(self, filemock):
+      # arrange
+      input_value = 'this_is_a_string/'
+
+      # act
+      target = Scraper(input_value)
+
+      # assert
+      assert target is not None
