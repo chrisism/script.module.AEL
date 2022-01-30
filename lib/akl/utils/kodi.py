@@ -666,7 +666,7 @@ class WizardDialog_Input(WizardDialog):
     def show(self, properties):
         logger.debug('WizardDialog::show() {} key = {}'.format(self.inputType, self.property_key))
         originalValue = properties[self.property_key] if self.property_key in properties else ''
-        output = xbmcgui.Dialog().yesno(self.title, originalValue, self.inputType)
+        output = xbmcgui.Dialog().input(self.title, originalValue, self.inputType)
         if not output:
             self._cancel()
             return None
