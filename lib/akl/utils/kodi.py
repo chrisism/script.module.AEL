@@ -660,7 +660,7 @@ class WizardDialog_Input(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, inputType,
                  customFunction = None, conditionalFunction = None):
         self.inputType = inputType
-        super(WizardDialog, self).__init__(
+        super(WizardDialog_Input, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction)
 
     def show(self, properties):
