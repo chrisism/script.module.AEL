@@ -1,5 +1,6 @@
 ## Bug fixes
 - Code fix for wizard dialogs.
 
-## Previous
+
+## In previous releases
 - Fix for scraper cache dirs.

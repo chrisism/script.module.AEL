@@ -30,4 +30,5 @@ in the Kodi forum.
 
 ### Documentation ###
 
-Read more about AKL on the main plugin's [ReadMe](https://github.com/chrisism/plugin.program.akl/blob/master/README.md) page.
+Read more about AKL on the main plugin's [ReadMe](https://github.com/chrisism/plugin.program.akl/blob/master/README.md) page.  
+Information about the latest release of this plugin can be read in the [changelog](https://github.com/chrisism/script.module.akl/blob/master/changelog.md) page.
