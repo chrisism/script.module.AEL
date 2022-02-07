@@ -131,7 +131,7 @@ def download_img(img_url, file_path:io.FileName):
 #          HTTP status code as integer or None if network error/exception.
 def get_URL(url, url_log = None, headers = None):
     import traceback
-    
+
     try:
         req = Request(url)
         if url_log is None: 
@@ -161,8 +161,7 @@ def get_URL(url, url_log = None, headers = None):
         return page_bytes, http_code
     except Exception as ex:
         logger.exception('(Exception) In net_get_URL()')
-        return page_bytes, http_code
-    
+        return None, 500
        
     logger.debug('get_URL() Read {:,} bytes'.format(len(page_bytes)))
     logger.debug('get_URL() HTTP status code {}'.format(http_code))
@@ -248,9 +247,6 @@ def post_JSON_URL(url, data_obj: any):
         logger.exception('(HTTPError) In post_JSON_URL()')
         logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
-    except IOError as ex:
-        logger.exception('(IOError exception) In get_URL()')
-        return page_data, http_code
     except Exception as ex:
         logger.exception('(General exception) In get_URL()')
         return page_data, http_code
@@ -292,8 +288,8 @@ def get_URL_using_handler(url, handler = None):
     return page_data
 
 def decode_URL_data(page_bytes, encoding):
-    # --- Try to guess enconding ---
     if   encoding == 'text/html':                             encoding = 'utf-8'
+    # --- Try to guess enconding ---
     elif encoding == 'application/json':                      encoding = 'utf-8'
     elif encoding == 'text/plain' and 'UTF-8' in page_bytes:  encoding = 'utf-8'
     elif encoding == 'text/plain' and 'UTF-16' in page_bytes: encoding = 'utf-16'
