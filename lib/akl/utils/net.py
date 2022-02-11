@@ -133,7 +133,7 @@ def get_URL(url:str, url_log:str = None, headers:dict = None,
         else: logger.debug(f'get_URL() GET URL "{url_log}"')
 
         if headers is None: headers = {}
-        headers['User-Agent', USER_AGENT]
+        headers["User-Agent"] = USER_AGENT
 
         response:requests.Response = requests.get(
             url,
@@ -155,9 +155,9 @@ def get_URL(url:str, url_log:str = None, headers:dict = None,
         elif content_type == ContentType.STRING:
             page_data = response.text
         elif content_type == ContentType.JSON:
-            page_data = response.json
+            page_data = response.json()
        
-        logger.debug('get_URL() content-length {:,} bytes'.format(int(response.headers['Content-length'])))
+        logger.debug('get_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
         logger.debug(f'get_URL() HTTP status code {http_code}')
         logger.debug(f'get_URL() encoding {encoding}')
 
@@ -209,7 +209,7 @@ def post_URL(url:str, data:dict, headers:dict = None, verify_ssl=None,
     try:
         logger.debug(f"post_URL() POST URL '{url}'")
         if headers is None: headers = {}
-        headers['User-Agent', USER_AGENT]
+        headers["User-Agent"] = USER_AGENT
 
         response:requests.Response = requests.post(
             url,
@@ -232,9 +232,9 @@ def post_URL(url:str, data:dict, headers:dict = None, verify_ssl=None,
         elif content_type == ContentType.STRING:
             page_data = response.text
         elif content_type == ContentType.JSON:
-            page_data = response.json
+            page_data = response.json()
 
-        logger.debug("post_URL() content-length {:,} bytes".format(int(response.headers['Content-length'])))
+        logger.debug('post_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
         logger.debug(f"post_URL() HTTP status code {http_code}")
         logger.debug(f"post_URL() encoding {encoding}")
 
@@ -275,7 +275,7 @@ def post_JSON_URL(url, json_obj: any, headers:dict = None,
     try:
         logger.debug(f"post_JSON_URL() POST URL '{url}'")
         if headers is None: headers = {}
-        headers['User-Agent', USER_AGENT]
+        headers["User-Agent"] = USER_AGENT
 
         response:requests.Response = requests.post(
             url,
@@ -298,9 +298,9 @@ def post_JSON_URL(url, json_obj: any, headers:dict = None,
         elif content_type == ContentType.STRING:
             page_data = response.text
         elif content_type == ContentType.JSON:
-            page_data = response.json
+            page_data = response.json()
        
-        logger.debug("post_JSON_URL() content-length {:,} bytes".format(int(response.headers['Content-length'])))
+        logger.debug('post_JSON_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
         logger.debug(f"post_JSON_URL() HTTP status code {http_code}")
         logger.debug(f"post_JSON_URL() encoding {encoding}")
 
