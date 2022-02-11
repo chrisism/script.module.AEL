@@ -23,15 +23,10 @@ import typing
 
 import logging
 import random
-import json
-import ssl
 from enum import Enum
 
 import requests
-
-from urllib.request import urlopen, build_opener, Request, HTTPSHandler
 from urllib.error import HTTPError
-from http.client import HTTPSConnection
 
 # AKL modules
 from akl.utils import io
@@ -102,27 +97,15 @@ def get_random_UserAgent():
 def download_img(img_url, file_path:io.FileName):
     # --- Download image to a buffer in memory ---
     # If an exception happens here no file is created (avoid creating files with 0 bytes).
-    try:
-        req = Request(img_url)
-        req.add_unredirected_header('User-Agent', USER_AGENT)
-        response = urlopen(req, timeout = 120, context = ssl._create_unverified_context())
-        img_buf = response.read()
-        response.close()
-    # If an exception happens record it in the log and do nothing.
-    # This must be fixed. If an error happened when downloading stuff caller code must
-    # known to take action.
-    except IOError as ex:
-        logger.exception('(IOError) In download_img(), network code.')
+    file_data, http_code = get_URL(img_url, verify_ssl=False, content_type=ContentType.BYTES)
+    if http_code != 200:
         return
-    except Exception as ex:
-        logger.exception('(Exception) In download_img(), network code.')
-        return
-
+    
     # --- Write image file to disk ---
     # There should be no more 0 size files with this code.
     try:
         f = file_path.open('wb')
-        f.write(img_buf)
+        f.write(file_data)
         f.close()
     except IOError as ex:
         logger.exception('(IOError) In download_img(), disk code.')
