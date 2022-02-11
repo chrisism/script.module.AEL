@@ -41,23 +41,27 @@ stages:
   jobs:
     - job: build
       displayName: build
+      workspace:
+        clean: all 
         
       steps:
       - task: gitversion/setup@0
         displayName: 'Install GitTools'
         inputs:
-          versionSpec: '5.3.x'
+          versionSpec: '5.x'
 
       - task: gitversion/execute@0
         displayName: 'Executing gitversion'
 
       - script: |
-            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)~$(GitVersion.PreReleaseLabel)$(GitVersion.PreReleaseNumber)'
+            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)~$(GitVersion.PreReleaseLabel)$(GitVersion.PreReleaseNumber)
+            echo '##vso[task.setvariable variable=tagVersion]$(GitVersion.LegacySemVer)
         displayName: 'Setting version variables'
         condition: not(eq(${{variables.isMaster}}, true))
         
       - script: |
-            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)'
+            echo '##vso[task.setvariable variable=addonVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
+            echo '##vso[task.setvariable variable=tagVersion]$(GitVersion.Major).$(GitVersion.Minor).$(GitVersion.Patch)
         displayName: 'Setting version variables'
         condition: eq(${{variables.isMaster}}, true)
 
@@ -70,7 +74,6 @@ stages:
           artifactFeeds: AKL/akl_libs
           
       - bash: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
         displayName: pip install 
 
@@ -86,7 +89,7 @@ stages:
           RegEx: 'version="\d+\.\d+\.\d+.*" provider'
           ValueToReplace: 'version="$(addonVersion)" provider'
     
-      - bash: update_addon_news $(workingDirectory)/addon.xml $(workingDirectory)/changelog.txt
+      - bash: update_addon_news $(workingDirectory)/addon.xml $(workingDirectory)/changelog.md
         displayName: 'Add changelog in addon.xml'
         workingDirectory: '$(workingDirectory)'
 
@@ -175,14 +178,13 @@ stages:
           action: 'create'
           target: '$(Build.SourceVersion)'
           tagSource: 'userSpecifiedTag'
-          tag: $(addonVersion)
+          tag: $(tagVersion)
           title: $(Build.BuildNumber)
           releaseNotesSource: filePath
-          releaseNotesFilePath: $(workingDirectory)/release.md  
+          releaseNotesFilePath: $(workingDirectory)/changelog.md  
           addChangeLog: true
           assets: |
             $(build.artifactstagingdirectory)/package/*.*
-            $(workingDirectory)/changelog.txt
 
 - stage: DeployStaging
   displayName: Deployment on Staging

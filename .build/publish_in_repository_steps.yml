@@ -27,7 +27,6 @@ steps:
       artifactFeeds: AKL/akl_libs
       
   - bash: |
-      python -m pip install --upgrade pip
       pip install kodi.tools
     displayName: pip install    
 
