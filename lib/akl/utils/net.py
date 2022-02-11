@@ -159,7 +159,6 @@ def get_URL(url:str, url_log:str = None, headers:dict = None,
        
         logger.debug('get_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
         logger.debug(f'get_URL() HTTP status code {http_code}')
-        logger.debug(f'get_URL() encoding {encoding}')
 
         return page_data, http_code
     except HTTPError as ex:
@@ -236,7 +235,6 @@ def post_URL(url:str, data:dict, headers:dict = None, verify_ssl=None,
 
         logger.debug('post_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
         logger.debug(f"post_URL() HTTP status code {http_code}")
-        logger.debug(f"post_URL() encoding {encoding}")
 
         return page_data, http_code
     except HTTPError as ex:
@@ -302,7 +300,6 @@ def post_JSON_URL(url, json_obj: any, headers:dict = None,
        
         logger.debug('post_JSON_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
         logger.debug(f"post_JSON_URL() HTTP status code {http_code}")
-        logger.debug(f"post_JSON_URL() encoding {encoding}")
 
         return page_data, http_code
     except HTTPError as ex:
