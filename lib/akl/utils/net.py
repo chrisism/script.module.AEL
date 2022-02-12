@@ -19,15 +19,14 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+import typing
+
 import logging
 import random
-import json
-import ssl
-import xml.etree.ElementTree as ET
+from enum import Enum
 
-from urllib.request import urlopen, build_opener, Request, HTTPSHandler
+import requests
 from urllib.error import HTTPError
-from http.client import HTTPSConnection
 
 # AKL modules
 from akl.utils import io
@@ -39,6 +38,12 @@ logger = logging.getLogger(__name__)
 # Firefox user agents
 # USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/68.0'
 USER_AGENT = 'Mozilla/5.0 (X11; Linux i586; rv:31.0) Gecko/20100101 Firefox/68.0'
+
+class ContentType(Enum):
+    RAW = 0
+    STRING = 1
+    BYTES = 2
+    JSON = 3
 
 # Where did this user agent come from?
 # USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31';
@@ -92,27 +97,15 @@ def get_random_UserAgent():
 def download_img(img_url, file_path:io.FileName):
     # --- Download image to a buffer in memory ---
     # If an exception happens here no file is created (avoid creating files with 0 bytes).
-    try:
-        req = Request(img_url)
-        req.add_unredirected_header('User-Agent', USER_AGENT)
-        response = urlopen(req, timeout = 120, context = ssl._create_unverified_context())
-        img_buf = response.read()
-        response.close()
-    # If an exception happens record it in the log and do nothing.
-    # This must be fixed. If an error happened when downloading stuff caller code must
-    # known to take action.
-    except IOError as ex:
-        logger.exception('(IOError) In download_img(), network code.')
+    file_data, http_code = get_URL(img_url, verify_ssl=False, content_type=ContentType.BYTES)
+    if http_code != 200:
         return
-    except Exception as ex:
-        logger.exception('(Exception) In download_img(), network code.')
-        return
-
+    
     # --- Write image file to disk ---
     # There should be no more 0 size files with this code.
     try:
         f = file_path.open('wb')
-        f.write(img_buf)
+        f.write(file_data)
         f.close()
     except IOError as ex:
         logger.exception('(IOError) In download_img(), disk code.')
@@ -121,57 +114,66 @@ def download_img(img_url, file_path:io.FileName):
 
 #
 # User agent is fixed and defined in global var USER_AGENT
-# https://docs.python.org/2/library/urllib2.html
 #
-# @param url: [Unicode string] URL to open
-# @param url_log: [Unicode string] If not None this URL will be used in the logs.
+# @param url: [string] URL to open
+# @param url_log: [string] If not None this URL will be used in the logs.
 # @param headers: [Dict(string,string)] Optional collection of custom headers to add.
-# @return: [tuple] Tuple of strings. First tuple element is a string with the web content as 
-#          a Unicode string or None if network error/exception. Second tuple element is the 
+# @param verify_ssl: [bool|string] Set to False to ignore SSL verification, or path to certificates to use.
+# @param cert: [tuple(str,str)] Client side certificates. Tuple with paths to cert and key file. None if not used.
+# @param encoding: [string] If you want to override auto encoding, provide with preferred encoding.
+# @param content_type: [ContentType Enum] Define what kind of type will be returned (bytes, string, json, any).
+# @return: [tuple] Tuple of content and code. First tuple element is a string, bytes or json object with the 
+#          web content or None if network error/exception. Second tuple element is the 
 #          HTTP status code as integer or None if network error/exception.
-def get_URL(url, url_log = None, headers = None):
-    import traceback
-    
+def get_URL(url:str, url_log:str = None, headers:dict = None, 
+            verify_ssl=None, cert=None, encoding=None, 
+            content_type:ContentType=ContentType.STRING) -> typing.Union[typing.Tuple[str,int],typing.Tuple[any,int]]:
     try:
-        req = Request(url)
-        if url_log is None: 
-            logger.debug('get_URL() GET URL "{}"'.format(req.get_full_url()))
-        else:
-            logger.debug('get_URL() GET URL "{}"'.format(url_log))
-            
-        req.add_unredirected_header('User-Agent', USER_AGENT)
-        if headers is not None:
-            for key, value in headers.items():
-                req.add_header(key, value)
+        if url_log is None: logger.debug(f'get_URL() GET URL "{url}"')
+        else: logger.debug(f'get_URL() GET URL "{url_log}"')
+
+        if headers is None: headers = {}
+        headers["User-Agent"] = USER_AGENT
+
+        response:requests.Response = requests.get(
+            url,
+            headers=headers, 
+            timeout=120, 
+            verify=verify_ssl,
+            cert=cert)
         
-        response = urlopen(req, timeout = 120, context = ssl._create_unverified_context())
-        page_bytes = response.read()
-        http_code = response.getcode()
-        encoding = response.headers['content-type'].split('charset=')[-1]
-        response.close()
+        logger.debug(f'get_URL() encoding {response.encoding}')
+        if encoding is not None:
+            response.encoding = encoding
+            logger.debug(f'get_URL() encoding override with {response.encoding}')
+
+        http_code = response.status_code
+        if content_type == ContentType.BYTES:
+            page_data = response.content
+        elif content_type == ContentType.RAW:
+            page_data = response.raw
+        elif content_type == ContentType.STRING:
+            page_data = response.text
+        elif content_type == ContentType.JSON:
+            page_data = response.json()
+       
+        logger.debug('get_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
+        logger.debug(f'get_URL() HTTP status code {http_code}')
+
+        return page_data, http_code
     except HTTPError as ex:
         http_code = ex.code
         try:
-            page_bytes = ex.read()
+            page_data = ex.read()
             ex.close()
         except:
-            page_bytes = str(ex.reason)
+            page_data = str(ex.reason)
         logger.exception('(HTTPError) In net_get_URL()')
         logger.error(f'(HTTPError) Code {http_code}')
-        return page_bytes, http_code
+        return page_data, http_code
     except Exception as ex:
         logger.exception('(Exception) In net_get_URL()')
-        return page_bytes, http_code
-    
-       
-    logger.debug('get_URL() Read {:,} bytes'.format(len(page_bytes)))
-    logger.debug('get_URL() HTTP status code {}'.format(http_code))
-    logger.debug('get_URL() encoding {}'.format(encoding))
-
-    # --- Convert to Unicode ---
-    page_data = decode_URL_data(page_bytes, encoding)
-
-    return page_data, http_code
+        return None, 500
 
 def get_URL_oneline(url, url_log = None):
     page_data, http_code = get_URL(url, url_log)
@@ -183,22 +185,58 @@ def get_URL_oneline(url, url_log = None):
 
     return page_data, http_code
 
-# Do HTTP request with POST: https://docs.python.org/2/library/urllib2.html#urllib2.Request
-# If an exception happens return empty data.
-def post_URL(url, data):
-    page_data = ''
-    http_code = 500
+def get_URL_as_json(url, url_log = None, headers:dict = None, verify_ssl=None, encoding=None) -> any:
+    page_data, http_code = get_URL(url, url_log, headers=headers, verify_ssl=verify_ssl, 
+                                    encoding=encoding, content_type = ContentType.JSON)
+    return page_data
+
+# Do HTTP request with POST.
+# If an exception happens return empty data (None).
+#
+# @param url: [string] URL to open
+# @param data: [dict] Form data to post to server
+# @param headers: [Dict(string,string)] Optional collection of custom headers to add.
+# @param verify_ssl: [bool|string] Set to False to ignore SSL verification, or path to certificates to use.
+# @param cert: [tuple(str,str)] Client side certificates. Tuple with paths to cert and key file. None if not used.
+# @param encoding: [string] If you want to override auto encoding, provide with preferred encoding.
+# @param content_type: [ContentType Enum] Define what kind of type will be returned (bytes, string, json, any).
+# @return: [tuple] Tuple of strings. First tuple element is a string with the web content as 
+#          a Unicode string or None if network error/exception. Second tuple element is the 
+#          HTTP status code as integer or hardcoded 500 if network error/exception.
+def post_URL(url:str, data:dict, headers:dict = None, verify_ssl=None, 
+             cert=None, encoding=None, content_type:ContentType=ContentType.STRING) -> typing.Union[typing.Tuple[str, int],typing.Tuple[any, int]]:
     try:
-        req = Request(url, data)
-        req.add_unredirected_header('User-Agent', USER_AGENT)
-        req.add_header("Content-type", "application/x-www-form-urlencoded")
-        req.add_header("Acept", "text/plain")
-        logger.debug('post_URL() POST URL "{}"'.format(req.get_full_url()))
-        response = urlopen(req, timeout = 120)
-        page_bytes = response.read()
-        encoding = response.headers['content-type'].split('charset=')[-1]
-        http_code = response.getcode()
-        response.close()
+        logger.debug(f"post_URL() POST URL '{url}'")
+        if headers is None: headers = {}
+        headers["User-Agent"] = USER_AGENT
+
+        response:requests.Response = requests.post(
+            url,
+            data=data,
+            headers=headers, 
+            timeout=120, 
+            verify=verify_ssl,
+            cert=cert)
+        
+        logger.debug(f"post_URL() encoding {response.encoding}")
+        if encoding is not None:
+            response.encoding = encoding
+            logger.debug(f"post_URL() encoding override with {response.encoding}")
+                
+        http_code = response.status_code
+        if content_type == ContentType.BYTES:
+            page_data = response.content
+        elif content_type == ContentType.RAW:
+            page_data = response.raw
+        elif content_type == ContentType.STRING:
+            page_data = response.text
+        elif content_type == ContentType.JSON:
+            page_data = response.json()
+
+        logger.debug('post_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
+        logger.debug(f"post_URL() HTTP status code {http_code}")
+
+        return page_data, http_code
     except HTTPError as ex:
         http_code = ex.code
         try:
@@ -210,34 +248,60 @@ def post_URL(url, data):
         logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
     except IOError as ex:
-        logger.exception('(IOError exception) In get_URL()')
-        return page_data, http_code
+        logger.exception('(IOError exception) In post_URL()')
+        return None, 500
     except Exception as ex:
-        logger.exception('(General exception) In get_URL()')
-        return page_data, http_code
+        logger.exception('(General exception) In post_URL()')
+        return None, 500
 
-    num_bytes = len(page_bytes)
-    logger.debug('post_URL() Read {0} bytes'.format(num_bytes))
-    # --- Convert page data to Unicode ---
-    page_data = decode_URL_data(page_bytes, encoding)
-
-    return page_data, http_code
-
-def post_JSON_URL(url, data_obj: any):
-    page_data = ''
-    http_code = 500
+# POST JSON content to an url.
+# If an exception happens return empty data (None).
+#
+# @param url: [string] URL to open
+# @param json_obj: [any] Object to parse to JSON and post.
+# @param headers: [Dict(string,string)] Optional collection of custom headers to add.
+# @param verify_ssl: [bool|string] Set to False to ignore SSL verification, or path to certificates to use.
+# @param cert: [tuple(str,str)] Client side certificates. Tuple with paths to cert and key file. None if not used.
+# @param encoding: [string] If you want to override auto encoding, provide with preferred encoding.
+# @param content_type: [ContentType Enum] Define what kind of type will be returned (bytes, string, json, any).
+# @return: [tuple] Tuple of strings. First tuple element is a string with the web content as 
+#          a Unicode string or None if network error/exception. Second tuple element is the 
+#          HTTP status code as integer or hardcoded 500 if network error/exception.
+def post_JSON_URL(url, json_obj: any, headers:dict = None, 
+                verify_ssl=None, cert=None, encoding=None, 
+                content_type:ContentType=ContentType.STRING) -> typing.Union[typing.Tuple[str, int],typing.Tuple[any, int]]:
     try:
-        data_str = json.dumps(data_obj)
-        req = Request(url, data_str.encode('utf-8'))
-        req.add_unredirected_header('User-Agent', USER_AGENT)
-        req.add_header("Content-type", "application/json")
-        req.add_header("Acept", "text/plain")
-        logger.debug('post_JSON_URL() POST URL "{}"'.format(req.get_full_url()))
-        response = urlopen(req, timeout = 120)
-        page_bytes = response.read()
-        encoding = response.headers['content-type'].split('charset=')[-1]
-        http_code = response.getcode()
-        response.close()
+        logger.debug(f"post_JSON_URL() POST URL '{url}'")
+        if headers is None: headers = {}
+        headers["User-Agent"] = USER_AGENT
+
+        response:requests.Response = requests.post(
+            url,
+            json=json_obj,
+            headers=headers, 
+            timeout=120, 
+            verify=verify_ssl,
+            cert=cert)
+        
+        logger.debug(f"post_JSON_URL() encoding {response.encoding}")
+        if encoding is not None:
+            response.encoding = encoding
+            logger.debug(f"post_JSON_URL() encoding override with {response.encoding}")
+        
+        http_code = response.status_code
+        if content_type == ContentType.BYTES:
+            page_data = response.content
+        elif content_type == ContentType.RAW:
+            page_data = response.raw
+        elif content_type == ContentType.STRING:
+            page_data = response.text
+        elif content_type == ContentType.JSON:
+            page_data = response.json()
+       
+        logger.debug('post_JSON_URL() content-length {:,} bytes'.format(int(response.headers.get("content-length", "0"))))
+        logger.debug(f"post_JSON_URL() HTTP status code {http_code}")
+
+        return page_data, http_code
     except HTTPError as ex:
         http_code = ex.code
         try:
@@ -249,82 +313,8 @@ def post_JSON_URL(url, data_obj: any):
         logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
     except IOError as ex:
-        logger.exception('(IOError exception) In get_URL()')
-        return page_data, http_code
+        logger.exception('(IOError exception) In post_JSON_URL()')
+        return None, 500
     except Exception as ex:
-        logger.exception('(General exception) In get_URL()')
-        return page_data, http_code
-
-    num_bytes = len(page_bytes)
-    logger.debug('post_JSON_URL() Read {0} bytes'.format(num_bytes))
-    
-    if num_bytes == 0: return '', http_code
-    
-    # --- Convert page data to Unicode ---
-    page_data = decode_URL_data(page_bytes, encoding)
-    return page_data, http_code
-
-def get_URL_as_json(url, url_log = None):
-    page_data, http_code = get_URL(url, url_log)
-    return json.loads(page_data)
-
-def get_URL_using_handler(url, handler = None):
-
-    page_data = None
-    opener = build_opener(handler)
-    
-    logger.debug('get_URL_using_handler() Reading URL "{0}"'.format(url))
-    try:
-        f = opener.open(url)
-        encoding = f.headers['content-type'].split('charset=')[-1]
-        page_bytes = f.read()
-        f.close()
-    except IOError as e:    
-        logger.error('(IOError) Exception in get_URL_using_handler()')
-        logger.error('(IOError) {0}'.format(str(e)))
-        return page_data
-
-    num_bytes = len(page_bytes)
-    logger.debug('get_URL_using_handler() Read {0} bytes'.format(num_bytes))
-
-    # --- Convert to Unicode ---    
-    page_data = decode_URL_data(page_bytes, encoding)
-    return page_data
-
-def decode_URL_data(page_bytes, encoding):
-    # --- Try to guess enconding ---
-    if   encoding == 'text/html':                             encoding = 'utf-8'
-    elif encoding == 'application/json':                      encoding = 'utf-8'
-    elif encoding == 'text/plain' and 'UTF-8' in page_bytes:  encoding = 'utf-8'
-    elif encoding == 'text/plain' and 'UTF-16' in page_bytes: encoding = 'utf-16'
-    else:                                                     encoding = 'utf-8'
-    
-    logger.debug('decode_URL_data() encoding = "{0}"'.format(encoding))
-
-    # --- Decode ---
-    # if encoding == 'utf-16':
-    #     page_data = page_bytes.encode('utf-16')
-    # else:
-    #     # python3: page_data = str(page_bytes, encoding)
-    #     page_data = unicode(page_bytes, encoding)
-    
-    page_data = str(page_bytes, encoding)
-    return page_data
-
-class HTTPSClientAuthHandler(HTTPSHandler):
-    def __init__(self, key, cert):
-        ctx = ssl._create_unverified_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-    
-        HTTPSHandler.__init__(self, context = ctx)
-        
-        self.context = ctx
-        self.key = key
-        self.cert = cert
-
-    def https_open(self, req):
-        return self.do_open(self.getConnection, req)
-
-    def getConnection(self, host, timeout=300):
-        return HTTPSConnection(host, key_file=self.key, cert_file=self.cert, context = self.context)
+        logger.exception('(General exception) In post_JSON_URL()')
+        return None, 500

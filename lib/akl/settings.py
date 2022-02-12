@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmcaddon
 
-from akl import constants
+from akl.utils import io
 
 # read settings
 __addon__ = xbmcaddon.Addon()
@@ -29,3 +29,9 @@ def getSettingAsInt(setting):
         return int(getSettingAsFloat(setting))
     except ValueError:
         return 0
+
+def getSettingAsFilePath(setting) -> io.FileName:
+    str_value = __addon__.getSetting(setting).strip()
+    if str_value is None: 
+        return None
+    return io.FileName(str)

@@ -660,13 +660,13 @@ class WizardDialog_Input(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, inputType,
                  customFunction = None, conditionalFunction = None):
         self.inputType = inputType
-        super(WizardDialog, self).__init__(
+        super(WizardDialog_Input, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction)
 
     def show(self, properties):
         logger.debug('WizardDialog::show() {} key = {}'.format(self.inputType, self.property_key))
         originalValue = properties[self.property_key] if self.property_key in properties else ''
-        output = xbmcgui.Dialog().yesno(self.title, originalValue, self.inputType)
+        output = xbmcgui.Dialog().input(self.title, originalValue, self.inputType)
         if not output:
             self._cancel()
             return None
