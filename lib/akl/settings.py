@@ -34,4 +34,4 @@ def getSettingAsFilePath(setting) -> io.FileName:
     str_value = __addon__.getSetting(setting).strip()
     if str_value is None: 
         return None
-    return io.FileName(str)
+    return io.FileName(str_value)
