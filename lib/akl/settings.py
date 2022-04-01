@@ -32,6 +32,6 @@ def getSettingAsInt(setting):
 
 def getSettingAsFilePath(setting) -> io.FileName:
     str_value = __addon__.getSetting(setting).strip()
-    if str_value is None: 
+    if str_value is None or len(str_value) == 0: 
         return None
-    return io.FileName(str)
+    return io.FileName(str_value)
