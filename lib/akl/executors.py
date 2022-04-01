@@ -81,7 +81,7 @@ class LinuxExecutor(ExecutorABC):
             p = subprocess.Popen(command, close_fds = True)
         else:
             if self.lirc_state: xbmc.executebuiltin('LIRC.stop')
-            with open(self.logFile.getPath(), 'w') as f:
+            with open(self.logFile.getPathTranslated(), 'w') as f:
                 retcode = subprocess.call(
                     command, stdout = f, stderr = subprocess.STDOUT, close_fds = True)
             logger.info('Process retcode = {0}'.format(retcode))
@@ -108,7 +108,7 @@ class OSXExecutor(ExecutorABC):
         # os.system('"{0}" {1}'.format(application, arguments).encode('utf-8'))
 
         # >> New way.
-        with open(self.logFile.getPath(), 'w') as f:
+        with open(self.logFile.getPathTranslated(), 'w') as f:
             retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
         logger.info('Process retcode = {0}'.format(retcode))
         logger.debug('OSXExecutor::execute() function ENDS')
@@ -213,7 +213,7 @@ class WindowsExecutor(ExecutorABC):
         if self.windows_cd_apppath and self.windows_close_fds:
             retcode = subprocess.call(command, cwd = apppath.encode('utf-8'), close_fds = True)
         elif self.windows_cd_apppath and not self.windows_close_fds:
-            with open(self.logFile.getPath(), 'w') as f:
+            with open(self.logFile.getPathTranslated(), 'w') as f:
                 retcode = subprocess.call(command, cwd = apppath.encode('utf-8'), close_fds = False,
                                             stdout = f, stderr = subprocess.STDOUT)
         elif not self.windows_cd_apppath and self.windows_close_fds:

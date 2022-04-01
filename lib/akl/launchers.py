@@ -49,9 +49,9 @@ class ExecutionSettings(object):
     media_state_action = 0 # id="media_state_action" default="0" values="Stop|Pause|Let Play"
     suspend_audio_engine = False
     suspend_screensaver = True
+    suspend_joystick_engine = False
     delay_tempo = 1000
-    
-    
+        
 # -------------------------------------------------------------------------------------------------
 # Abstract base class for launching anything that is supported.
 # Implement classes that inherit this base class to support new ways of launching.
@@ -376,28 +376,14 @@ class LauncherABC(object):
         # >> See https://forum.kodi.tv/showthread.php?tid=157499&pid=1722549&highlight=input.enablejoystick#pid1722549
         # >> See https://forum.kodi.tv/showthread.php?tid=313615
         self.kodi_joystick_suspended = False
-        # if self.settings['suspend_joystick_engine']:
-            # logger.debug('_launch_pre_exec() Suspending Kodi joystick engine')
-            # >> Research. Get the value of the setting first
-            # >> Apparently input.enablejoystick is not supported on Kodi Krypton anymore.
-            # c_str = ('{"id" : 1, "jsonrpc" : "2.0",'
-            #          ' "method" : "Settings.GetSettingValue",'
-            #          ' "params" : {"setting":"input.enablejoystick"}}')
-            # response = xbmc.executeJSONRPC(c_str)
-            # logger.debug('JSON      ''{0}'''.format(c_str))
-            # logger.debug('Response  ''{0}'''.format(response))
-
-            # c_str = ('{"id" : 1, "jsonrpc" : "2.0",'
-            #          ' "method" : "Settings.SetSettingValue",'
-            #          ' "params" : {"setting" : "input.enablejoystick", "value" : false} }')
-            # response = xbmc.executeJSONRPC(c_str)
-            # logger.debug('JSON      ''{0}'''.format(c_str))
-            # logger.debug('Response  ''{0}'''.format(response))
-            # self.kodi_joystick_suspended = True
-
-            # logger.error('_launch_pre_exec() Suspending Kodi joystick engine not supported on Kodi Krypton!')
-        # else:
-            # logger.debug('_launch_pre_exec() DO NOT suspend Kodi joystick engine')
+        if self.execution_settings.suspend_joystick_engine:
+            logger.debug('_launch_pre_exec() Suspending Kodi joystick engine')
+            response = kodi.jsonrpc_query("Settings.SetSettingValue", {"setting":"input.enablejoystick","value":False})
+            logger.debug(f"Response  '{response}'")
+            self.kodi_joystick_suspended = True
+            logger.error('_launch_pre_exec() Suspending Kodi joystick engine not supported on Kodi Krypton!')
+        else:
+            logger.debug('_launch_pre_exec() DO NOT suspend Kodi joystick engine')
 
         # --- Toggle Kodi windowed/fullscreen if requested ---
         if toggle_screen_flag:
@@ -452,9 +438,8 @@ class LauncherABC(object):
         if self.kodi_joystick_suspended:
             logger.debug('_launch_post_exec() Kodi joystick engine was suspended before launching')
             logger.debug('_launch_post_exec() Resuming Kodi joystick engine')
-            # response = xbmc.executeJSONRPC(c_str)
-            # logger.debug('JSON      ''{0}'''.format(c_str))
-            # logger.debug('Response  ''{0}'''.format(response))
+            response = kodi.jsonrpc_query("Settings.SetSettingValue", {"setting":"input.enablejoystick","value":True})
+            logger.debug(f"Response  '{response}'")
             logger.debug('_launch_post_exec() Not supported on Kodi Krypton!')
         else:
             logger.debug('_launch_post_exec() DO NOT resume Kodi joystick engine')
