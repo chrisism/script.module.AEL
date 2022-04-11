@@ -89,14 +89,20 @@ class LinuxExecutor(ExecutorABC):
         logger.debug('LinuxExecutor::execute() function ENDS')
 
 class AndroidExecutor(ExecutorABC):
-    def __init__(self):
-        super(AndroidExecutor, self).__init__(None)
+    def __init__(self, logFile: io.FileName):
+        super(AndroidExecutor, self).__init__(logFile)
 
     def execute(self, application, arguments, non_blocking):
-        logger.debug('AndroidExecutor::execute() Starting ...')
-        retcode = os.system("{0} {1}".format(application, arguments).encode('utf-8'))
-        logger.info('Process retcode = {0}'.format(retcode))
-        logger.debug('AndroidExecutor::execute() function ENDS')
+        logger.debug("AndroidExecutor::execute() Starting ...")
+        arg_list = shlex.split(arguments, posix = True)
+        command = [application] + arg_list
+
+        #retcode = os.system("{0} {1}".format(application, arguments).encode('utf-8'))
+        with open(self.logFile.getPathTranslated(), 'w') as f:
+            retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
+                
+        logger.info(f"Process retcode = {retcode}")
+        logger.debug("AndroidExecutor::execute() function ENDS")
 
 class OSXExecutor(ExecutorABC):
     def execute(self, application, arguments, non_blocking):
@@ -279,7 +285,7 @@ class ExecutorFactory(ExecutorFactoryABC):
                 self.settings.windows_cd_apppath, self.settings.windows_close_fds)
 
         elif io.is_android():
-            return AndroidExecutor()
+            return AndroidExecutor(self.logFile)
 
         elif io.is_linux():
             return LinuxExecutor(self.logFile, self.settings.lirc_state)

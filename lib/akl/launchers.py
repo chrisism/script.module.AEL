@@ -140,7 +140,7 @@ class LauncherABC(object):
         if edit_options == None: return False
 
         edit_dialog = kodi.OrdDictionaryDialog()
-        t = 'Edit {} settings'.format(self.get_name())
+        t = f'Edit {self.get_name()} settings'
         selected_option = edit_dialog.select(t, edit_options)
         
         if selected_option is None: return True # short circuit
@@ -229,14 +229,14 @@ class LauncherABC(object):
         application = self.get_application()
         arguments   = self.get_arguments()
 
-        logger.debug('Name        = "{}"'.format(name))
-        logger.debug('Application = "{}"'.format(application))
-        logger.debug('Arguments   = "{}"'.format(arguments))
+        logger.debug(f'Name        = "{name}"')
+        logger.debug(f'Application = "{application}"')
+        logger.debug(f'Arguments   = "{arguments}"')
 
         # --- Create executor object ---
         if self.executorFactory is None:
             logger.error('LauncherABC::launch() self.executorFactory is None')
-            logger.error('Cannot create an executor for {}'.format(name))
+            logger.error(f'Cannot create an executor for {name}')
             kodi.notify_error('LauncherABC::launch() self.executorFactory is None'
                               'This is a bug, please report it.')
             return
@@ -244,11 +244,11 @@ class LauncherABC(object):
         executor = self.executorFactory.create(application)
         
         if executor is None:
-            logger.error('Cannot create an executor for {}'.format(name))
+            logger.error(f'Cannot create an executor for {name}')
             kodi.notify_error('Cannot execute application')
             return
         
-        logger.debug('Executor    = "{}"'.format(executor.__class__.__name__))
+        logger.debug(f'Executor    = "{executor.__class__.__name__}"')
 
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
@@ -264,8 +264,8 @@ class LauncherABC(object):
         arguments     = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
         application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
         
-        logger.info('launch(): Launcher          "{}"'.format(self.get_name()))
-        logger.info('launch(): raw arguments     "{}"'.format(arguments))
+        logger.info(f'launch(): Launcher          "{self.get_name()}"')
+        logger.info(f'launch(): raw arguments     "{arguments}"')
 
         #Application based arguments replacements
         if application:
@@ -315,18 +315,20 @@ class LauncherABC(object):
         # automatic substitution of rom values
         rom_data = rom.get_data_dic()
         for rom_key, rom_value in rom_data.items():
-            arguments = arguments.replace('${}$'.format(str(rom_key)), str(rom_value))
+            try: arguments = arguments.replace(f"${str(rom_key)}$", str(rom_value))
+            except: pass
 
         scanned_data = rom.get_scanned_data()                
         for scanned_key, scanned_value in scanned_data.items():
-            arguments = arguments.replace('${}$'.format(str(scanned_key)), str(scanned_value))
+            try: arguments = arguments.replace(f"${str(scanned_key)}$", str(scanned_value))
+            except: pass
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
-            if isinstance(rom_value, str):
-                arguments = arguments.replace('${}$'.format(str(launcher_key)), str(launcher_value))
+            try: arguments = arguments.replace(f"${str(launcher_key)}$", str(launcher_value))
+            except: pass
 
-        logger.debug('launch(): final arguments "{0}"'.format(arguments))        
+        logger.debug(f'launch(): final arguments "{arguments}"')        
         return arguments
         
     #
@@ -340,7 +342,7 @@ class LauncherABC(object):
 
         # --- User notification ---
         if self.execution_settings.display_launcher_notify:
-            kodi.notify('Launching {}'.format(title))
+            kodi.notify(f'Launching {title}')
 
         # --- Stop/Pause Kodi mediaplayer if requested in settings ---
         self.kodi_was_playing = False
@@ -397,11 +399,11 @@ class LauncherABC(object):
             kodi.disable_screensaver()
         else:
             screensaver_mode = kodi.get_screensaver_mode()
-            logger.debug('_launch_pre_exec() Screensaver status "{}"'.format(screensaver_mode))
+            logger.debug(f'_launch_pre_exec() Screensaver status "{screensaver_mode}"')
 
         # --- Pause Kodi execution some time ---
         delay_tempo_ms = self.execution_settings.delay_tempo
-        logger.debug('_launch_pre_exec() Pausing {} ms'.format(delay_tempo_ms))
+        logger.debug(f'_launch_pre_exec() Pausing {delay_tempo_ms} ms')
         xbmc.sleep(delay_tempo_ms)
         logger.debug('LauncherABC::_launch_pre_exec() function ENDS')
 
@@ -410,7 +412,7 @@ class LauncherABC(object):
 
         # --- Stop Kodi some time ---
         delay_tempo_ms = self.execution_settings.delay_tempo
-        logger.debug('_launch_post_exec() Pausing {} ms'.format(delay_tempo_ms))
+        logger.debug(f'_launch_post_exec() Pausing {delay_tempo_ms} ms')
         xbmc.sleep(delay_tempo_ms)
 
         # --- Toggle Kodi windowed/fullscreen if requested ---
@@ -449,7 +451,7 @@ class LauncherABC(object):
             kodi.restore_screensaver()
         else:
             screensaver_mode = kodi.get_screensaver_mode()
-            logger.debug('_launch_post_exec() Screensaver status "{}"'.format(screensaver_mode))
+            logger.debug(f'_launch_post_exec() Screensaver status "{screensaver_mode}"')
 
         # --- Resume Kodi playing if it was paused. If it was stopped, keep it stopped. ---
         media_state_action = self.execution_settings.media_state_action
