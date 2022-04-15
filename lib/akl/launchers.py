@@ -277,7 +277,7 @@ class LauncherABC(object):
         logger.info(f'get_arguments(): raw arguments     "{raw_args}"')
 
         arguments = shlex.split(raw_args, posix = True)
-        arguments = arguments + list[args]
+        arguments = arguments + list(args)
 
         #Application based arguments replacements
         if application:
@@ -417,7 +417,7 @@ class LauncherABC(object):
             try: kwargs = self._replace_in_kwargs(kwargs, f"${str(launcher_key)}$", str(launcher_value))
             except: pass
 
-        logger.debug(f'launch(): final keyworded arguments "{kwargs}"')   
+        logger.debug(f'get_kwargs(): final keyworded arguments "{kwargs}"')   
         return kwargs
     #
     # These two functions do things like stopping music before lunch, toggling full screen, etc.
