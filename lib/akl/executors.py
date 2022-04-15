@@ -130,7 +130,7 @@ class AndroidExecutor(ExecutorABC):
                 retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
                 logger.info(f"Process retcode = {retcode}")
         else:
-            intent   = kwargs.get("intent", "android.intent.action.VIEW")
+            intent   = kwargs.get("intent", "")
             dataType = kwargs.get("dataType", "")
             dataURI  = kwargs.get("dataURI", "")
 

@@ -350,9 +350,8 @@ class LauncherABC(object):
         value with a corresponding value.
         """
         if len(kwargs) == 0:
-            return None
+            return {}
 
-        kwargs = dict(kwargs)
         application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
         logger.info(f'get_kwargs(): Launcher          "{self.get_name()}"')
         
