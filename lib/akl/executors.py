@@ -18,12 +18,10 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import abc
-import shlex
 import subprocess
 import webbrowser
 import logging
 import re 
-import os
 import logging
 
 import xbmc
@@ -45,12 +43,31 @@ class ExecutorABC():
         self.logFile = logFile
 
     @abc.abstractmethod
-    def execute(self, application: str, arguments: str, non_blocking: bool): pass
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs): 
+        """
+        Executes an application with this executor implementation.
+        The non blocking flag indicates if Kodi should wait/freeze for
+        this executing application. 
+        The arguments (args and kwargs) will be processed as the 
+        arguments for the execution.
+        """
+        pass
 
 class XbmcExecutor(ExecutorABC):
-    # --- Execute Kodi built-in function under certain conditions ---
-    def execute(self, application: str, arguments: str, non_blocking: bool):
-        xbmc.executebuiltin('XBMC.{0}'.format(application))
+    """
+    Execute Kodi built-in functions.
+    """
+    
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+        if not kwargs or len(kwargs) == 0:
+            xbmc.executebuiltin(application, wait = non_blocking)
+        else:
+            arguments = list(args)
+            for key, value in kwargs.items():
+                arguments.append(f'"{key} {value}"' if value else key)
+
+            args_string = ", ".join(arguments)
+            xbmc.executebuiltin(f'{application}({args_string})', wait = non_blocking)
 
 #
 # --- Linux ---
@@ -65,10 +82,10 @@ class LinuxExecutor(ExecutorABC):
         self.lirc_state = lirc_state
         super(LinuxExecutor, self).__init__(logFile)
 
-    def execute(self, application, arguments, non_blocking):
+
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug('LinuxExecutor::execute() Starting ...')
-        arg_list = shlex.split(arguments, posix = True)
-        command = [application] + arg_list
+        command = [application] + list(args)
 
         # >> Old way of launching child process. os.system() is deprecated and should not
         # >> be used anymore.
@@ -84,31 +101,48 @@ class LinuxExecutor(ExecutorABC):
             with open(self.logFile.getPathTranslated(), 'w') as f:
                 retcode = subprocess.call(
                     command, stdout = f, stderr = subprocess.STDOUT, close_fds = True)
-            logger.info('Process retcode = {0}'.format(retcode))
+            logger.info(f'Process retcode = {retcode}')
             if self.lirc_state: xbmc.executebuiltin('LIRC.start')
         logger.debug('LinuxExecutor::execute() function ENDS')
 
 class AndroidExecutor(ExecutorABC):
+    """
+    Launch an Android native app with the given application name.
+    Uses StartAndroidActivity(package,[intent,dataType,dataURI])	
+    Optional args (named): intent, dataType, dataURI. 
+    example: 
+      StartAndroidActivity(com.android.chrome,android.intent.action.VIEW,,http://kodi.tv/)
+      application: com.android.chrome
+      intent: android.intent.action.VIEW
+      dataURI: http://kodi.tv/
+    """
     def __init__(self, logFile: io.FileName):
         super(AndroidExecutor, self).__init__(logFile)
 
-    def execute(self, application, arguments, non_blocking):
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug("AndroidExecutor::execute() Starting ...")
-        arg_list = shlex.split(arguments, posix = True)
-        command = [application] + arg_list
 
-        #retcode = os.system("{0} {1}".format(application, arguments).encode('utf-8'))
-        with open(self.logFile.getPathTranslated(), 'w') as f:
-            retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
-                
-        logger.info(f"Process retcode = {retcode}")
+        if len(args) > 0:
+            command = [application] + list(args)
+            #retcode = os.system("{0} {1}".format(application, args).encode('utf-8'))
+            with open(self.logFile.getPathTranslated(), 'w') as f:
+                retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
+                logger.info(f"Process retcode = {retcode}")
+        else:
+            intent   = kwargs.get("intent", "android.intent.action.VIEW")
+            dataType = kwargs.get("dataType", "")
+            dataURI  = kwargs.get("dataURI", "")
+
+            command = f'StartAndroidActivity({application}, {intent}, {dataType}, {dataURI})'
+            xbmc.executebuiltin(command)
+
         logger.debug("AndroidExecutor::execute() function ENDS")
 
 class OSXExecutor(ExecutorABC):
-    def execute(self, application, arguments, non_blocking):
+
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug('OSXExecutor::execute() Starting ...')
-        arg_list  = shlex.split(arguments, posix = True)
-        command = [application] + arg_list
+        command = [application] + list(args)
 
         # >> Old way.
         # os.system('"{0}" {1}'.format(application, arguments).encode('utf-8'))
@@ -120,7 +154,8 @@ class OSXExecutor(ExecutorABC):
         logger.debug('OSXExecutor::execute() function ENDS')
 
 class WindowsLnkFileExecutor(ExecutorABC):
-    def execute(self, application, arguments, non_blocking):
+
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug('WindowsLnkFileExecutor::execute() Starting ...')
         logger.debug('Launching LNK application')
         # os.system('start "AKL" /b "{0}"'.format(application).encode('utf-8'))
@@ -136,10 +171,9 @@ class WindowsBatchFileExecutor(ExecutorABC):
         self.show_batch_window = show_batch_window
         super(WindowsBatchFileExecutor, self).__init__(logFile)
 
-    def execute(self, application, arguments, non_blocking):
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug('WindowsBatchFileExecutor::execute() Starting ...')
-        arg_list  = shlex.split(arguments, posix = True)
-        command = [application] + arg_list
+        command = [application] + list(args)
         
         apppath = io.FileName(application)
         apppath = apppath.getDir()
@@ -189,10 +223,9 @@ class WindowsExecutor(ExecutorABC):
         self.windows_close_fds  = close_fds
         super(WindowsExecutor, self).__init__(logFile)
 
-    def execute(self, application, arguments, non_blocking):
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug('WindowsExecutor::execute() Starting ...')
-        arg_list  = shlex.split(arguments, posix = True)
-        command = [application] + arg_list
+        command = [application] + list(args)
         apppath = io.FileName(application)
         apppath = apppath.getDir()
 
@@ -202,17 +235,17 @@ class WindowsExecutor(ExecutorABC):
         for i, _ in enumerate(command):
             if command[i][0] == '\\':
                 new_command[i] = '\\' + command[i]
-                logger.debug('WindowsExecutor: Before arg #{0} = "{1}"'.format(i, command[i]))
-                logger.debug('WindowsExecutor: Now    arg #{0} = "{1}"'.format(i, new_command[i]))
+                logger.debug(f'WindowsExecutor: Before arg #{i} = "{command[i]}"')
+                logger.debug(f'WindowsExecutor: Now    arg #{i} = "{new_command[i]}"')
         command = list(new_command)
-        logger.debug('WindowsExecutor: command = {0}'.format(command))
+        logger.debug(f'WindowsExecutor: command = {command}')
 
         # >> cwd = apppath.encode('utf-8') fails if application path has Unicode on Windows
         # >> A workaraound is to use cwd = apppath.encode(sys.getfilesystemencoding()) --> DOES NOT WORK
         # >> For the moment AKL cannot launch executables on Windows having Unicode paths.
         logger.debug('Launching regular application')
-        logger.debug('windows_cd_apppath = {0}'.format(self.windows_cd_apppath))
-        logger.debug('windows_close_fds  = {0}'.format(self.windows_close_fds))
+        logger.debug(f'windows_cd_apppath = {self.windows_cd_apppath}')
+        logger.debug(f'windows_close_fds  = {self.windows_close_fds}')
 
         # >> Note that on Windows, you cannot set close_fds to true and also redirect the 
         # >> standard handles by setting stdin, stdout or stderr.
@@ -229,14 +262,16 @@ class WindowsExecutor(ExecutorABC):
                 retcode = subprocess.call(command, close_fds = False, stdout = f, stderr = subprocess.STDOUT)
         else:
             raise Exception('Logical error')
-        logger.info('Process retcode = {0}'.format(retcode))
+        logger.info(f'Process retcode = {retcode}')
         logger.debug('WindowsExecutor::execute() function ENDS')
 
 class WebBrowserExecutor(ExecutorABC):
-    def execute(self, application, arguments, non_blocking):
+
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug('WebBrowserExecutor::execute() Starting ...')
-        command = application + arguments
-        logger.debug('Launching URL "{0}"'.format(command))
+        command = " ".join([application] + list(args))
+        
+        logger.debug(f'Launching URL "{command}"')
         webbrowser.open(command)
         logger.debug('WebBrowserExecutor::execute() function ENDS')
 

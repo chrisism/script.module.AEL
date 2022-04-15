@@ -19,6 +19,8 @@ from __future__ import division
 
 import abc
 import logging
+import shlex
+import typing
 
 import xbmc
 
@@ -252,7 +254,7 @@ class LauncherABC(object):
 
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
-        executor.execute(application, arguments, self.execution_settings.is_non_blocking)
+        executor.execute(application, self.execution_settings.is_non_blocking, **arguments)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
     @abc.abstractmethod
@@ -260,12 +262,15 @@ class LauncherABC(object):
         return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
     
     @abc.abstractmethod
-    def get_arguments(self) -> str:
-        arguments     = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
+    def get_arguments(self, *args) -> list:
+        raw_args      = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
         application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
         
         logger.info(f'launch(): Launcher          "{self.get_name()}"')
-        logger.info(f'launch(): raw arguments     "{arguments}"')
+        logger.info(f'launch(): raw arguments     "{raw_args}"')
+
+        arguments = shlex.split(raw_args, posix = True)
+        arguments = arguments + list[args]
 
         #Application based arguments replacements
         if application:
@@ -276,8 +281,8 @@ class LauncherABC(object):
             logger.info('launch(): appbase      "{0}"'.format(app.getBase()))
             logger.info('launch(): apppath      "{0}"'.format(apppath))
 
-            arguments = arguments.replace('$apppath$', apppath)
-            arguments = arguments.replace('$appbase$', app.getBase())
+            arguments = self._replace_in_args(arguments, '$apppath$', apppath)
+            arguments = self._replace_in_args(arguments, '$appbase$', app.getBase())
             
         # ROM based arguments replacements
         rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
@@ -293,39 +298,39 @@ class LauncherABC(object):
             rombase       = rom_file.getBase()
             rombase_noext = rom_file.getBaseNoExt()
 
-            logger.info('launch(): romfile      "{0}"'.format(rom_file.getPath()))
-            logger.info('launch(): rompath      "{0}"'.format(rompath))
-            logger.info('launch(): rombase      "{0}"'.format(rombase))
-            logger.info('launch(): rombasenoext "{0}"'.format(rombase_noext))
+            logger.info(f'launch(): romfile      "{rom_file.getPath()}"')
+            logger.info(f'launch(): rompath      "{rompath}"')
+            logger.info(f'launch(): rombase      "{rombase}"')
+            logger.info(f'launch(): rombasenoext "{rombase_noext}"')
 
-            arguments = arguments.replace('$rom$',          rom_file.getPath())
-            arguments = arguments.replace('$romfile$',      rom_file.getPath())
-            arguments = arguments.replace('$rompath$',      rompath)
-            arguments = arguments.replace('$rombase$',      rombase)
-            arguments = arguments.replace('$rombasenoext$', rombase_noext)
+            arguments = self._replace_in_args(arguments, '$rom$',          rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$romfile$',      rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$rompath$',      rompath)
+            arguments = self._replace_in_args(arguments, '$rombase$',      rombase)
+            arguments = self._replace_in_args(arguments, '$rombasenoext$', rombase_noext)
 
             # >> Legacy names for argument substitution
-            arguments = arguments.replace('%rom%', rom_file.getPath())
-            arguments = arguments.replace('%ROM%', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '%rom%', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '%ROM%', rom_file.getPath())
 
         # Default arguments replacements
-        arguments = arguments.replace('$romID$', rom.get_id())
-        arguments = arguments.replace('$romtitle$', rom.get_name())
+        arguments = self._replace_in_args(arguments, '$romID$', rom.get_id())
+        arguments = self._replace_in_args(arguments, '$romtitle$', rom.get_name())
 
         # automatic substitution of rom values
         rom_data = rom.get_data_dic()
         for rom_key, rom_value in rom_data.items():
-            try: arguments = arguments.replace(f"${str(rom_key)}$", str(rom_value))
+            try: arguments = self._replace_in_args(arguments, f"${str(rom_key)}$", str(rom_value))
             except: pass
 
         scanned_data = rom.get_scanned_data()                
         for scanned_key, scanned_value in scanned_data.items():
-            try: arguments = arguments.replace(f"${str(scanned_key)}$", str(scanned_value))
+            try: arguments = self._replace_in_args(arguments, f"${str(scanned_key)}$", str(scanned_value))
             except: pass
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
-            try: arguments = arguments.replace(f"${str(launcher_key)}$", str(launcher_value))
+            try: arguments = self._replace_in_args(arguments, f"${str(launcher_key)}$", str(launcher_value))
             except: pass
 
         logger.debug(f'launch(): final arguments "{arguments}"')        
@@ -462,3 +467,7 @@ class LauncherABC(object):
             logger.debug('_launch_post_exec() Calling xbmc.Player().play()')
             xbmc.Player().play()
         logger.debug('LauncherABC::_launch_post_exec() function ENDS')
+
+    def _replace_in_args(self, args:typing.List[str], to_be_replaced:str, replace_with:str) -> list:
+        result = [arg.replace(to_be_replaced, replace_with) for arg in args]
+        return result

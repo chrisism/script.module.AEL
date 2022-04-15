@@ -1,9 +1,9 @@
 import unittest, os
-from unittest.mock import patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock
 
 import logging
 
-from lib.akl.executors import ExecutorFactory, ExecutorSettings
+from lib.akl.executors import AndroidExecutor, ExecutorFactory, ExecutorSettings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
@@ -148,6 +148,22 @@ class Test_executortests(unittest.TestCase):
         actual = executor.__class__.__name__
         expected = 'WebBrowserExecutor'
         assert actual == expected
+
+    @patch("lib.akl.executors.xbmc.executebuiltin", autospec=True)
+    def test_when_executing_on_android_it_has_the_correct_arguments(self, execute_mock: Mock):
+        # arrange
+        target = AndroidExecutor(None)
+        application = "com.nvidia.tegrazone3/com.nvidia.grid.UnifiedLaunchActivity"       
+        
+        # act
+        target.execute(application, False, 
+            intent="android.intent.action.VIEW",
+            dataURI="nvidia://stream/target/4/124")
+
+        # assert
+        assert execute_mock.called
+        call = execute_mock.call_args_list[0]
+        assert call.args[0] == "StartAndroidActivity(com.nvidia.tegrazone3/com.nvidia.grid.UnifiedLaunchActivity, android.intent.action.VIEW, , nvidia://stream/target/4/124)"
 
 if __name__ == '__main__':
     unittest.main()
