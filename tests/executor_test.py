@@ -2,6 +2,7 @@ import unittest, os
 from unittest.mock import Mock, patch, MagicMock
 
 import logging
+from akl.launchers import LauncherABC
 
 from lib.akl.executors import AndroidExecutor, ExecutorFactory, ExecutorSettings
 
@@ -153,17 +154,21 @@ class Test_executortests(unittest.TestCase):
     def test_when_executing_on_android_it_has_the_correct_arguments(self, execute_mock: Mock):
         # arrange
         target = AndroidExecutor(None)
-        application = "com.nvidia.tegrazone3/com.nvidia.grid.UnifiedLaunchActivity"       
-        
+        application = "com.nvidia.tegrazone3"
+        args = []      
+        kwargs = {
+            "intent": "android.intent.action.VIEW",
+            "dataURI": "nvidia://stream/target/4/124"
+        }
+
         # act
-        target.execute(application, False, 
-            intent="android.intent.action.VIEW",
-            dataURI="nvidia://stream/target/4/124")
+        target.execute(application, False, *args, **kwargs)
 
         # assert
         assert execute_mock.called
         call = execute_mock.call_args_list[0]
-        assert call.args[0] == "StartAndroidActivity(com.nvidia.tegrazone3/com.nvidia.grid.UnifiedLaunchActivity, android.intent.action.VIEW, , nvidia://stream/target/4/124)"
+        assert call.args[0] == 'StartAndroidActivity("com.nvidia.tegrazone3", "android.intent.action.VIEW", "", "nvidia://stream/target/4/124")'
+
 
 if __name__ == '__main__':
     unittest.main()

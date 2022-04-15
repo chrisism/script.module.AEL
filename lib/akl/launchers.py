@@ -344,7 +344,7 @@ class LauncherABC(object):
         return arguments
         
     @abc.abstractmethod    
-    def get_keyworded_arguments(self, *kwargs) -> dict:
+    def get_keyworded_arguments(self, **kwargs) -> dict:
         """
         Goes through the given keyworded arguments and replaces any tokenized (e.g. $<token>$)
         value with a corresponding value.

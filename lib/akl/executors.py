@@ -107,9 +107,10 @@ class LinuxExecutor(ExecutorABC):
 
 class AndroidExecutor(ExecutorABC):
     """
-    Launch an Android native app with the given application name.
-    Uses StartAndroidActivity(package,[intent,dataType,dataURI])	
-    Optional args (named): intent, dataType, dataURI. 
+    Launch an Android native app.
+    If args are provided it will do a general shell execution.
+    If kwargs are provided it will use StartAndroidActivity(package,[intent,dataType,dataURI])
+    with the given application name as the package. The kwargs are: intent, dataType, dataURI. 
     example: 
       StartAndroidActivity(com.android.chrome,android.intent.action.VIEW,,http://kodi.tv/)
       application: com.android.chrome
@@ -133,8 +134,8 @@ class AndroidExecutor(ExecutorABC):
             dataType = kwargs.get("dataType", "")
             dataURI  = kwargs.get("dataURI", "")
 
-            command = f'StartAndroidActivity({application}, {intent}, {dataType}, {dataURI})'
-            xbmc.executebuiltin(command)
+            command = f'StartAndroidActivity("{application}", "{intent}", "{dataType}", "{dataURI}")'
+            xbmc.executebuiltin(command, non_blocking)
 
         logger.debug("AndroidExecutor::execute() function ENDS")
 
