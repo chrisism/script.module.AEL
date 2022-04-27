@@ -161,7 +161,7 @@ class AndroidExecutor(ExecutorABC):
     def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug("AndroidExecutor::execute() Starting ...")
         
-        command = [application]
+        command = ["/system/bin/am", "start", f"-n {application}"]
         if "intent" in kwargs:
             command.append(f"-a {kwargs.get('intent')}")
         if "dataURI" in kwargs:
