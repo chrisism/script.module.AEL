@@ -227,14 +227,13 @@ class LauncherABC(object):
     def launch(self):
         logger.debug('LauncherABC::launch() Starting ...')
 
-        name        = self.get_name()
-        application = self.get_application()
-        arguments   = self.get_arguments()
-        kwargs      = self.get_keyworded_arguments()
+        name         = self.get_name()
+        application  = self.get_application()
+        args, kwargs = self.get_arguments()
 
         logger.debug(f'Name         = "{name}"')
         logger.debug(f'Application  = "{application}"')
-        logger.debug(f'Arguments    = "{arguments}"')
+        logger.debug(f'Arguments    = "{args}"')
         logger.debug(f'Keyword Args = "{kwargs}"')
 
         # --- Create executor object ---
@@ -254,7 +253,7 @@ class LauncherABC(object):
 
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
-        executor.execute(application, self.execution_settings.is_non_blocking, *arguments, **kwargs)
+        executor.execute(application, self.execution_settings.is_non_blocking, *args, **kwargs)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
     @abc.abstractmethod
@@ -268,10 +267,11 @@ class LauncherABC(object):
         return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
     
     @abc.abstractmethod
-    def get_arguments(self, *args) -> list:
+    def get_arguments(self, *args, **kwargs) -> typing.Tuple[list, dict]:
         """
         Combines given arguments and arguments from the launcher_settings dictionary and
-        returns them as a list. Goes through all the argument and replaces any tokenized (e.g. $<token>$)
+        returns them as a list or dictionary in case of keyworded arguments. 
+        Goes through all the argument and replaces any tokenized (e.g. $<token>$)
         with a corresponding value.
         """
         raw_args      = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
@@ -279,7 +279,7 @@ class LauncherABC(object):
         
         logger.info(f'get_arguments(): Launcher          "{self.get_name()}"')
         logger.info(f'get_arguments(): raw arguments     "{raw_args}"')
-
+        
         arguments = shlex.split(raw_args, posix = True)
         arguments = arguments + list(args)
 
@@ -295,6 +295,9 @@ class LauncherABC(object):
             arguments = self._replace_in_args(arguments, '$apppath$', apppath)
             arguments = self._replace_in_args(arguments, '$appbase$', app.getBase())
             
+            kwargs = self._replace_in_kwargs(kwargs, '$apppath$', apppath)
+            kwargs = self._replace_in_kwargs(kwargs, '$appbase$', app.getBase())
+
         # ROM based arguments replacements
         rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
         rom_file = rom.get_scanned_data_element_as_file('file')
@@ -320,76 +323,6 @@ class LauncherABC(object):
             arguments = self._replace_in_args(arguments, '$rombase$',      rombase)
             arguments = self._replace_in_args(arguments, '$rombasenoext$', rombase_noext)
 
-            # >> Legacy names for argument substitution
-            arguments = self._replace_in_args(arguments, '%rom%', rom_file.getPath())
-            arguments = self._replace_in_args(arguments, '%ROM%', rom_file.getPath())
-
-        # Default arguments replacements
-        arguments = self._replace_in_args(arguments, '$romID$', rom.get_id())
-        arguments = self._replace_in_args(arguments, '$romtitle$', rom.get_name())
-
-        # automatic substitution of rom values
-        rom_data = rom.get_data_dic()
-        for rom_key, rom_value in rom_data.items():
-            try: arguments = self._replace_in_args(arguments, f"${str(rom_key)}$", str(rom_value))
-            except: pass
-
-        scanned_data = rom.get_scanned_data()                
-        for scanned_key, scanned_value in scanned_data.items():
-            try: arguments = self._replace_in_args(arguments, f"${str(scanned_key)}$", str(scanned_value))
-            except: pass
-                
-        # automatic substitution of launcher setting values
-        for launcher_key, launcher_value in self.launcher_settings.items():
-            try: arguments = self._replace_in_args(arguments, f"${str(launcher_key)}$", str(launcher_value))
-            except: pass
-
-        logger.debug(f'get_arguments(): final arguments "{arguments}"')        
-        return arguments
-        
-    @abc.abstractmethod    
-    def get_keyworded_arguments(self, **kwargs) -> dict:
-        """
-        Goes through the given keyworded arguments and replaces any tokenized (e.g. $<token>$)
-        value with a corresponding value.
-        """
-        if len(kwargs) == 0:
-            return {}
-
-        application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
-        logger.info(f'get_kwargs(): Launcher          "{self.get_name()}"')
-        
-        #Application based arguments replacements
-        if application:
-            app = io.FileName(application)
-            apppath = app.getDir()
-
-            logger.info('get_kwargs(): application  "{0}"'.format(app.getPath()))
-            logger.info('get_kwargs(): appbase      "{0}"'.format(app.getBase()))
-            logger.info('get_kwargs(): apppath      "{0}"'.format(apppath))
-
-            kwargs = self._replace_in_kwargs(kwargs, '$apppath$', apppath)
-            kwargs = self._replace_in_kwargs(kwargs, '$appbase$', app.getBase())
-            
-        # ROM based arguments replacements
-        rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
-        rom_file = rom.get_scanned_data_element_as_file('file')
-        if rom_file:
-            # --- Escape quotes and double quotes in ROMFileName ---
-            # >> This maybe useful to Android users with complex command line arguments
-            if settings.getSettingAsBool('escape_romfile'):
-                logger.info("get_kwargs(): Escaping ROMFileName ' and \"")
-                rom_file.escapeQuotes()
-
-            rompath       = rom_file.getDir()
-            rombase       = rom_file.getBase()
-            rombase_noext = rom_file.getBaseNoExt()
-
-            logger.info(f'get_kwargs(): romfile      "{rom_file.getPath()}"')
-            logger.info(f'get_kwargs(): rompath      "{rompath}"')
-            logger.info(f'get_kwargs(): rombase      "{rombase}"')
-            logger.info(f'get_kwargs(): rombasenoext "{rombase_noext}"')
-
             kwargs = self._replace_in_kwargs(kwargs, '$rom$',          rom_file.getPath())
             kwargs = self._replace_in_kwargs(kwargs, '$romfile$',      rom_file.getPath())
             kwargs = self._replace_in_kwargs(kwargs, '$rompath$',      rompath)
@@ -397,31 +330,45 @@ class LauncherABC(object):
             kwargs = self._replace_in_kwargs(kwargs, '$rombasenoext$', rombase_noext)
 
             # >> Legacy names for argument substitution
+            arguments = self._replace_in_args(arguments, '%rom%', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '%ROM%', rom_file.getPath())
+
             kwargs = self._replace_in_kwargs(kwargs, '%rom%', rom_file.getPath())
             kwargs = self._replace_in_kwargs(kwargs, '%ROM%', rom_file.getPath())
 
         # Default arguments replacements
+        arguments = self._replace_in_args(arguments, '$romID$', rom.get_id())
+        arguments = self._replace_in_args(arguments, '$romtitle$', rom.get_name())
+
         kwargs = self._replace_in_kwargs(kwargs, '$romID$', rom.get_id())
         kwargs = self._replace_in_kwargs(kwargs, '$romtitle$', rom.get_name())
 
         # automatic substitution of rom values
         rom_data = rom.get_data_dic()
         for rom_key, rom_value in rom_data.items():
+            try: arguments = self._replace_in_args(arguments, f"${str(rom_key)}$", str(rom_value))
+            except: pass
             try: kwargs = self._replace_in_kwargs(kwargs, f"${str(rom_key)}$", str(rom_value))
             except: pass
 
         scanned_data = rom.get_scanned_data()                
         for scanned_key, scanned_value in scanned_data.items():
+            try: arguments = self._replace_in_args(arguments, f"${str(scanned_key)}$", str(scanned_value))
+            except: pass
             try: kwargs = self._replace_in_kwargs(kwargs, f"${str(scanned_key)}$", str(scanned_value))
             except: pass
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
+            try: arguments = self._replace_in_args(arguments, f"${str(launcher_key)}$", str(launcher_value))
+            except: pass
             try: kwargs = self._replace_in_kwargs(kwargs, f"${str(launcher_key)}$", str(launcher_value))
             except: pass
-
-        logger.debug(f'get_kwargs(): final keyworded arguments "{kwargs}"')   
-        return kwargs
+        
+        logger.debug(f'get_arguments(): final arguments "{arguments}"')        
+        logger.debug(f'get_arguments(): final keyworded arguments "{kwargs}"')   
+        return (arguments, kwargs)
+        
     #
     # These two functions do things like stopping music before lunch, toggling full screen, etc.
     # Variables set in this function:
