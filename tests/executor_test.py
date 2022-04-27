@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch, MagicMock
 import logging
 from akl.launchers import LauncherABC
 
-from lib.akl.executors import AndroidExecutor, ExecutorFactory, ExecutorSettings
+from lib.akl.executors import AndroidActivityExecutor, ExecutorFactory, ExecutorSettings
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
@@ -153,7 +153,7 @@ class Test_executortests(unittest.TestCase):
     @patch("lib.akl.executors.xbmc.executebuiltin", autospec=True)
     def test_when_executing_on_android_it_has_the_correct_arguments(self, execute_mock: Mock):
         # arrange
-        target = AndroidExecutor(None)
+        target = AndroidActivityExecutor()
         application = "com.nvidia.tegrazone3"
         args = []      
         kwargs = {

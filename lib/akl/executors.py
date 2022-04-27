@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 class ExecutorABC():
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, logFile: io.FileName):
+    def __init__(self, logFile: io.FileName = None):
         self.logFile = logFile
 
     @abc.abstractmethod
@@ -108,36 +108,110 @@ class LinuxExecutor(ExecutorABC):
 class AndroidExecutor(ExecutorABC):
     """
     Launch an Android native app.
-    If args are provided it will do a general shell execution.
-    If kwargs are provided it will use StartAndroidActivity(package,[intent,dataType,dataURI])
-    with the given application name as the package. The kwargs are: intent, dataType, dataURI. 
-    example: 
-      StartAndroidActivity(com.android.chrome,android.intent.action.VIEW,,http://kodi.tv/)
-      application: com.android.chrome
-      intent: android.intent.action.VIEW
-      dataURI: http://kodi.tv/
+    It will use the "/system/bin/am start <PACKAGE/ACTIVITY INTENT> .." shell execution to launch
+    the android app. The combination of the application, *args and *kwargs will build up this complete
+    command. The "am start" part of the command is fixed with the executor.
+
+    execute() parameters:
+    - application (type: str)   : the app package/activity you want to execute (e.g. com.android.chrome or com.retroarch/com.retroarch.browser.retroactivity.RetroActivityFuture)
+    - non_blocking (type: bool) : flag to indicate if execution is blocking other apps
+    - *args                     : each arg in this list will be added as a -e argument to the am cmd
+    - **kwargs                  : keyed arguments to provide the -a, -d, -t, -c arguments.
+
+    The kwargs can be set with:
+    "intent"    : The intent action like 'android.intent.action.VIEW', added as the -a parameter
+    "dataURI"   : The data uri for the -d parameter, like 'http://kodi.tv'
+    "dataType"  : The mime type, applied as the -t parameter
+    "category"  : The category, applied as a -c parameter. Provide as array for multiple categories.
+    
+    The original system/am start parameters.
+    <INTENT> specifications include these flags and arguments:
+        [-a <ACTION>] [-d <DATA_URI>] [-t <MIME_TYPE>]
+        [-c <CATEGORY> [-c <CATEGORY>] ...]
+        [-e|--es <EXTRA_KEY> <EXTRA_STRING_VALUE> ...]
+        [--esn <EXTRA_KEY> ...]
+        [--ez <EXTRA_KEY> <EXTRA_BOOLEAN_VALUE> ...]
+        [--ei <EXTRA_KEY> <EXTRA_INT_VALUE> ...]
+        [--el <EXTRA_KEY> <EXTRA_LONG_VALUE> ...]
+        [--ef <EXTRA_KEY> <EXTRA_FLOAT_VALUE> ...]
+        [--eu <EXTRA_KEY> <EXTRA_URI_VALUE> ...]
+        [--ecn <EXTRA_KEY> <EXTRA_COMPONENT_NAME_VALUE>]
+        [--eia <EXTRA_KEY> <EXTRA_INT_VALUE>[,<EXTRA_INT_VALUE...]]
+        [--efa <EXTRA_KEY> <EXTRA_FLOAT_VALUE>[,<EXTRA_FLOAT_VALUE...]]
+        [--ela <EXTRA_KEY> <EXTRA_LONG_VALUE>[,<EXTRA_LONG_VALUE...]]
+        [-n <COMPONENT>] [-f <FLAGS>]
+        [--grant-read-uri-permission] [--grant-write-uri-permission]
+        [--debug-log-resolution] [--exclude-stopped-packages]
+        [--include-stopped-packages]
+        [--activity-brought-to-front] [--activity-clear-top]
+        [--activity-clear-when-task-reset] [--activity-exclude-from-recents]
+        [--activity-launched-from-history] [--activity-multiple-task]
+        [--activity-no-animation] [--activity-no-history]
+        [--activity-no-user-action] [--activity-previous-is-top]
+        [--activity-reorder-to-front] [--activity-reset-task-if-needed]
+        [--activity-single-top] [--activity-clear-task]
+        [--activity-task-on-home]
+        [--receiver-registered-only] [--receiver-replace-pending]
+        [--selector]
+        [<URI> | <PACKAGE> | <COMPONENT>]
     """
     def __init__(self, logFile: io.FileName):
         super(AndroidExecutor, self).__init__(logFile)
 
     def execute(self, application: str, non_blocking: bool, *args, **kwargs):
         logger.debug("AndroidExecutor::execute() Starting ...")
-
+        
+        command = [application]
+        if "intent" in kwargs:
+            command.append(f"-a {kwargs.get('intent')}")
+        if "dataURI" in kwargs:
+            command.append(f"-d {kwargs.get('dataURI')}")    
+        if "dataType" in kwargs:
+            command.append(f"-t {kwargs.get('dataType')}")
+        if "category" in kwargs:
+            category_args = kwargs.get("category")
+            if isinstance(category_args, list):
+                command = command + [f"-c {arg}" for arg in category_args]
+            else:
+                command.append(f"-c {category_args}")
+        
         if len(args) > 0:
-            command = [application] + list(args)
-            #retcode = os.system("{0} {1}".format(application, args).encode('utf-8'))
-            with open(self.logFile.getPathTranslated(), 'w') as f:
-                retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
-                logger.info(f"Process retcode = {retcode}")
-        else:
-            intent   = kwargs.get("intent", "")
-            dataType = kwargs.get("dataType", "")
-            dataURI  = kwargs.get("dataURI", "")
-
-            command = f'StartAndroidActivity("{application}", "{intent}", "{dataType}", "{dataURI}")'
-            xbmc.executebuiltin(command, non_blocking)
+            command = command + [f"-e {arg}" for arg in args]
+        
+        #retcode = os.system("{0} {1}".format(application, args).encode('utf-8'))
+        with open(self.logFile.getPathTranslated(), 'w') as f:
+            retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
+            logger.info(f"Process retcode = {retcode}")
 
         logger.debug("AndroidExecutor::execute() function ENDS")
+
+class AndroidActivityExecutor(ExecutorABC):
+    """
+    Launch an Android native app.
+    It will use StartAndroidActivity(package,[intent,dataType,dataURI]) with the given 
+    application name as the package. The provided kwargs are: intent, dataType, dataURI. 
+    example: 
+      StartAndroidActivity(com.android.chrome,android.intent.action.VIEW,,http://kodi.tv/)
+      application: com.android.chrome
+      intent: android.intent.action.VIEW
+      dataURI: http://kodi.tv/
+    
+    Read more at https://kodi.wiki/view/List_of_built-in_functions#Android_built-in's
+    """
+    def __init__(self):
+        super(AndroidActivityExecutor, self).__init__()
+
+    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+        logger.debug("AndroidActivityExecutor::execute() Starting ...")
+
+        intent   = kwargs.get("intent", "")
+        dataType = kwargs.get("dataType", "")
+        dataURI  = kwargs.get("dataURI", "")
+
+        command = f'StartAndroidActivity("{application}", "{intent}", "{dataType}", "{dataURI}")'
+        xbmc.executebuiltin(command, non_blocking)
+
+        logger.debug("AndroidActivityExecutor::execute() function ENDS")
 
 class OSXExecutor(ExecutorABC):
 
@@ -286,7 +360,19 @@ class ExecutorFactoryABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def create(self, application_str: str) -> ExecutorABC: pass
+    def create(self, application_str: str, **kwargs) -> ExecutorABC: 
+        """
+        This creates a new Executor instance that is applicable for the
+        OS and application to execute.
+        Use the kwargs to set extra flags to help out in deciding which
+        executor to choose.
+        
+        Optional kwargs:
+            xbmc = True             : Directly choose the XbmcExecutor
+            android_builtin = True  : Directly choose the Kodi built-in startactivity for Android (if os=android)
+            browser = True          : Directly choose the webbrowser executor
+        """    
+        pass
 
 # -------------------------------------------------------------------------------------------------
 # Abstract Factory Pattern
@@ -298,14 +384,20 @@ class ExecutorFactory(ExecutorFactoryABC):
         self.logFile  = reportFilePath
         super(ExecutorFactory).__init__()
 
-    def create(self, application_str: str) -> ExecutorABC:
+    def create(self, application_str: str, **kwargs) -> ExecutorABC:
         
         application = io.FileName(application_str)
-        if application.getBase().lower().replace('.exe' , '') == 'xbmc' \
-            or 'xbmc-fav-' in application.getPath() or 'xbmc-sea-' in application.getPath():
+        use_xbmc = kwargs.get("xbmc", False)
+        use_android_builtin = kwargs.get("android_builtin", False)
+        use_browser = kwargs.get("browser", False)
+
+        if use_xbmc \
+            or application.getBase().lower().replace('.exe' , '') == 'xbmc' \
+            or 'xbmc-fav-' in application.getPath() \
+            or 'xbmc-sea-' in application.getPath():
             return XbmcExecutor(self.logFile)
 
-        elif re.search('.*://.*', application.getPath()):
+        elif use_browser or re.search('.*://.*', application.getPath()):
             return WebBrowserExecutor(self.logFile)
 
         elif io.is_windows():
@@ -321,6 +413,8 @@ class ExecutorFactory(ExecutorFactoryABC):
                 self.settings.windows_cd_apppath, self.settings.windows_close_fds)
 
         elif io.is_android():
+            if use_android_builtin:
+                return AndroidActivityExecutor()
             return AndroidExecutor(self.logFile)
 
         elif io.is_linux():

@@ -27,7 +27,7 @@ import xbmc
 # --- AKL packages ---
 from akl import settings, api
 from akl.utils import io, kodi
-from akl.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC
+from akl.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC, ExecutorABC
 
 logger = logging.getLogger(__name__)
 
@@ -245,13 +245,11 @@ class LauncherABC(object):
                               'This is a bug, please report it.')
             return
         
-        executor = self.executorFactory.create(application)
-        
+        executor = self.get_executor(application)
         if executor is None:
             logger.error(f'Cannot create an executor for {name}')
             kodi.notify_error('Cannot execute application')
             return
-        
         logger.debug(f'Executor    = "{executor.__class__.__name__}"')
 
         # --- Execute app ---
@@ -259,6 +257,12 @@ class LauncherABC(object):
         executor.execute(application, self.execution_settings.is_non_blocking, *arguments, **kwargs)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
+    @abc.abstractmethod
+    def get_executor(self, application: str) -> ExecutorABC:
+        """Returns the Executor instance to use when launching."""
+        executor = self.executorFactory.create(application)
+        return executor
+    
     @abc.abstractmethod
     def get_application(self) -> str:
         return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
