@@ -251,10 +251,6 @@ class LauncherABC(object):
             return
         logger.debug(f'Executor    = "{executor.__class__.__name__}"')
 
-        if not self.execution_settings.is_non_blocking:
-            if not kwargs: kwargs = {}
-            kwargs["non_blocking"] = self.execution_settings.is_non_blocking
-
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
         executor.execute(application, *args, **kwargs)
@@ -368,6 +364,9 @@ class LauncherABC(object):
             except: pass
             try: kwargs = self._replace_in_kwargs(kwargs, f"${str(launcher_key)}$", str(launcher_value))
             except: pass
+
+        if not self.execution_settings.is_non_blocking:
+            kwargs["non_blocking"] = self.execution_settings.is_non_blocking
         
         logger.debug(f'get_arguments(): final arguments "{arguments}"')        
         logger.debug(f'get_arguments(): final keyworded arguments "{kwargs}"')   
