@@ -19,13 +19,15 @@ from __future__ import division
 
 import abc
 import logging
+import shlex
+import typing
 
 import xbmc
 
 # --- AKL packages ---
 from akl import settings, api
 from akl.utils import io, kodi
-from akl.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC
+from akl.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC, ExecutorABC
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +142,7 @@ class LauncherABC(object):
         if edit_options == None: return False
 
         edit_dialog = kodi.OrdDictionaryDialog()
-        t = 'Edit {} settings'.format(self.get_name())
+        t = f'Edit {self.get_name()} settings'
         selected_option = edit_dialog.select(t, edit_options)
         
         if selected_option is None: return True # short circuit
@@ -225,60 +227,77 @@ class LauncherABC(object):
     def launch(self):
         logger.debug('LauncherABC::launch() Starting ...')
 
-        name        = self.get_name()
-        application = self.get_application()
-        arguments   = self.get_arguments()
+        name         = self.get_name()
+        application  = self.get_application()
+        args, kwargs = self.get_arguments()
 
-        logger.debug('Name        = "{}"'.format(name))
-        logger.debug('Application = "{}"'.format(application))
-        logger.debug('Arguments   = "{}"'.format(arguments))
+        logger.debug(f'Name         = "{name}"')
+        logger.debug(f'Application  = "{application}"')
+        logger.debug(f'Arguments    = "{args}"')
+        logger.debug(f'Keyword Args = "{kwargs}"')
 
         # --- Create executor object ---
         if self.executorFactory is None:
             logger.error('LauncherABC::launch() self.executorFactory is None')
-            logger.error('Cannot create an executor for {}'.format(name))
+            logger.error(f'Cannot create an executor for {name}')
             kodi.notify_error('LauncherABC::launch() self.executorFactory is None'
                               'This is a bug, please report it.')
             return
         
-        executor = self.executorFactory.create(application)
-        
+        executor = self.get_executor(application)
         if executor is None:
-            logger.error('Cannot create an executor for {}'.format(name))
+            logger.error(f'Cannot create an executor for {name}')
             kodi.notify_error('Cannot execute application')
             return
-        
-        logger.debug('Executor    = "{}"'.format(executor.__class__.__name__))
+        logger.debug(f'Executor    = "{executor.__class__.__name__}"')
 
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
-        executor.execute(application, arguments, self.execution_settings.is_non_blocking)
+        executor.execute(application, *args, **kwargs)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
+    @abc.abstractmethod
+    def get_executor(self, application: str) -> ExecutorABC:
+        """Returns the Executor instance to use when launching."""
+        executor = self.executorFactory.create(application)
+        return executor
+    
     @abc.abstractmethod
     def get_application(self) -> str:
         return self.launcher_settings['application'] if 'application' in self.launcher_settings else None
     
     @abc.abstractmethod
-    def get_arguments(self) -> str:
-        arguments     = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
+    def get_arguments(self, *args, **kwargs) -> typing.Tuple[list, dict]:
+        """
+        Combines given arguments and arguments from the launcher_settings dictionary and
+        returns them as a list or dictionary in case of keyworded arguments. 
+        Goes through all the argument and replaces any tokenized (e.g. $<token>$)
+        with a corresponding value.
+        """
+        raw_args      = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
         application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
         
-        logger.info('launch(): Launcher          "{}"'.format(self.get_name()))
-        logger.info('launch(): raw arguments     "{}"'.format(arguments))
+        logger.info(f'get_arguments(): Launcher          "{self.get_name()}"')
+        logger.info(f'get_arguments(): raw arguments     "{raw_args}"')
+        
+        arguments = shlex.split(raw_args, posix = True)
+        arguments = arguments + list(args)
 
         #Application based arguments replacements
         if application:
             app = io.FileName(application)
             apppath = app.getDir()
 
-            logger.info('launch(): application  "{0}"'.format(app.getPath()))
-            logger.info('launch(): appbase      "{0}"'.format(app.getBase()))
-            logger.info('launch(): apppath      "{0}"'.format(apppath))
+            logger.info('get_arguments(): application  "{0}"'.format(app.getPath()))
+            logger.info('get_arguments(): appbase      "{0}"'.format(app.getBase()))
+            logger.info('get_arguments(): apppath      "{0}"'.format(apppath))
 
-            arguments = arguments.replace('$apppath$', apppath)
-            arguments = arguments.replace('$appbase$', app.getBase())
+            arguments = self._replace_in_args(arguments, '$apppath$', apppath)
+            arguments = self._replace_in_args(arguments, '$appbase$', app.getBase())
             
+            kwargs = self._replace_in_kwargs(kwargs, '$apppath$', apppath)
+            kwargs = self._replace_in_kwargs(kwargs, '$appbase$', app.getBase())
+
         # ROM based arguments replacements
         rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
         rom_file = rom.get_scanned_data_element_as_file('file')
@@ -286,48 +305,72 @@ class LauncherABC(object):
             # --- Escape quotes and double quotes in ROMFileName ---
             # >> This maybe useful to Android users with complex command line arguments
             if settings.getSettingAsBool('escape_romfile'):
-                logger.info("launch(): Escaping ROMFileName ' and \"")
+                logger.info("get_arguments(): Escaping ROMFileName ' and \"")
                 rom_file.escapeQuotes()
 
             rompath       = rom_file.getDir()
             rombase       = rom_file.getBase()
             rombase_noext = rom_file.getBaseNoExt()
 
-            logger.info('launch(): romfile      "{0}"'.format(rom_file.getPath()))
-            logger.info('launch(): rompath      "{0}"'.format(rompath))
-            logger.info('launch(): rombase      "{0}"'.format(rombase))
-            logger.info('launch(): rombasenoext "{0}"'.format(rombase_noext))
+            logger.info(f'get_arguments(): romfile      "{rom_file.getPath()}"')
+            logger.info(f'get_arguments(): rompath      "{rompath}"')
+            logger.info(f'get_arguments(): rombase      "{rombase}"')
+            logger.info(f'get_arguments(): rombasenoext "{rombase_noext}"')
 
-            arguments = arguments.replace('$rom$',          rom_file.getPath())
-            arguments = arguments.replace('$romfile$',      rom_file.getPath())
-            arguments = arguments.replace('$rompath$',      rompath)
-            arguments = arguments.replace('$rombase$',      rombase)
-            arguments = arguments.replace('$rombasenoext$', rombase_noext)
+            arguments = self._replace_in_args(arguments, '$rom$',          rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$romfile$',      rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$rompath$',      rompath)
+            arguments = self._replace_in_args(arguments, '$rombase$',      rombase)
+            arguments = self._replace_in_args(arguments, '$rombasenoext$', rombase_noext)
+
+            kwargs = self._replace_in_kwargs(kwargs, '$rom$',          rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '$romfile$',      rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '$rompath$',      rompath)
+            kwargs = self._replace_in_kwargs(kwargs, '$rombase$',      rombase)
+            kwargs = self._replace_in_kwargs(kwargs, '$rombasenoext$', rombase_noext)
 
             # >> Legacy names for argument substitution
-            arguments = arguments.replace('%rom%', rom_file.getPath())
-            arguments = arguments.replace('%ROM%', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '%rom%', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '%ROM%', rom_file.getPath())
+
+            kwargs = self._replace_in_kwargs(kwargs, '%rom%', rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '%ROM%', rom_file.getPath())
 
         # Default arguments replacements
-        arguments = arguments.replace('$romID$', rom.get_id())
-        arguments = arguments.replace('$romtitle$', rom.get_name())
+        arguments = self._replace_in_args(arguments, '$romID$', rom.get_id())
+        arguments = self._replace_in_args(arguments, '$romtitle$', rom.get_name())
+
+        kwargs = self._replace_in_kwargs(kwargs, '$romID$', rom.get_id())
+        kwargs = self._replace_in_kwargs(kwargs, '$romtitle$', rom.get_name())
 
         # automatic substitution of rom values
         rom_data = rom.get_data_dic()
         for rom_key, rom_value in rom_data.items():
-            arguments = arguments.replace('${}$'.format(str(rom_key)), str(rom_value))
+            try: arguments = self._replace_in_args(arguments, f"${str(rom_key)}$", str(rom_value))
+            except: pass
+            try: kwargs = self._replace_in_kwargs(kwargs, f"${str(rom_key)}$", str(rom_value))
+            except: pass
 
         scanned_data = rom.get_scanned_data()                
         for scanned_key, scanned_value in scanned_data.items():
-            arguments = arguments.replace('${}$'.format(str(scanned_key)), str(scanned_value))
+            try: arguments = self._replace_in_args(arguments, f"${str(scanned_key)}$", str(scanned_value))
+            except: pass
+            try: kwargs = self._replace_in_kwargs(kwargs, f"${str(scanned_key)}$", str(scanned_value))
+            except: pass
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
-            if isinstance(rom_value, str):
-                arguments = arguments.replace('${}$'.format(str(launcher_key)), str(launcher_value))
+            try: arguments = self._replace_in_args(arguments, f"${str(launcher_key)}$", str(launcher_value))
+            except: pass
+            try: kwargs = self._replace_in_kwargs(kwargs, f"${str(launcher_key)}$", str(launcher_value))
+            except: pass
 
-        logger.debug('launch(): final arguments "{0}"'.format(arguments))        
-        return arguments
+        if not self.execution_settings.is_non_blocking:
+            kwargs["non_blocking"] = self.execution_settings.is_non_blocking
+        
+        logger.debug(f'get_arguments(): final arguments "{arguments}"')        
+        logger.debug(f'get_arguments(): final keyworded arguments "{kwargs}"')   
+        return (arguments, kwargs)
         
     #
     # These two functions do things like stopping music before lunch, toggling full screen, etc.
@@ -340,7 +383,7 @@ class LauncherABC(object):
 
         # --- User notification ---
         if self.execution_settings.display_launcher_notify:
-            kodi.notify('Launching {}'.format(title))
+            kodi.notify(f'Launching {title}')
 
         # --- Stop/Pause Kodi mediaplayer if requested in settings ---
         self.kodi_was_playing = False
@@ -397,11 +440,11 @@ class LauncherABC(object):
             kodi.disable_screensaver()
         else:
             screensaver_mode = kodi.get_screensaver_mode()
-            logger.debug('_launch_pre_exec() Screensaver status "{}"'.format(screensaver_mode))
+            logger.debug(f'_launch_pre_exec() Screensaver status "{screensaver_mode}"')
 
         # --- Pause Kodi execution some time ---
         delay_tempo_ms = self.execution_settings.delay_tempo
-        logger.debug('_launch_pre_exec() Pausing {} ms'.format(delay_tempo_ms))
+        logger.debug(f'_launch_pre_exec() Pausing {delay_tempo_ms} ms')
         xbmc.sleep(delay_tempo_ms)
         logger.debug('LauncherABC::_launch_pre_exec() function ENDS')
 
@@ -410,7 +453,7 @@ class LauncherABC(object):
 
         # --- Stop Kodi some time ---
         delay_tempo_ms = self.execution_settings.delay_tempo
-        logger.debug('_launch_post_exec() Pausing {} ms'.format(delay_tempo_ms))
+        logger.debug(f'_launch_post_exec() Pausing {delay_tempo_ms} ms')
         xbmc.sleep(delay_tempo_ms)
 
         # --- Toggle Kodi windowed/fullscreen if requested ---
@@ -449,7 +492,7 @@ class LauncherABC(object):
             kodi.restore_screensaver()
         else:
             screensaver_mode = kodi.get_screensaver_mode()
-            logger.debug('_launch_post_exec() Screensaver status "{}"'.format(screensaver_mode))
+            logger.debug(f'_launch_post_exec() Screensaver status "{screensaver_mode}"')
 
         # --- Resume Kodi playing if it was paused. If it was stopped, keep it stopped. ---
         media_state_action = self.execution_settings.media_state_action
@@ -460,3 +503,11 @@ class LauncherABC(object):
             logger.debug('_launch_post_exec() Calling xbmc.Player().play()')
             xbmc.Player().play()
         logger.debug('LauncherABC::_launch_post_exec() function ENDS')
+
+    def _replace_in_args(self, args:typing.List[str], to_be_replaced:str, replace_with:str) -> list:
+        result = [arg.replace(to_be_replaced, replace_with) for arg in args]
+        return result
+
+    def _replace_in_kwargs(self, kwargs:typing.Dict[str, str],to_be_replaced:str, replace_with:str) -> dict:
+        result = { key: val.replace(to_be_replaced, replace_with) for key, val in kwargs.items() }
+        return result
