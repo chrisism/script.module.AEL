@@ -251,9 +251,13 @@ class LauncherABC(object):
             return
         logger.debug(f'Executor    = "{executor.__class__.__name__}"')
 
+        if not self.execution_settings.is_non_blocking:
+            if not kwargs: kwargs = {}
+            kwargs["non_blocking"] = self.execution_settings.is_non_blocking
+
         # --- Execute app ---
         self._launch_pre_exec(self.get_name(), self.execution_settings.toggle_window)
-        executor.execute(application, self.execution_settings.is_non_blocking, *args, **kwargs)
+        executor.execute(application, *args, **kwargs)
         self._launch_post_exec(self.execution_settings.toggle_window)
 
     @abc.abstractmethod

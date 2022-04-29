@@ -76,9 +76,9 @@ class FakeExecutor(ExecutorABC):
     def getActualArguments(self):
         return self.actualArgs
 
-    def execute(self, application, arguments, non_blocking):
+    def execute(self, application, *args, **kwargs):
         self.actualApplication = application
-        self.actualArgs = arguments
+        self.actualArgs = list(args)
         pass        
     
 class FakeClass():

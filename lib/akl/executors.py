@@ -22,7 +22,7 @@ import subprocess
 import webbrowser
 import logging
 import re 
-import logging
+import logging 
 
 import xbmc
 
@@ -30,6 +30,14 @@ from akl.utils import io
 from akl.utils import kodi
 
 logger = logging.getLogger(__name__)
+
+NON_BLOCKING_KEYWORD = "non_blocking"
+SEPARATOR_KEYWORD = "separator"
+
+DEFAULT_KEYWORDS = [
+    NON_BLOCKING_KEYWORD,
+    SEPARATOR_KEYWORD
+]
 
 # #################################################################################################
 # #################################################################################################
@@ -43,12 +51,15 @@ class ExecutorABC():
         self.logFile = logFile
 
     @abc.abstractmethod
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs): 
+    def execute(self, application: str, *args, **kwargs): 
         """
         Executes an application with this executor implementation.
-        The non blocking flag indicates if Kodi should wait/freeze for
-        this executing application. 
-        The arguments (args and kwargs) will be processed as the 
+        For the kwargs by default we work with the keyword 'non_blocking' 
+        to indicate if Kodi should wait/freeze for this executing application.
+        By default the application will be treated as non blocking. 
+        With the keyword 'separator' you can define the separator character
+        to use when combining all keywords. By default we use a whitespace.
+        The other arguments (args and kwargs) will be processed as the 
         arguments for the execution.
         """
         pass
@@ -58,16 +69,20 @@ class XbmcExecutor(ExecutorABC):
     Execute Kodi built-in functions.
     """
     
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
-        if not kwargs or len(kwargs) == 0:
-            xbmc.executebuiltin(application, wait = non_blocking)
-        else:
-            arguments = list(args)
-            for key, value in kwargs.items():
-                arguments.append(f'"{key} {value}"' if value else key)
+    def execute(self, application: str, *args, **kwargs):
+        non_blocking = kwargs.get(NON_BLOCKING_KEYWORD, True)
+        separator = kwargs.get(SEPARATOR_KEYWORD, " ")
+       
+        arguments = list(args)
+        for key, value in kwargs.items():
+            if key not in DEFAULT_KEYWORDS:
+                arguments.append(f'"{key}{separator}{value}"' if value else key)
 
+        if len(arguments) > 0:
             args_string = ", ".join(arguments)
-            xbmc.executebuiltin(f'{application}({args_string})', wait = non_blocking)
+            xbmc.executebuiltin(f'{application}({args_string})', wait = not non_blocking)
+        else:
+            xbmc.executebuiltin(application, wait= not non_blocking)
 
 #
 # --- Linux ---
@@ -83,15 +98,18 @@ class LinuxExecutor(ExecutorABC):
         super(LinuxExecutor, self).__init__(logFile)
 
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug('LinuxExecutor::execute() Starting ...')
         command = [application] + list(args)
+    
+        non_blocking = kwargs.get(NON_BLOCKING_KEYWORD, True)
+        separator = kwargs.get(SEPARATOR_KEYWORD, " ")
 
-        # >> Old way of launching child process. os.system() is deprecated and should not
-        # >> be used anymore.
-        # os.system('"{0}" {1}'.format(application, arguments).encode('utf-8'))
+        for key, value in kwargs.items():
+            if key not in DEFAULT_KEYWORDS:
+                command.append(f"{key}{separator}{value}" if value else key)
 
-         # >> New way of launching, uses subproces module. Also, save child process stdout.
+        # >> New way of launching, uses subproces module. Also, save child process stdout.
         if non_blocking:
             # >> In a non-blocking launch stdout/stderr of child process cannot be recorded.
             logger.info('Launching non-blocking process subprocess.Popen()')
@@ -113,10 +131,9 @@ class AndroidExecutor(ExecutorABC):
     command. The "am start" part of the command is fixed with the executor.
 
     execute() parameters:
-    - application (type: str)   : the app package/activity you want to execute (e.g. com.android.chrome or com.retroarch/com.retroarch.browser.retroactivity.RetroActivityFuture)
-    - non_blocking (type: bool) : flag to indicate if execution is blocking other apps
-    - *args                     : each arg in this list will be added as a -e argument to the am cmd
-    - **kwargs                  : keyed arguments to provide the -a, -d, -t, -c arguments.
+    - application (type: str)     : the app package/activity you want to execute (e.g. com.android.chrome or com.retroarch/com.retroarch.browser.retroactivity.RetroActivityFuture)
+    - *args                       : each arg in this list will be added as a -e argument to the am cmd
+    - **kwargs                    : keyed arguments to provide the -a, -d, -t, -c arguments.
 
     The kwargs can be set with:
     "intent"    : The intent action like 'android.intent.action.VIEW', added as the -a parameter
@@ -158,7 +175,7 @@ class AndroidExecutor(ExecutorABC):
     def __init__(self, logFile: io.FileName):
         super(AndroidExecutor, self).__init__(logFile)
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug("AndroidExecutor::execute() Starting ...")
         
         command = ["/system/bin/am", "start", f"-n {application}"]
@@ -178,11 +195,10 @@ class AndroidExecutor(ExecutorABC):
         if len(args) > 0:
             command = command + [f"-e {arg}" for arg in args]
         
-        #retcode = os.system("{0} {1}".format(application, args).encode('utf-8'))
+        #retcode = os.system(cmd)
         with open(self.logFile.getPathTranslated(), 'w') as f:
             retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
-            logger.info(f"Process retcode = {retcode}")
-
+        logger.info(f"Process retcode = {retcode}")
         logger.debug("AndroidExecutor::execute() function ENDS")
 
 class AndroidActivityExecutor(ExecutorABC):
@@ -201,12 +217,14 @@ class AndroidActivityExecutor(ExecutorABC):
     def __init__(self):
         super(AndroidActivityExecutor, self).__init__()
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug("AndroidActivityExecutor::execute() Starting ...")
 
         intent   = kwargs.get("intent", "")
         dataType = kwargs.get("dataType", "")
         dataURI  = kwargs.get("dataURI", "")
+
+        non_blocking = kwargs.get(NON_BLOCKING_KEYWORD, True)
 
         command = f'StartAndroidActivity("{application}", "{intent}", "{dataType}", "{dataURI}")'
         xbmc.executebuiltin(command, non_blocking)
@@ -215,9 +233,14 @@ class AndroidActivityExecutor(ExecutorABC):
 
 class OSXExecutor(ExecutorABC):
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug('OSXExecutor::execute() Starting ...')
         command = [application] + list(args)
+
+        separator = kwargs.get(SEPARATOR_KEYWORD, " ")
+        for key, value in kwargs.items():
+            if key not in DEFAULT_KEYWORDS:
+                command.append(f"{key}{separator}{value}" if value else key)
 
         # >> Old way.
         # os.system('"{0}" {1}'.format(application, arguments).encode('utf-8'))
@@ -230,10 +253,8 @@ class OSXExecutor(ExecutorABC):
 
 class WindowsLnkFileExecutor(ExecutorABC):
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug('WindowsLnkFileExecutor::execute() Starting ...')
-        logger.debug('Launching LNK application')
-        # os.system('start "AKL" /b "{0}"'.format(application).encode('utf-8'))
         retcode = subprocess.call('start "AKL" /b "{0}"'.format(application).encode('utf-8'), shell = True)
         logger.info('LNK app retcode = {0}'.format(retcode))
         logger.debug('WindowsLnkFileExecutor::execute() function ENDS')
@@ -246,10 +267,15 @@ class WindowsBatchFileExecutor(ExecutorABC):
         self.show_batch_window = show_batch_window
         super(WindowsBatchFileExecutor, self).__init__(logFile)
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug('WindowsBatchFileExecutor::execute() Starting ...')
         command = [application] + list(args)
         
+        separator = kwargs.get(SEPARATOR_KEYWORD, " ")
+        for key, value in kwargs.items():
+            if key not in DEFAULT_KEYWORDS:
+                command.append(f"{key}{separator}{value}" if value else key)
+
         apppath = io.FileName(application)
         apppath = apppath.getDir()
         
@@ -298,9 +324,15 @@ class WindowsExecutor(ExecutorABC):
         self.windows_close_fds  = close_fds
         super(WindowsExecutor, self).__init__(logFile)
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug('WindowsExecutor::execute() Starting ...')
         command = [application] + list(args)
+
+        separator = kwargs.get(SEPARATOR_KEYWORD, " ")
+        for key, value in kwargs.items():
+            if key not in DEFAULT_KEYWORDS:
+                command.append(f"{key}{separator}{value}" if value else key)
+
         apppath = io.FileName(application)
         apppath = apppath.getDir()
 
@@ -342,12 +374,18 @@ class WindowsExecutor(ExecutorABC):
 
 class WebBrowserExecutor(ExecutorABC):
 
-    def execute(self, application: str, non_blocking: bool, *args, **kwargs):
+    def execute(self, application: str, *args, **kwargs):
         logger.debug('WebBrowserExecutor::execute() Starting ...')
-        command = " ".join([application] + list(args))
-        
-        logger.debug(f'Launching URL "{command}"')
-        webbrowser.open(command)
+        command = [application] + list(args)
+
+        separator = kwargs.get(SEPARATOR_KEYWORD, " ")
+        for key, value in kwargs.items():
+            if key not in DEFAULT_KEYWORDS:
+                command.append(f"{key}{separator}{value}" if value else key)
+
+        url = " ".join([application] + list(args))
+        logger.debug(f'Launching URL "{url}"')
+        webbrowser.open(url)
         logger.debug('WebBrowserExecutor::execute() function ENDS')
 
 class ExecutorSettings(object):
