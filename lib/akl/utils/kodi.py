@@ -211,12 +211,18 @@ def dialog_keyboard(title, text='') -> str:
 # ""       list local drives and network shares
 
 # Returns a directory.
-def dialog_get_directory(d_heading, d_dir = ''):
+def dialog_get_directory(d_heading, d_dir = '', shares = ''):
     if d_dir:
-        ret = xbmcgui.Dialog().browse(0, d_heading, '', defaultt = d_dir)
+        ret = xbmcgui.Dialog().browse(0, d_heading, shares, defaultt = d_dir)
     else:
-        ret =  xbmcgui.Dialog().browse(0, d_heading, '')
+        ret =  xbmcgui.Dialog().browse(0, d_heading, shares)
+    return ret
 
+def dialog_get_file(heading, d_dir = '', shares = ''):
+    if d_dir:
+        ret = xbmcgui.Dialog().browse(1, heading, shares, defaultt = d_dir)
+    else:
+        ret =  xbmcgui.Dialog().browse(1, heading, shares)
     return ret
 
 def refresh_container():
@@ -625,10 +631,11 @@ class WizardDialog_DictionarySelection(WizardDialog):
 # Wizard dialog which shows a filebrowser.
 #
 class WizardDialog_FileBrowse(WizardDialog):
-    def __init__(self, decoratorDialog, property_key, title, browseType, filter,
+    def __init__(self, decoratorDialog, property_key, title, browseType, filter, shares = 'files',
                  customFunction = None, conditionalFunction = None):
         self.browseType = browseType
         self.filter = filter
+        self.shares = shares
         super(WizardDialog_FileBrowse, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction
         )
@@ -639,7 +646,7 @@ class WizardDialog_FileBrowse(WizardDialog):
 
         if callable(self.filter):
             self.filter = self.filter(self.property_key, properties)
-        output = xbmcgui.Dialog().browse(self.browseType, self.title, 'files', self.filter, False, False, originalPath)
+        output = xbmcgui.Dialog().browse(self.browseType, self.title, self.shares, self.filter, False, False, originalPath)
 
         if not output:
             self._cancel()
