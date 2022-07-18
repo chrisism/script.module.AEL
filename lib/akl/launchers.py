@@ -208,6 +208,7 @@ class LauncherABC(object):
         launcher_settings = self.get_launcher_settings()
         post_data = {
             'romcollection_id': self.romcollection_id,
+            'rom_id': self.rom_id,
             'akl_addon_id': self.launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings
