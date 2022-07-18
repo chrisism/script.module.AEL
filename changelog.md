@@ -1,5 +1,6 @@
 ## Bug fixes
 - Added file dialogs support
+- Fix for storing single ROM launcher settings
 
 ## In previous releases
 - Refactored executors to accept args and kwargs.
