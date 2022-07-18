@@ -307,18 +307,20 @@ def restore_screensaver():
 # See https://forum.kodi.tv/showthread.php?tid=236320
 #
 def delete_cache_texture(database_path_str):
-    logger.debug('kodi_delete_cache_texture() Deleting texture "{0}:'.format(database_path_str))
+    logging.debug(f'kodi_delete_cache_texture() Deleting texture "{database_path_str}:')
 
     # --- Query texture database ---
     json_fname_str = text.escape_JSON(database_path_str)
-    prop_str = (
-        '{' +
-        '"properties" : [ "url", "cachedurl", "lasthashcheck", "imagehash", "sizes"], ' +
-        '"filter" : {{ "field" : "url", "operator" : "is", "value" : "{0}" }}'.format(json_fname_str) +
-        '}'
-    )
-    r_dic = jsonrpc_query('Textures.GetTextures', prop_str, verbose = False)
-
+    parameters = {
+        "properties" : [ "url", "cachedurl", "lasthashcheck", "imagehash", "sizes"], 
+        "filter": {
+            "field": "url",
+            "operator": "is",
+            "value": json_fname_str
+        }
+    }
+    
+    r_dic = jsonrpc_query('Textures.GetTextures', json.dumps(parameters), verbose = True)
     # --- Delete cached texture ---
     num_textures = len(r_dic['textures'])
     logger.debug('kodi_delete_cache_texture() Returned list with {0} textures'.format(num_textures))

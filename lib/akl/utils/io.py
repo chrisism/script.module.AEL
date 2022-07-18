@@ -435,18 +435,18 @@ class FileName:
     # See https://docs.python.org/2/library/shutil.html#shutil.copy2
     # See https://docs.python.org/2/library/sys.html#sys.getfilesystemencoding
     #
-    def copy(self, to_FN):
+    def copy(self, to_FN: FileName):
         if self.is_local and to_FN.is_local:
             fs_encoding = sys.getfilesystemencoding()
-            source_bytes = self.getPath().decode(fs_encoding)
-            dest_bytes = to_FN.getPath().decode(fs_encoding)
+            source = self.getPathTranslated()
+            dest = to_FN.getPathTranslated()
             if FILENAME_VERBOSE:
                 logger.debug('FileName::copy() Using Python Standard Library')
-                logger.debug('FileName::copy() fs encoding "{0}"'.format(fs_encoding))
-                logger.debug('FileName::copy() Copy "{0}"'.format(source_bytes))
-                logger.debug('FileName::copy() into "{0}"'.format(dest_bytes))
+                logger.debug(f'FileName::copy() fs encoding "{fs_encoding}"')
+                logger.debug(f'FileName::copy() Copy "{source}"')
+                logger.debug(f'FileName::copy() into "{dest}"')
             try:
-                shutil.copy(source_bytes, dest_bytes)
+                shutil.copy(source, dest)
             except OSError:
                 logger.exception('FileName::copy() OSError exception copying image')
                 raise constants.AddonError('OSError exception copying image')
@@ -456,8 +456,8 @@ class FileName:
         else:
             if FILENAME_VERBOSE:
                 logger.debug('FileName::copy() Using Kodi VFS')
-                logger.debug('FileName::copy() Copy "{0}"'.format(self.getPath()))
-                logger.debug('FileName::copy() into "{0}"'.format(to_FN.getPath()))
+                logger.debug(f'FileName::copy() Copy "{self.getPath()}"')
+                logger.debug(f'FileName::copy() into "{to_FN.getPath()}"')
             # >> If xbmcvfs.copy() fails what exceptions raise???
             xbmcvfs.copy(self.getPath(), to_FN.getPath())
 
