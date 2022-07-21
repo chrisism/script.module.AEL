@@ -630,6 +630,17 @@ def is_android():
 def is_linux():
     return is_linux_bool
 
+def is_which_os() -> str:
+    if is_windows_bool:
+        return "Windows"
+    if is_android_bool:
+        return "Android"
+    if is_osx_bool:
+        return "OSX"
+    if is_linux_bool:
+        return "Linux"
+    return "Unknown"
+
 # -------------------------------------------------------------------------------------------------
 # URLs
 # -------------------------------------------------------------------------------------------------
