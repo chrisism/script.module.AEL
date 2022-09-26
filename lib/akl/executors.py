@@ -445,7 +445,7 @@ class ExecutorFactory(ExecutorFactoryABC):
         
         application = io.FileName(application_str)
         use_xbmc = kwargs.get("xbmc", False)
-        use_android_builtin = kwargs.get("android_builtin", False)
+        use_android_builtin = kwargs.get("android_builtin", True)
         use_browser = kwargs.get("browser", False)
 
         if use_xbmc \
