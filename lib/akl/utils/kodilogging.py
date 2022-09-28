@@ -28,9 +28,12 @@ class KodiLogHandler(logging.StreamHandler):
         logging.StreamHandler.__init__(self)
         addon_id = xbmcaddon.Addon().getAddonInfo('id')
         prefix = "[%s] " % addon_id
-        formatter = logging.Formatter(prefix + '%(name)s: %(message)s')
-        self.setFormatter(formatter)
         self.debug = settings.getSettingAsInt('log_level') == LOG_DEBUG
+        if self.debug:
+            formatter = logging.Formatter(prefix + '%(name)s %(levelname)s [%(filename)s:%(lineno)d]: %(message)s')
+        else:
+            formatter = logging.Formatter(prefix + '%(name)s: %(message)s')
+        self.setFormatter(formatter)
 
     def emit(self, record):
         levels = {

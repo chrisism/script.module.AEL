@@ -23,6 +23,7 @@ import webbrowser
 import logging
 import re 
 import logging 
+import json
 
 import xbmc
 
@@ -203,9 +204,11 @@ class AndroidExecutor(ExecutorABC):
 
 class AndroidActivityExecutor(ExecutorABC):
     """
-    Launch an Android native app.
-    It will use StartAndroidActivity(package,[intent,dataType,dataURI]) with the given 
-    application name as the package. The provided kwargs are: intent, dataType, dataURI. 
+    Launch an Android native app. Preferred solution above AndroidExecutor.
+    It will use StartAndroidActivity(package,[..]) with the given 
+    application name as the package. 
+    The provided kwargs are: intent, dataType, dataURI, action, category,
+    className, flags and extras. 
     example: 
       StartAndroidActivity(com.android.chrome,android.intent.action.VIEW,,http://kodi.tv/)
       application: com.android.chrome
@@ -220,13 +223,29 @@ class AndroidActivityExecutor(ExecutorABC):
     def execute(self, application: str, *args, **kwargs):
         logger.debug("AndroidActivityExecutor::execute() Starting ...")
 
-        intent   = kwargs.get("intent", "")
+        intent = kwargs.get("intent", "")
+        action = kwargs.get("action", "")
+        category = kwargs.get("category", "")
+        className = kwargs.get("className", "")
         dataType = kwargs.get("dataType", "")
-        dataURI  = kwargs.get("dataURI", "")
+        dataURI = kwargs.get("dataURI", "")
+        flags = kwargs.get("flags", "")
+        extras = kwargs.get("extras", [])
 
         non_blocking = kwargs.get(NON_BLOCKING_KEYWORD, True)
 
-        command = f'StartAndroidActivity("{application}", "{intent}", "{dataType}", "{dataURI}")'
+        if len(args) > 0:
+            for arg in args:
+                arg_splitted = arg.split(' ')
+                extras.append({
+                    "key": arg_splitted[0],
+                    "value": " ".join(arg_splitted[1:]),
+                    "type": "string"
+                })
+        
+        extras_json = json.dumps(extras)
+        command = f'StartAndroidActivity("{application}", "{intent}", "{dataType}", "{dataURI}", "{flags}", "{extras_json}", "{action}", "{category}", "{className}")'
+        logger.debug(f"=============>>>> CMD: {command}")
         xbmc.executebuiltin(command, non_blocking)
 
         logger.debug("AndroidActivityExecutor::execute() function ENDS")
@@ -426,7 +445,7 @@ class ExecutorFactory(ExecutorFactoryABC):
         
         application = io.FileName(application_str)
         use_xbmc = kwargs.get("xbmc", False)
-        use_android_builtin = kwargs.get("android_builtin", False)
+        use_android_builtin = kwargs.get("android_builtin", True)
         use_browser = kwargs.get("browser", False)
 
         if use_xbmc \

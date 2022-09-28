@@ -211,12 +211,18 @@ def dialog_keyboard(title, text='') -> str:
 # ""       list local drives and network shares
 
 # Returns a directory.
-def dialog_get_directory(d_heading, d_dir = ''):
+def dialog_get_directory(d_heading, d_dir = '', shares = ''):
     if d_dir:
-        ret = xbmcgui.Dialog().browse(0, d_heading, '', defaultt = d_dir)
+        ret = xbmcgui.Dialog().browse(0, d_heading, shares, defaultt = d_dir)
     else:
-        ret =  xbmcgui.Dialog().browse(0, d_heading, '')
+        ret =  xbmcgui.Dialog().browse(0, d_heading, shares)
+    return ret
 
+def dialog_get_file(heading, d_dir = '', shares = ''):
+    if d_dir:
+        ret = xbmcgui.Dialog().browse(1, heading, shares, defaultt = d_dir)
+    else:
+        ret =  xbmcgui.Dialog().browse(1, heading, shares)
     return ret
 
 def refresh_container():
@@ -301,18 +307,20 @@ def restore_screensaver():
 # See https://forum.kodi.tv/showthread.php?tid=236320
 #
 def delete_cache_texture(database_path_str):
-    logger.debug('kodi_delete_cache_texture() Deleting texture "{0}:'.format(database_path_str))
+    logging.debug(f'kodi_delete_cache_texture() Deleting texture "{database_path_str}:')
 
     # --- Query texture database ---
     json_fname_str = text.escape_JSON(database_path_str)
-    prop_str = (
-        '{' +
-        '"properties" : [ "url", "cachedurl", "lasthashcheck", "imagehash", "sizes"], ' +
-        '"filter" : {{ "field" : "url", "operator" : "is", "value" : "{0}" }}'.format(json_fname_str) +
-        '}'
-    )
-    r_dic = jsonrpc_query('Textures.GetTextures', prop_str, verbose = False)
-
+    parameters = {
+        "properties" : [ "url", "cachedurl", "lasthashcheck", "imagehash", "sizes"], 
+        "filter": {
+            "field": "url",
+            "operator": "is",
+            "value": json_fname_str
+        }
+    }
+    
+    r_dic = jsonrpc_query('Textures.GetTextures', json.dumps(parameters), verbose = True)
     # --- Delete cached texture ---
     num_textures = len(r_dic['textures'])
     logger.debug('kodi_delete_cache_texture() Returned list with {0} textures'.format(num_textures))
@@ -625,10 +633,11 @@ class WizardDialog_DictionarySelection(WizardDialog):
 # Wizard dialog which shows a filebrowser.
 #
 class WizardDialog_FileBrowse(WizardDialog):
-    def __init__(self, decoratorDialog, property_key, title, browseType, filter,
+    def __init__(self, decoratorDialog, property_key, title, browseType, filter, shares = 'files',
                  customFunction = None, conditionalFunction = None):
         self.browseType = browseType
         self.filter = filter
+        self.shares = shares
         super(WizardDialog_FileBrowse, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction
         )
@@ -639,7 +648,7 @@ class WizardDialog_FileBrowse(WizardDialog):
 
         if callable(self.filter):
             self.filter = self.filter(self.property_key, properties)
-        output = xbmcgui.Dialog().browse(self.browseType, self.title, 'files', self.filter, False, False, originalPath)
+        output = xbmcgui.Dialog().browse(self.browseType, self.title, self.shares, self.filter, False, False, originalPath)
 
         if not output:
             self._cancel()
