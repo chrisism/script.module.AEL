@@ -162,12 +162,12 @@ class Test_executortests(unittest.TestCase):
         }
 
         # act
-        target.execute(application, False, *args, **kwargs)
+        target.execute(application, *args, **kwargs)
 
         # assert
         assert execute_mock.called
         call = execute_mock.call_args_list[0]
-        assert call.args[0] == 'StartAndroidActivity("com.nvidia.tegrazone3", "android.intent.action.VIEW", "", "nvidia://stream/target/4/124")'
+        assert call.args[0] == 'StartAndroidActivity("com.nvidia.tegrazone3", "android.intent.action.VIEW", "", "nvidia://stream/target/4/124", "", "[]", "", "", "")'
 
 
 if __name__ == '__main__':
