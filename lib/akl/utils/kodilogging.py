@@ -57,3 +57,4 @@ def config():
     logger = logging.getLogger()
     logger.addHandler(KodiLogHandler())
     logger.setLevel(logging.DEBUG)
+    logging.getLogger("requests").setLevel(logging.WARNING)
