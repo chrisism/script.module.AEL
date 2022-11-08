@@ -307,7 +307,7 @@ def restore_screensaver():
 # See https://forum.kodi.tv/showthread.php?tid=236320
 #
 def delete_cache_texture(database_path_str):
-    logging.debug(f'kodi_delete_cache_texture() Deleting texture "{database_path_str}:')
+    logger.debug(f'kodi_delete_cache_texture() Deleting texture "{database_path_str}:')
 
     # --- Query texture database ---
     json_fname_str = text.escape_JSON(database_path_str)
