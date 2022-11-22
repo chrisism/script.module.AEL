@@ -2,6 +2,7 @@
 - Don't download assets of extension type *url*
 - Updated media/artwork
 - Fixed ok dialog issue with timer
+- Added PEGI rating support
 ## In previous releases
 - Less logging by requests module, making logs more secure
 - Added file dialogs support

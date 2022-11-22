@@ -958,7 +958,8 @@ class ScrapeStrategy(object):
     # @param rom: ROM object to apply metadata.
     # @return: True if metadata is valid an applied, False otherwise.
     def _apply_candidate_on_metadata(self, gamedata: dict, rom: ROMObj):
-        if not gamedata: return False
+        if not gamedata:
+            return False
 
         # --- Put metadata into ROM/Launcher object ---
         rom_file = rom.get_scanned_data_element_as_file('file')
@@ -977,8 +978,9 @@ class ScrapeStrategy(object):
         rom.set_number_of_players(gamedata['nplayers']) 
         rom.set_number_of_players_online(gamedata['nplayers_online'])
         rom.set_esrb_rating(gamedata['esrb'])
+        rom.set_pegi_rating(gamedata['pegi'])
         rom.set_plot(gamedata['plot'])
-        rom.set_tags(gamedata['tags'])                  
+        rom.set_tags(gamedata['tags'])
 
         return True
         
@@ -989,7 +991,7 @@ class ScrapeStrategy(object):
     # ROM         -> Rom object
     # asset_infos -> list of assets to request
     #
-    def _get_local_assets(self, rom:ROMObj, asset_info_ids:list):
+    def _get_local_assets(self, rom: ROMObj, asset_info_ids: list):
         self.logger.debug('_get_local_assets() Searching for ROM local assets...')
         rom_identifier = rom.get_identifier()
         local_assets = {}
@@ -1473,6 +1475,7 @@ class Scraper(object):
             'nplayers'        : '',
             'nplayers_online' : '',
             'esrb'            : '',
+            'pegi'            : '',
             'plot'            : '',
             'tags'            : []
         }
