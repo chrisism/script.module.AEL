@@ -409,8 +409,10 @@ class ScrapeStrategy(object):
                 self._get_candidate(rom, search_term, self.asset_scraper_obj, status_dic)
                 asset_candidate_set = True
                 
-        if not meta_candidate_set: self.logger.debug('Metadata candidate game is not set')
-        if not asset_candidate_set: self.logger.debug('Asset candidate game is not set')
+        if not meta_candidate_set:
+            self.logger.debug('Metadata candidate game is not set')
+        if not asset_candidate_set:
+            self.logger.debug('Asset candidate game is not set')
             
         if self.scraper_settings.scrape_metadata_policy != constants.SCRAPE_ACTION_NONE:
             self._process_ROM_metadata(rom)
@@ -421,9 +423,10 @@ class ScrapeStrategy(object):
     # Called by the ROM scanner. Fills in the ROM metadata.
     #
     # @param ROM: [Rom] ROM object.
-    def _process_ROM_metadata(self, rom:ROMObj):
+    def _process_ROM_metadata(self, rom: ROMObj):
         self.logger.debug('ScrapeStrategy::scanner_process_ROM_metadata() Processing metadata action...')
-        if self.metadata_action == ScrapeStrategy.ACTION_META_NONE: return
+        if self.metadata_action == ScrapeStrategy.ACTION_META_NONE:
+            return
                 
         if self.metadata_action == ScrapeStrategy.ACTION_META_TITLE_ONLY:
             if self.pdialog_verbose:
@@ -451,7 +454,7 @@ class ScrapeStrategy(object):
     # Called by the ROM scanner. Fills in the ROM assets.
     #
     # @param rom: [ROM] ROM data object. Mutable and edited by assignment.
-    def _process_ROM_assets(self, rom:ROMObj):
+    def _process_ROM_assets(self, rom: ROMObj):
         self.logger.debug('Processing asset actions...')
         
         if all(asset_action == ScrapeStrategy.ACTION_ASSET_NONE for asset_action in self.asset_action_list.values()):
@@ -470,12 +473,13 @@ class ScrapeStrategy(object):
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET:
                 self.logger.debug(f'Using local asset for {asset_name}')
                 local_asset = self.local_asset_list[asset_id]
-                if local_asset: rom.set_asset(asset_id, local_asset.getPath())
+                if local_asset:
+                    rom.set_asset(asset_id, local_asset.getPath())
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_SCRAPER:
                 asset_path = self._scrap_ROM_asset(asset_id, self.local_asset_list[asset_id], rom)
                 if asset_path is None:
                     self.logger.debug(f'No asset scraped. Skipping {asset_name}')
-                    continue   
+                    continue
                 rom.set_asset(asset_id, asset_path.getPath())
             else:
                 raise ValueError(f'Asset ID {asset_id} unknown action {self.asset_action_list[asset_id]}')
@@ -622,7 +626,7 @@ class ScrapeStrategy(object):
 
     # Get a candidate game in the ROM scanner.
     # Returns nothing.
-    def _get_candidate(self, rom: ROMObj, search_term:str, scraper_obj:Scraper, status_dic):
+    def _get_candidate(self, rom: ROMObj, search_term: str, scraper_obj: Scraper, status_dic):
         # --- Update scanner progress dialog ---
         if self.pdialog_verbose:
             scraper_text = 'Searching games with scraper {}...'.format(scraper_obj.get_name())
@@ -668,8 +672,10 @@ class ScrapeStrategy(object):
                     return
                 self.pdialog.close()
                 # Close error message dialog automatically 1 minute to keep scanning.
-                # kodi_dialog_OK(status_dic['msg'])
-                kodi.dialog_OK_timer(status_dic['msg'], 60000)
+                yesno_msg = f"{status_dic['msg']}\nStop scraping?"
+                if kodi.dialog_yesno_timer(yesno_msg, 60000):
+                    status_dic['dialog'] = kodi.KODI_MESSAGE_CANCEL
+                    return
                 status_dic = kodi.new_status_dic('No error')
                 self.pdialog.reopen()
             # * If candidates is None some kind of error/exception happened.
@@ -747,12 +753,16 @@ class ScrapeStrategy(object):
 
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
-            # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_OK_timer(status_dic['msg'], 60000)
+            yesno_msg = f"{status_dic['msg']}\nStop scraping?"
+            if kodi.dialog_yesno_timer(yesno_msg, 60000):
+                status_dic['dialog'] = kodi.KODI_MESSAGE_CANCEL
+                return
             self.pdialog.reopen()
             return
 
         scraper_applied = self._apply_candidate_on_metadata(game_data, rom)
+        self.logger.debug(f"Scraper applied? {scraper_applied}")
+        
     #
     # Returns a valid filename of the downloaded scrapped image, filename of local image
     # or empty string if scraper finds nothing or download failed.
@@ -763,11 +773,11 @@ class ScrapeStrategy(object):
     # @return: [str] Filename string with the asset path.
     def _scrap_ROM_asset(self, asset_info_id: str, local_asset_path: io.FileName, rom: ROMObj):
         # --- Cached frequent used things ---
-        asset_dir_FN        = rom.get_asset_path(asset_info_id)
+        asset_dir_FN = rom.get_asset_path(asset_info_id)
         asset_path_noext_FN = asset_dir_FN + rom.get_identifier()
-        asset_name          = asset_info_id.capitalize()
+        asset_name = asset_info_id.capitalize()
        
-        t = 'ScrapeStrategy._scrap_ROM_asset() Scraping {} with scraper {} ------------------------------'
+        t = 'Scraping {} with scraper {} ------------------------------'
         self.logger.debug(t.format(asset_info_id, self.asset_scraper_obj.get_name()))
         status_dic = kodi.new_status_dic('No error')
         
@@ -804,8 +814,10 @@ class ScrapeStrategy(object):
                 return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
-            # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_OK_timer(status_dic['msg'], 60000)
+            yesno_msg = f"{status_dic['msg']}\nStop scraping?"
+            if kodi.dialog_yesno_timer(yesno_msg, 60000):
+                status_dic['dialog'] = kodi.KODI_MESSAGE_CANCEL
+                return
             status_dic = kodi.new_status_dic('No error')
             self.pdialog.reopen()
         if assetdata_list is None or not assetdata_list:
@@ -873,8 +885,10 @@ class ScrapeStrategy(object):
                 return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
-            # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_OK_timer(status_dic['msg'], 60000)
+            yesno_msg = f"{status_dic['msg']}\nStop scraping?"
+            if kodi.dialog_yesno_timer(yesno_msg, 60000):
+                status_dic['dialog'] = kodi.KODI_MESSAGE_CANCEL
+                return
             status_dic = kodi.new_status_dic('No error')
             self.pdialog.reopen()
         if image_url is None or not image_url:
@@ -892,8 +906,10 @@ class ScrapeStrategy(object):
                 return
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
-            # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_OK_timer(status_dic['msg'], 60000)
+            yesno_msg = f"{status_dic['msg']}\nStop scraping?"
+            if kodi.dialog_yesno_timer(yesno_msg, 60000):
+                status_dic['dialog'] = kodi.KODI_MESSAGE_CANCEL
+                return
             status_dic = kodi.new_status_dic('No error')
             self.pdialog.reopen()
         if image_ext is None or not image_ext:
@@ -914,11 +930,14 @@ class ScrapeStrategy(object):
         self.logger.debug(f'Into file "{image_local_path.getPath()}"')
         try:
             image_local_path = self.asset_scraper_obj.download_image(image_url, image_local_path)
-        except Exception as ex:
+        except Exception:
             self.logger.exception('(Exception) In scraper.download_image.')
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
-            kodi.dialog_OK_timer(f'Cannot download {asset_name} image (Timeout)', 60000)
+            if kodi.dialog_yesno_timer(f'Cannot download {asset_name} image (Timeout).\nStop scraping?', 60000):
+                status_dic['msg'] = f'Cannot download {asset_name} image (Timeout)'
+                status_dic['dialog'] = kodi.KODI_MESSAGE_CANCEL
+                return
             self.pdialog.reopen()
         
         # --- Update Kodi cache with downloaded image ---
