@@ -452,7 +452,7 @@ class ScrapeStrategy(object):
     #
     # @param rom: [ROM] ROM data object. Mutable and edited by assignment.
     def _process_ROM_assets(self, rom:ROMObj):
-        self.logger.debug('ScrapeStrategy._process_ROM_assets() Processing asset actions...')
+        self.logger.debug('Processing asset actions...')
         
         if all(asset_action == ScrapeStrategy.ACTION_ASSET_NONE for asset_action in self.asset_action_list.values()):
             return
@@ -462,24 +462,23 @@ class ScrapeStrategy(object):
         for asset_id in self.scraper_settings.asset_IDs_to_scrape:
             asset_name = asset_id.capitalize() 
             if self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_NONE:
-                self.logger.debug('Skipping asset scraping for {}'.format(asset_name))
+                self.logger.debug(f'Skipping asset scraping for {asset_name}')
                 continue    
             elif not self.scraper_settings.overwrite_existing and rom.has_asset(asset_id):
-                self.logger.debug('Asset {} already exists. Skipping (no overwrite)'.format(asset_name))
+                self.logger.debug(f'Asset {asset_name} already exists. Skipping (no overwrite)')
                 continue
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET:
-                self.logger.debug('Using local asset for {}'.format(asset_name))
+                self.logger.debug(f'Using local asset for {asset_name}')
                 local_asset = self.local_asset_list[asset_id]
                 if local_asset: rom.set_asset(asset_id, local_asset.getPath())
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_SCRAPER:
                 asset_path = self._scrap_ROM_asset(asset_id, self.local_asset_list[asset_id], rom)
                 if asset_path is None:
-                    self.logger.debug('No asset scraped. Skipping {}'.format(asset_name))
+                    self.logger.debug(f'No asset scraped. Skipping {asset_name}')
                     continue   
                 rom.set_asset(asset_id, asset_path.getPath())
             else:
-                raise ValueError('Asset ID {} unknown action {}'.format(
-                    asset_id, self.asset_action_list[asset_id]))
+                raise ValueError(f'Asset ID {asset_id} unknown action {self.asset_action_list[asset_id]}')
 
         romdata = rom.get_data_dic()
         # --- Print some debug info ---
@@ -500,10 +499,10 @@ class ScrapeStrategy(object):
 
     # Determine the actions to be carried out by process_ROM_metadata()
     def _process_ROM_metadata_begin(self, rom: ROMObj):
-        self.logger.debug('ScrapeStrategy._process_ROM_metadata_begin() Determining metadata actions...')
+        self.logger.debug('Determining metadata actions...')
   
         if self.meta_scraper_obj is None:
-            self.logger.debug('ScrapeStrategy::_process_ROM_metadata_begin() No metadata scraper set, disabling metadata scraping.')
+            self.logger.debug('No metadata scraper set, disabling metadata scraping.')
             self.metadata_action = ScrapeStrategy.ACTION_META_NONE
             return
         
@@ -555,10 +554,10 @@ class ScrapeStrategy(object):
   
     # Determine the actions to be carried out by _process_ROM_assets()
     def _process_ROM_assets_begin(self, rom: ROMObj):
-        self.logger.debug('ScrapeStrategy._process_ROM_assets_begin() Determining asset actions...')
+        self.logger.debug('Determining asset actions...')
         
         if self.asset_scraper_obj is None:
-            self.logger.debug('ScrapeStrategy::_process_ROM_assets_begin() No asset scraper set, disabling asset scraping.')
+            self.logger.debug('No asset scraper set, disabling asset scraping.')
             self.asset_action_list = { asset_id:ScrapeStrategy.ACTION_ASSET_NONE for asset_id in self.scraper_settings.asset_IDs_to_scrape }
             return
         
@@ -902,22 +901,24 @@ class ScrapeStrategy(object):
             return ret_asset_path
         self.logger.debug(f'Resolved URL extension "{image_ext}"')
 
+        # If remote file is of type 'url', then do not download. Return value directly.
+        if image_ext == "url":
+            return io.Url(image_url)
+        
         # --- Download image ---
         if self.pdialog_verbose:
-            scraper_text = 'Downloading {} from {}...'.format(
-                asset_info_id, self.asset_scraper_obj.get_name())
+            scraper_text = f'Downloading {asset_info_id} from {self.asset_scraper_obj.get_name()}...'
             self.pdialog.updateMessage(scraper_text)
         image_local_path = asset_path_noext_FN.append('.' + image_ext)
-        self.logger.debug('Download  "{}"'.format(image_url_log))
-        self.logger.debug('Into file "{}"'.format(image_local_path.getPath()))
+        self.logger.debug(f'Download  "{image_url_log}"')
+        self.logger.debug(f'Into file "{image_local_path.getPath()}"')
         try:
             image_local_path = self.asset_scraper_obj.download_image(image_url, image_local_path)
         except Exception as ex:
             self.logger.exception('(Exception) In scraper.download_image.')
             self.pdialog.close()
             # Close error message dialog automatically 1 minute to keep scanning.
-            # kodi_dialog_OK(status_dic['msg'])
-            kodi.dialog_OK_timer('Cannot download {} image (Timeout)'.format(asset_name), 60000)
+            kodi.dialog_OK_timer(f'Cannot download {asset_name} image (Timeout)', 60000)
             self.pdialog.reopen()
         
         # --- Update Kodi cache with downloaded image ---
@@ -928,7 +929,7 @@ class ScrapeStrategy(object):
         # For example, check if a PNG image is really a PNG, a JPG is really JPG, etc.
         # Check for 0 byte files and delete them.
         # Etc.
-
+            
         # --- Return value is downloaded image ---
         return image_local_path
 

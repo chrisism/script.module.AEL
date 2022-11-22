@@ -1,7 +1,8 @@
-## Bug fixes
-- Less logging by requests module, making logs more secure
+## Current
+- Don't download assets of extension type *url*
 
 ## In previous releases
+- Less logging by requests module, making logs more secure
 - Added file dialogs support
 - Fix for storing single ROM launcher settings
 - Refactored executors to accept args and kwargs.
