@@ -122,23 +122,26 @@ def play_item(item_label:str, path:str, type:str, info: dict):
     logger.debug('Calling xbmc.Player().play() ...')
     xbmc.Player().play(path, listitem)
 
+
 #
 # Displays a small box in the low right corner
 #
-def notify(text, title = 'Advanced Kodi Launcher', time = 5000):
+def notify(text, title='Advanced Kodi Launcher', time=5000):
     # --- Old way ---
     # xbmc.executebuiltin("XBMC.Notification(%s,%s,%s,%s)" % (title, text, time, ICON_IMG_FILE_PATH))
 
     # --- New way ---
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_INFO, time)
 
-def notify_warn(text, title = 'Advanced Kodi Launcher warning', time = 7000):
+
+def notify_warn(text, title='Advanced Kodi Launcher warning', time=7000):
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_WARNING, time)
+
 
 #
 # Do not use this function much because it is the same icon as when Python fails, and that may confuse the user.
 #
-def notify_error(text, title = 'Advanced Kodi Launcher error', time = 7000):
+def notify_error(text, title='Advanced Kodi Launcher error', time=7000):
     xbmcgui.Dialog().notification(title, text, xbmcgui.NOTIFICATION_ERROR, time)
 
 
@@ -146,6 +149,7 @@ def notify_error(text, title = 'Advanced Kodi Launcher error', time = 7000):
 # v18 Leia change: New optional param added usemono.
 def display_text_window_mono(window_title, info_text):
     xbmcgui.Dialog().textviewer(window_title, info_text, True)
+
 
 # -------------------------------------------------------------------------------------------------
 # Kodi notifications and dialogs
@@ -157,41 +161,46 @@ def display_text_window_mono(window_title, info_text):
 #  1) ret = kodi_dialog_OK('Launch ROM?')
 #  2) ret = kodi_dialog_OK('Launch ROM?', title = 'AKL - Launcher')
 #
-def dialog_OK(text, title = 'Advanced Kodi Launcher'):
+def dialog_OK(text, title='Advanced Kodi Launcher'):
     xbmcgui.Dialog().ok(title, text)
-    
-def dialog_OK_timer(text, timer_ms = 30000, title = 'Advanced Kodi Launcher'):
-    xbmcgui.Dialog().ok(title, text, autoclose = timer_ms)
-
+ 
+   
 # Returns True is YES was pressed, returns False if NO was pressed or dialog canceled.
-def dialog_yesno(text, title = 'Advanced Kodi Launcher'):
+def dialog_yesno(text, title='Advanced Kodi Launcher'):
     return xbmcgui.Dialog().yesno(title, text)
 
+
 # Returns True is YES was pressed, returns False if NO was pressed or dialog canceled.
-def dialog_yesno_custom(text, yeslabel_str, nolabel_str, title = 'Advanced Kodi Launcher'):
-    return xbmcgui.Dialog().yesno(title, text, yeslabel = yeslabel_str, nolabel = nolabel_str)
+def dialog_yesno_custom(text, yeslabel_str, nolabel_str, title='Advanced Kodi Launcher'):
+    return xbmcgui.Dialog().yesno(title, text, yeslabel=yeslabel_str, nolabel=nolabel_str)
 
-def dialog_yesno_timer(text, timer_ms = 30000, title = 'Advanced Kodi Launcher'):
-    return xbmcgui.Dialog().yesno(title, text, autoclose = timer_ms)
 
-def browse(type = 1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
+def dialog_yesno_timer(text, timer_ms=30000, title='Advanced Kodi Launcher'):
+    return xbmcgui.Dialog().yesno(title, text, autoclose=timer_ms)
+
+
+def browse(type=1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
     return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple,)
 
-def dialog_numeric(title:str, default:int = None):
+
+def dialog_numeric(title: str, default: int = None):
     if default is not None:
         return xbmcgui.Dialog().numeric(0, heading=title, defaultt=str(default))
     return xbmcgui.Dialog().numeric(0, heading=title)
 
-def dialog_ipaddr(title:str, default:int = None):
+
+def dialog_ipaddr(title: str, default: int = None):
     if default is not None:
-        return xbmcgui.Dialog().input(title, defaultt = default, type = xbmcgui.INPUT_IPADDRESS)
-    return xbmcgui.Dialog().numeric(heading=title, type = xbmcgui.INPUT_IPADDRESS)
-    
+        return xbmcgui.Dialog().input(title, defaultt=default, type=xbmcgui.INPUT_IPADDRESS)
+    return xbmcgui.Dialog().numeric(heading=title, type=xbmcgui.INPUT_IPADDRESS)
+
+
 # Show keyboard dialog for user input. Returns None if not confirmed.
 def dialog_keyboard(title, text='') -> str:
     keyboard = xbmc.Keyboard(text, title)
     keyboard.doModal()
-    if not keyboard.isConfirmed(): return None
+    if not keyboard.isConfirmed():
+        return None
     return keyboard.getText()
 
 # Returns a directory. See https://codedocs.xyz/AlwinEsch/kodi
@@ -307,7 +316,7 @@ def restore_screensaver():
 # See https://forum.kodi.tv/showthread.php?tid=236320
 #
 def delete_cache_texture(database_path_str):
-    logging.debug(f'kodi_delete_cache_texture() Deleting texture "{database_path_str}:')
+    logger.debug(f'kodi_delete_cache_texture() Deleting texture "{database_path_str}:')
 
     # --- Query texture database ---
     json_fname_str = text.escape_JSON(database_path_str)

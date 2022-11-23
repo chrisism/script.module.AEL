@@ -34,6 +34,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import annotations
 
+import abc
 import logging
 import errno
 import fnmatch
@@ -56,6 +57,8 @@ import xbmcvfs
 from akl import constants
 
 logger = logging.getLogger(__name__)
+FILENAME_VERBOSE = False
+
 
 # -------------------------------------------------------------------------------------------------
 # --- New Filesystem class ---
@@ -88,17 +91,96 @@ logger = logging.getLogger(__name__)
 # C) Uses xbmcvfs wherever possible
 #
 # -------------------------------------------------------------------------------------------------
-# Once everything is working like a charm comment all the debug code to speed up.
-FILENAME_VERBOSE = False
+class FileType():
+    __metaclass__ = abc.ABCMeta
+    
+    def __init__(self, path_str: str):
+        if path_str is None:
+            path_str = ''
+        self.path_str = path_str
+        self.path_tr = path_str
+        self.is_translated = False
+    
+    # ---------------------------------------------------------------------------------------------
+    # Path manipulation and file information
+    # ---------------------------------------------------------------------------------------------
+    def getPath(self) -> str:
+        return self.path_str
 
-class FileName:
+    def getPathTranslated(self):
+        return self.path_tr
+
+    def getPathNoExt(self):
+        root, ext = os.path.splitext(self.path_str)
+        return root
+
+    def getDir(self) -> str:
+        path_dir = os.path.dirname(self.path_str)
+        return os.path.join(path_dir, '')
+
+    def getBase(self) -> str:
+        return os.path.basename(self.path_str)
+
+    def getBaseNoExt(self) -> str:
+        basename = os.path.basename(self.path_str)
+        root, ext = os.path.splitext(basename)
+
+        return root
+
+    def getExt(self) -> str:
+        root, ext = os.path.splitext(self.path_str)
+        return ext
+    
+    def escapeQuotes(self):
+        self.path_tr = self.path_tr.replace("'", "\\'")
+        self.path_tr = self.path_tr.replace('"', '\\"')
+        
+    def isImageFile(self):
+        ext = self.getExt().replace('.', '')
+        return ext in constants.IMAGE_EXTENSION_LIST
+    
+    def isVideoFile(self):
+        ext = self.getExt().replace('.', '')
+        return ext in constants.TRAILER_EXTENSION_LIST
+    
+    def isManualFile(self):
+        ext = self.getExt().replace('.', '')
+        return ext in constants.MANUAL_EXTENSION_LIST
+           
+    #
+    # Appends a string to path
+    # Returns self FileName object
+    #
+    def append(self, arg):
+        self.path_str = self.path_str + arg
+        self.path_tr = self.path_tr + arg
+
+        return self
+
+    # ---------------------------------------------------------------------------------------------
+    # Operator overloads
+    # ---------------------------------------------------------------------------------------------
+    def __str__(self):
+        return self.path_str
+    
+    # Overloaded operator
+    # See http://blog.teamtreehouse.com/operator-overloading-python
+    # Argument other is a FileType object. other originalPath is expected to be a
+    # subdirectory (path transformation not required)
+    def __eq__(self, other):
+        return self.path_str == other.path_str
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+    
+    
+class FileName(FileType):
     # ---------------------------------------------------------------------------------------------
     # Constructor
     # path_str is an Unicode string.
     # ---------------------------------------------------------------------------------------------
     def __init__(self, path_str: str, isdir: bool = False):
-        if path_str is None: path_str = ''
-        self.path_str = path_str
+        super(FileName, self).__init__(path_str)
         self.is_a_dir = isdir
 
         # --- Check if path needs translation ---
@@ -116,9 +198,6 @@ class FileName:
             #     e_str = '(FileName) Translated path has \\ characters'
             #     logger.error(e_str)
             #     raise Addon_Error(e_str)
-        else:
-            self.is_translated = False
-            self.path_tr = self.path_str
 
         # --- Ensure directory separator is the '/' character for all OSes ---
         self.path_str = self.path_str.replace('\\', '/')
@@ -128,10 +207,6 @@ class FileName:
         if self.is_a_dir:
             if not self.path_str[-1:] == '/': self.path_str = self.path_str + '/'
             if not self.path_tr[-1:] == '/': self.path_tr = self.path_tr + '/'
-
-        # if FILENAME_VERBOSE:
-        #     logger.debug('FileName() path_str "{0}"'.format(self.path_str))
-        #     logger.debug('FileName() path_tr  "{0}"'.format(self.path_tr))
 
         # --- Check if file is local or remote and needs translation ---
         if self.path_str.lower().startswith('smb://'):
@@ -191,74 +266,21 @@ class FileName:
         self.__init__(self.path_str, isdir)
 
     #
-    # Appends a string to path
-    # Returns self FileName object
-    #
-    def append(self, arg):
-        self.path_str = self.path_str + arg
-        self.path_tr = self.path_tr + arg
-
-        return self
-
-    #
     # Joins paths and returns a new filename object.
     #
     def pjoin(self, path_str, isdir = False):
         return FileName(os.path.join(self.path_str, path_str), isdir)
 
-    # ---------------------------------------------------------------------------------------------
-    # Operator overloads
-    # ---------------------------------------------------------------------------------------------
-    def __str__(self):
-        return self.path_str
-
     # Overloaded operator + behaves like self pjoin()
-    # See http://blog.teamtreehouse.com/operator-overloading-python
-    # Argument other is a FileName object. other originalPath is expected to be a
-    # subdirectory (path transformation not required)
     def __add__(self, path_str):
         return self.pjoin(path_str)
-
-    def __eq__(self, other):
-        return self.path_str == other.path_str
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     # ---------------------------------------------------------------------------------------------
     # Path manipulation and file information
     # ---------------------------------------------------------------------------------------------
-    def getPath(self) -> str:
-        return self.path_str
-
-    def getPathTranslated(self):
-        return self.path_tr
-
-    def getPathNoExt(self):
-        root, ext = os.path.splitext(self.path_str)
-
-        return root
-
-    def getDir(self) -> str:
-        path_dir = os.path.dirname(self.path_str)
-        return os.path.join(path_dir, '')
-
     # Returns a new FileName object.
     def getDirAsFileName(self) -> FileName:
         return FileName(self.getDir())
-
-    def getBase(self) -> str:
-        return os.path.basename(self.path_str)
-
-    def getBaseNoExt(self) -> str:
-        basename  = os.path.basename(self.path_str)
-        root, ext = os.path.splitext(basename)
-
-        return root
-
-    def getExt(self) -> str:
-        root, ext = os.path.splitext(self.path_str)
-        return ext
 
     def changeExtension(self, targetExt):
         #raise AddonError('Implement me.')
@@ -268,22 +290,6 @@ class FileName:
             targetExt = '.{0}'.format(targetExt)
         new_path = FileName(copiedPath.replace(ext, targetExt))
         return new_path
-
-    def escapeQuotes(self):
-        self.path_tr = self.path_tr.replace("'", "\\'")
-        self.path_tr = self.path_tr.replace('"', '\\"')
-        
-    def isImageFile(self):
-        ext = self.getExt().replace('.', '')
-        return ext in constants.IMAGE_EXTENSION_LIST
-    
-    def isVideoFile(self):
-        ext = self.getExt().replace('.', '')
-        return ext in constants.TRAILER_EXTENSION_LIST
-    
-    def isManualFile(self):
-        ext = self.getExt().replace('.', '')
-        return ext in constants.MANUAL_EXTENSION_LIST
     
     # ---------------------------------------------------------------------------------------------
     # Filesystem functions. Python Standard Library implementation
@@ -605,30 +611,39 @@ class FileName:
             
         return files
 
+
+class Url(FileType):    
+    def __init__(self, url: str):
+        super(Url, self).__init__(url) 
+    
+
 # --- Determine interpreter running platform ---
 # Cache all possible platform values in global variables for maximum speed.
 # See http://stackoverflow.com/questions/446209/possible-values-from-sys-platform
 cached_sys_platform = sys.platform
+
+
 def _aux_is_android():
-    if not cached_sys_platform.startswith('linux'): return False
+    if not cached_sys_platform.startswith('linux'):
+        return False
     return 'ANDROID_ROOT' in os.environ or 'ANDROID_DATA' in os.environ or 'XBMC_ANDROID_APK' in os.environ
 
-is_windows_bool = cached_sys_platform == 'win32' or cached_sys_platform == 'win64' or cached_sys_platform == 'cygwin'
-is_osx_bool     = cached_sys_platform.startswith('darwin')
-is_android_bool = _aux_is_android()
-is_linux_bool   = cached_sys_platform.startswith('linux') and not is_android_bool
 
 def is_windows():
     return is_windows_bool
 
+
 def is_osx():
     return is_osx_bool
+
 
 def is_android():
     return is_android_bool
 
+
 def is_linux():
     return is_linux_bool
+
 
 def is_which_os() -> str:
     if is_windows_bool:
@@ -640,6 +655,13 @@ def is_which_os() -> str:
     if is_linux_bool:
         return "Linux"
     return "Unknown"
+
+
+is_windows_bool = cached_sys_platform == 'win32' or cached_sys_platform == 'win64' or cached_sys_platform == 'cygwin'
+is_osx_bool = cached_sys_platform.startswith('darwin')
+is_android_bool = _aux_is_android()
+is_linux_bool = cached_sys_platform.startswith('linux') and not is_android_bool
+
 
 # -------------------------------------------------------------------------------------------------
 # URLs
@@ -654,6 +676,7 @@ def get_URL_extension(url) -> str:
     if ext[0] == '.': ext = ext[1:] # Remove initial dot
 
     return ext
+
 
 #
 # Defaults to 'jpg' if URL extension cannot be determined
