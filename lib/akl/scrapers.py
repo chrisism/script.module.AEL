@@ -785,7 +785,7 @@ class ScrapeStrategy(object):
     def _scrap_ROM_asset(self, asset_info_id: str, local_asset_path: io.FileName, rom: ROMObj):
         # --- Cached frequent used things ---
         asset_dir_FN = rom.get_asset_path(asset_info_id)
-        asset_path_noext_FN = asset_dir_FN + rom.get_identifier()
+        asset_path_noext_FN = asset_dir_FN + text.str_to_filename_str(rom.get_identifier())
         asset_name = asset_info_id.capitalize()
        
         t = 'Scraping {} with scraper {} ------------------------------'
@@ -1004,27 +1004,29 @@ class ScrapeStrategy(object):
     #
     def _get_local_assets(self, rom: ROMObj, asset_info_ids: list):
         self.logger.debug('_get_local_assets() Searching for ROM local assets...')
-        rom_identifier = rom.get_identifier()
+        rom_identifier = text.str_to_filename_str(rom.get_identifier())
         local_assets = {}
         for asset_info_id in asset_info_ids:
             
             asset_exts = constants.IMAGE_EXTENSION_LIST
-            if asset_info_id == constants.ASSET_MANUAL_ID: asset_exts = constants.MANUAL_EXTENSION_LIST
-            if asset_info_id == constants.ASSET_TRAILER_ID: asset_exts = constants.TRAILER_EXTENSION_LIST
+            if asset_info_id == constants.ASSET_MANUAL_ID:
+                asset_exts = constants.MANUAL_EXTENSION_LIST
+            if asset_info_id == constants.ASSET_TRAILER_ID:
+                asset_exts = constants.TRAILER_EXTENSION_LIST
             search_exts = io.get_filesearch_extension_list(asset_exts)
             
             asset_path = rom.get_asset_path(asset_info_id)
             if asset_path is None:
                 local_assets[asset_info_id] = None
-                self.logger.warning('_get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_identifier, asset_info_id))
+                self.logger.warning('Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_identifier, asset_info_id))
             else:
                 local_asset = io.misc_search_file_cache(asset_path, rom_identifier, search_exts)
                 if local_asset:
                     local_assets[asset_info_id] = local_asset
-                    self.logger.debug('_get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
+                    self.logger.debug('Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
                 else:
                     local_assets[asset_info_id] = None
-                    self.logger.debug('_get_local_assets() Missing  {0:<9}'.format(asset_info_id))
+                    self.logger.debug('Missing  {0:<9}'.format(asset_info_id))
 
         return local_assets
 
