@@ -1,4 +1,5 @@
 ## Current
+- Use asset filenames that are allowed by system
 - Don't download assets of extension type *url*
 - Updated media/artwork
 - Fixed ok dialog issue with timer
