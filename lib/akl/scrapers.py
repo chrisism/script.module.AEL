@@ -112,24 +112,24 @@ from akl.api import ROMObj
 # In the Standalone Launcher context menu the situation is similar to the ROM context menu.
 # The difference is that rom_obj is a Launcher object instance instead of a ROM object.
 # -----------------------------------------------------------------------------------------------
-class ScraperSettings(object): 
+class ScraperSettings(object):
     
     def __init__(self):
         self.scrape_metadata_policy = constants.SCRAPE_POLICY_TITLE_ONLY
-        self.scrape_assets_policy   = constants.SCRAPE_POLICY_LOCAL_ONLY
+        self.scrape_assets_policy = constants.SCRAPE_POLICY_LOCAL_ONLY
         
-        self.search_term_mode       = constants.SCRAPE_AUTOMATIC
-        self.game_selection_mode    = constants.SCRAPE_AUTOMATIC
-        self.asset_selection_mode   = constants.SCRAPE_AUTOMATIC
+        self.search_term_mode = constants.SCRAPE_AUTOMATIC
+        self.game_selection_mode = constants.SCRAPE_AUTOMATIC
+        self.asset_selection_mode = constants.SCRAPE_AUTOMATIC
         
         self.metadata_IDs_to_scrape = constants.METADATA_IDS
-        self.asset_IDs_to_scrape    = constants.ROM_ASSET_ID_LIST
+        self.asset_IDs_to_scrape = constants.ROM_ASSET_ID_LIST
         
-        self.overwrite_existing     = False
-        self.ignore_scrap_title     = False
-        self.clean_tags             = False
-        self.update_nfo_files       = False
-        self.show_info_verbose      = False
+        self.overwrite_existing = False
+        self.ignore_scrap_title = False
+        self.clean_tags = False
+        self.update_nfo_files = False
+        self.show_info_verbose = False
     
     def get_data_dic(self) -> dict:
         return self.__dict__
@@ -139,31 +139,31 @@ class ScraperSettings(object):
         scraper_settings = ScraperSettings()   
                                         
         scraper_settings.scrape_metadata_policy = settings.getSettingAsInt('scrape_metadata_policy')
-        scraper_settings.scrape_assets_policy   = settings.getSettingAsInt('scrape_assets_policy')
-        scraper_settings.game_selection_mode    = settings.getSettingAsInt('game_selection_mode')
-        scraper_settings.asset_selection_mode   = settings.getSettingAsInt('asset_selection_mode')
+        scraper_settings.scrape_assets_policy = settings.getSettingAsInt('scrape_assets_policy')
+        scraper_settings.game_selection_mode = settings.getSettingAsInt('game_selection_mode')
+        scraper_settings.asset_selection_mode = settings.getSettingAsInt('asset_selection_mode')
         
         scraper_settings.ignore_scrap_title = settings.getSettingAsBool('scan_ignore_scrap_title')
-        scraper_settings.clean_tags         = settings.getSettingAsBool('scan_clean_tags')
-        scraper_settings.update_nfo_files   = settings.getSettingAsBool('scan_update_NFO_files')
+        scraper_settings.clean_tags = settings.getSettingAsBool('scan_clean_tags')
+        scraper_settings.update_nfo_files = settings.getSettingAsBool('scan_update_NFO_files')
         
-        return scraper_settings       
+        return scraper_settings
         
     @staticmethod
-    def from_settings_dict(settings:dict):        
-        scraper_settings = ScraperSettings()   
+    def from_settings_dict(settings: dict):        
+        scraper_settings = ScraperSettings()
             
         scraper_settings.scrape_metadata_policy = settings['scrape_metadata_policy']
-        scraper_settings.scrape_assets_policy   = settings['scrape_assets_policy']
-        scraper_settings.search_term_mode       = settings['search_term_mode']
-        scraper_settings.game_selection_mode    = settings['game_selection_mode']
-        scraper_settings.asset_selection_mode   = settings['asset_selection_mode']
-        scraper_settings.asset_IDs_to_scrape    = settings['asset_IDs_to_scrape']
-        scraper_settings.overwrite_existing     = settings['overwrite_existing']
-        scraper_settings.ignore_scrap_title     = settings['ignore_scrap_title']
-        scraper_settings.clean_tags             = settings['clean_tags']
-        scraper_settings.update_nfo_files       = settings['update_nfo_files']
-        scraper_settings.show_info_verbose      = settings['show_info_verbose']
+        scraper_settings.scrape_assets_policy = settings['scrape_assets_policy']
+        scraper_settings.search_term_mode = settings['search_term_mode']
+        scraper_settings.game_selection_mode = settings['game_selection_mode']
+        scraper_settings.asset_selection_mode = settings['asset_selection_mode']
+        scraper_settings.asset_IDs_to_scrape = settings['asset_IDs_to_scrape']
+        scraper_settings.overwrite_existing = settings['overwrite_existing']
+        scraper_settings.ignore_scrap_title = settings['ignore_scrap_title']
+        scraper_settings.clean_tags = settings['clean_tags']
+        scraper_settings.update_nfo_files = settings['update_nfo_files']
+        scraper_settings.show_info_verbose = settings['show_info_verbose']
         
         return scraper_settings
     
@@ -188,11 +188,11 @@ class FilterROM(object):
 
         # If platform is MAME load the BIOS, Devices and Mechanical databases.
         if self.platform == platforms.PLATFORM_MAME_LONG:
-            BIOS_path       = os.path.join(self.addon_dir, 'data-AOS', 'MAME_BIOSes.json')
-            Devices_path    = os.path.join(self.addon_dir, 'data-AOS', 'MAME_Devices.json')
+            BIOS_path = os.path.join(self.addon_dir, 'data-AOS', 'MAME_BIOSes.json')
+            Devices_path = os.path.join(self.addon_dir, 'data-AOS', 'MAME_Devices.json')
             Mechanical_path = os.path.join(self.addon_dir, 'data-AOS', 'MAME_Mechanical.json')
-            BIOS_list       = self._load_JSON(BIOS_path)
-            Devices_list    = self._load_JSON(Devices_path)
+            BIOS_list = self._load_JSON(BIOS_path)
+            Devices_list = self._load_JSON(Devices_path)
             Mechanical_list = self._load_JSON(Mechanical_path)
             # Convert lists to sets to execute efficiently 'x in y' operation.
             self.BIOS_set = {i for i in BIOS_list}
@@ -712,7 +712,8 @@ class ScrapeStrategy(object):
                         title='Select game for ROM {}'.format(rom_identifier), options_list=game_name_list)
                     if select_candidate_idx is None:
                         raise constants.AddonError('Cancelled game selection')
-                    if select_candidate_idx < 0: select_candidate_idx = 0
+                    if select_candidate_idx < 0:
+                        select_candidate_idx = 0
                     self.pdialog.reopen()
             elif self.scraper_settings.game_selection_mode == constants.SCRAPE_AUTOMATIC:
                 self.logger.debug('Metadata automatic scraping. Selecting first result.')
@@ -725,7 +726,7 @@ class ScrapeStrategy(object):
             scraper_obj.set_candidate(rom_identifier, rom_platform, candidate)
 
     # Scraps ROM metadata in the ROM scanner.
-    def _scrap_ROM_metadata(self, rom:ROMObj):
+    def _scrap_ROM_metadata(self, rom: ROMObj):
         self.logger.debug('ScrapeStrategy._scanner_scrap_ROM_metadata() Scraping metadata...')
 
         # --- Update scanner progress dialog ---
@@ -842,8 +843,8 @@ class ScrapeStrategy(object):
             # Convert list returned by scraper into a list the select window uses.
             ListItem_list = []
             for item in assetdata_list:
-                listitem_obj = xbmcgui.ListItem(label = item['display_name'], label2 = item['url_thumb'])
-                listitem_obj.setArt({'icon' : item['url_thumb']})
+                listitem_obj = xbmcgui.ListItem(label=item['display_name'], label2=item['url_thumb'])
+                listitem_obj.setArt({'icon': item['url_thumb']})
                 ListItem_list.append(listitem_obj)
             # ListItem_list has 1 or more elements at this point.
             # If assetdata_list has only 1 element do not show select dialog. Note that the
@@ -854,9 +855,10 @@ class ScrapeStrategy(object):
             else:
                 self.pdialog.close()
                 image_selected_index = xbmcgui.Dialog().select(
-                    'Select {0} asset'.format(asset_name), list = ListItem_list, useDetails = True)
+                    'Select {0} asset'.format(asset_name), list=ListItem_list, useDetails=True)
                 self.logger.debug('{0} dialog returned index {1}'.format(asset_info_id, image_selected_index))
-                if image_selected_index < 0: image_selected_index = 0
+                if image_selected_index < 0:
+                    image_selected_index = 0
                 self.pdialog.reopen()
             # User chose to keep current asset.
             if local_asset_in_list_flag and image_selected_index == 0:
@@ -1017,10 +1019,11 @@ class ScrapeStrategy(object):
 
         return local_assets
 
-    def _cache_assets(self, paths:typing.List[io.FileName]):
+    def _cache_assets(self, paths: typing.List[io.FileName]):
         duplicates = []
         for path in paths:
-            if path is None: continue
+            if path is None:
+                continue
             
             path_str = path.getPath()
             if path_str in duplicates or path_str == '': continue
@@ -1057,13 +1060,20 @@ class ScrapeStrategy(object):
             kodi.notify_error('Failed to store scraped ROMs')
 
     def _translate(self, key):
-        if key == constants.SCRAPE_ACTION_NONE: return 'No action'
-        if key == constants.SCRAPE_POLICY_TITLE_ONLY: return 'Use title only'
-        if key == constants.SCRAPE_POLICY_LOCAL_ONLY: return 'Use local files only'
-        if key == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE: return 'Local / Scrape'
-        if key == constants.SCRAPE_POLICY_SCRAPE_ONLY: return 'Scrape only'
-        if key == constants.SCRAPE_MANUAL: return 'Manual selection'
-        if key == constants.SCRAPE_AUTOMATIC : return 'Automatic selection'
+        if key == constants.SCRAPE_ACTION_NONE:
+            return 'No action'
+        if key == constants.SCRAPE_POLICY_TITLE_ONLY:
+            return 'Use title only'
+        if key == constants.SCRAPE_POLICY_LOCAL_ONLY:
+            return 'Use local files only'
+        if key == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE:
+            return 'Local / Scrape'
+        if key == constants.SCRAPE_POLICY_SCRAPE_ONLY:
+            return 'Scrape only'
+        if key == constants.SCRAPE_MANUAL:
+            return 'Manual selection'
+        if key == constants.SCRAPE_AUTOMATIC:
+            return 'Automatic selection'
         return key
 
 
@@ -1383,7 +1393,8 @@ class Scraper(object):
     # @param status_dic: [dict] kodi_new_status_dic() status dictionary.
     # @return: [list] or None.
     @abc.abstractmethod
-    def get_candidates(self, search_term, rom: ROMObj, platform, status_dic): pass
+    def get_candidates(self, search_term, rom: ROMObj, platform, status_dic):
+        pass
 
     # Returns the metadata for a candidate (search result).
     #
@@ -1394,7 +1405,8 @@ class Scraper(object):
     #          then a dictionary with default values is returned. If there is an error/exception
     #          None is returned, the cause printed in the log and status_dic has a message to show.
     @abc.abstractmethod
-    def get_metadata(self, status_dic): pass
+    def get_metadata(self, status_dic):
+        pass
 
     # Returns a list of assets for a candidate (search result).
     #
@@ -1405,7 +1417,8 @@ class Scraper(object):
     #          list is returned. If there is an error/exception None is returned, the cause printed
     #          in the log and status_dic has a message to show.
     @abc.abstractmethod
-    def get_assets(self, asset_info_id:str, status_dic): pass
+    def get_assets(self, asset_info_id:str, status_dic):
+        pass
 
     # When returning the asset list with get_assets(), some sites return thumbnails images
     # because the real assets are on a single dedicated page. For this sites, resolve_asset_URL()
@@ -1422,7 +1435,8 @@ class Scraper(object):
     #          information in some scrapers.
     #          None is returned in case of error and status_dic updated.
     @abc.abstractmethod
-    def resolve_asset_URL(self, selected_asset, status_dic): pass
+    def resolve_asset_URL(self, selected_asset, status_dic):
+        pass
 
     # Get the URL image extension. In some scrapers the type of asset cannot be obtained by
     # the asset URL and must be resolved to save the asset in the filesystem.
@@ -1433,7 +1447,8 @@ class Scraper(object):
     # @return: [str] String with the image extension in lowercase 'png', 'jpg', etc.
     #          None is returned in case or error/exception and status_dic updated.
     @abc.abstractmethod
-    def resolve_asset_URL_extension(self, selected_asset, image_url, status_dic): pass
+    def resolve_asset_URL_extension(self, selected_asset, image_url, status_dic):
+        pass
 
     # Downloads an image from the given url to the local path.
     # Can overwrite this method in scraper implementation to support extra actions, like
@@ -1555,17 +1570,17 @@ class Scraper(object):
 
     # Returns True if item is in the cache, False otherwise.
     # Lazy loads cache files from disk.
-    def _check_disk_cache(self, cache_type:str, cache_key:str):
+    def _check_disk_cache(self, cache_type: str, cache_key: str):
         self._lazy_load_disk_cache(cache_type)
 
         return True if cache_key in self.disk_caches[cache_type] else False
 
     # _check_disk_cache() must be called before this.
-    def _retrieve_from_disk_cache(self, cache_type:str, cache_key:str):
+    def _retrieve_from_disk_cache(self, cache_type: str, cache_key: str):
         return self.disk_caches[cache_type][cache_key]
 
     # _check_disk_cache() must be called before this.
-    def _delete_from_disk_cache(self, cache_type:str, cache_key:str):
+    def _delete_from_disk_cache(self, cache_type: str, cache_key: str):
         del self.disk_caches[cache_type][cache_key]
         self.disk_caches_dirty[cache_type] = True
 
@@ -1627,7 +1642,7 @@ class Scraper(object):
 
     # Generic waiting method to avoid too many requests
     # and website abuse. 
-    def _wait_for_API_request(self, wait_time_in_miliseconds = 1000):
+    def _wait_for_API_request(self, wait_time_in_miliseconds=1000):
         if wait_time_in_miliseconds == 0:
             return
         
