@@ -1,5 +1,6 @@
 ## Current
 - Windows LNK file execution fix
+- Added extras fields to scraped data
 
 ## In previous releases
 - Don't download assets of extension type *url*
