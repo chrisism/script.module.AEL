@@ -1474,25 +1474,26 @@ class Scraper(object):
     # See https://stackoverflow.com/questions/5884066/hashing-a-dictionary
     def _new_candidate_dic(self):
         return {
-            'id'               : '',
-            'display_name'     : '',
-            'platform'         : '',
-            'scraper_platform' : '',
-            'order'            : 0,
+            'id': '',
+            'display_name': '',
+            'platform': '',
+            'scraper_platform': '',
+            'order': 0,
         }
 
     def _new_gamedata_dic(self):
         return {
-            'title'           : '',
-            'year'            : '',
-            'genre'           : '',
-            'developer'       : '',
-            'nplayers'        : '',
+            'title': '',
+            'year': '',
+            'genre': '',
+            'developer': '',
+            'nplayers': '',
             'nplayers_online' : '',
-            'esrb'            : '',
-            'pegi'            : '',
-            'plot'            : '',
-            'tags'            : []
+            'esrb': '',
+            'pegi': '',
+            'plot': '',
+            'tags': [],
+            'extra': {}
         }
 
     # url_thumb is always returned by get_assets().
