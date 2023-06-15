@@ -6,6 +6,7 @@
 # https://github.com/muldjord/skyscraper
 # https://github.com/muldjord/skyscraper/blob/master/docs/SCRAPINGMODULES.md
 
+# Copyright (c) Chrisism <crizizz@gmail.com>
 # Copyright (c) 2016-2019 Wintermute0110 <wintermute0110@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -125,7 +126,11 @@ class ScraperSettings(object):
         self.metadata_IDs_to_scrape = constants.METADATA_IDS
         self.asset_IDs_to_scrape = constants.ROM_ASSET_ID_LIST
         
-        self.overwrite_existing = False
+        self.overwrite_existing_meta = False
+        self.overwrite_existing_assets = False
+        # deprecated 
+        self.overwrite_existing = self.overwrite_existing_assets
+
         self.ignore_scrap_title = False
         self.clean_tags = False
         self.update_nfo_files = False
@@ -159,7 +164,11 @@ class ScraperSettings(object):
         scraper_settings.game_selection_mode = settings['game_selection_mode']
         scraper_settings.asset_selection_mode = settings['asset_selection_mode']
         scraper_settings.asset_IDs_to_scrape = settings['asset_IDs_to_scrape']
-        scraper_settings.overwrite_existing = settings['overwrite_existing']
+        scraper_settings.overwrite_existing_meta = settings['overwrite_existing_meta']
+        scraper_settings.overwrite_existing_assets = settings['overwrite_existing_assets']
+        if 'overwrite_existing' in settings:
+            scraper_settings.overwrite_existing_assets = settings['overwrite_existing']
+
         scraper_settings.ignore_scrap_title = settings['ignore_scrap_title']
         scraper_settings.clean_tags = settings['clean_tags']
         scraper_settings.update_nfo_files = settings['update_nfo_files']
@@ -302,7 +311,9 @@ class ScrapeStrategy(object):
         self.logger.debug('Assets policy:        {}'.format(self._translate(scraper_settings.scrape_assets_policy)))
         self.logger.debug('Asset selection:      {}'.format(self._translate(scraper_settings.asset_selection_mode)))
         self.logger.debug('Asset IDs:            {}'.format(', '.join(scraper_settings.asset_IDs_to_scrape)))
-        self.logger.debug('Overwrite existing:   {}'.format('Yes' if scraper_settings.overwrite_existing else 'No'))
+        self.logger.debug('Overwrite existing:')
+        self.logger.debug(' - Metadata           {}'.format('Yes' if scraper_settings.overwrite_existing_meta else 'No'))
+        self.logger.debug(' - Assets             {}'.format('Yes' if scraper_settings.overwrite_existing_assets else 'No'))
         self.logger.debug('Ignore scrape title:  {}'.format('Yes' if scraper_settings.ignore_scrap_title else 'No'))
         self.logger.debug('Update NFO files:     {}'.format('Yes' if scraper_settings.update_nfo_files else 'No'))
         self.logger.debug('==============================================================================')
@@ -467,7 +478,7 @@ class ScrapeStrategy(object):
             if self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_NONE:
                 self.logger.debug(f'Skipping asset scraping for {asset_name}')
                 continue    
-            elif not self.scraper_settings.overwrite_existing and rom.has_asset(asset_id):
+            elif not self.scraper_settings.overwrite_existing_assets and rom.has_asset(asset_id):
                 self.logger.debug(f'Asset {asset_name} already exists. Skipping (no overwrite)')
                 continue
             elif self.asset_action_list[asset_id] == ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET:
@@ -584,14 +595,14 @@ class ScrapeStrategy(object):
         # Process asset by asset (only enabled ones)
         for asset_info_id in self.scraper_settings.asset_IDs_to_scrape:
             # Local artwork.
-            if not self.scraper_settings.overwrite_existing and rom.has_asset(asset_info_id):
-                self.logger.debug('ROM has {} assigned. Overwrite existing disabled.'.format(asset_info_id))
+            if not self.scraper_settings.overwrite_existing_assets and rom.has_asset(asset_info_id):
+                self.logger.debug(f'ROM has {asset_info_id} assigned. Overwrite existing disabled.')
                 self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_NONE
             elif self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_ONLY:
                 if self.local_asset_list[asset_info_id]:
-                    self.logger.debug('Local {0} FOUND'.format(asset_info_id))
+                    self.logger.debug(f'Local {asset_info_id} FOUND')
                 else:
-                    self.logger.debug('Local {0} NOT found.'.format(asset_info_id))
+                    self.logger.debug(f'Local {asset_info_id} NOT found.')
                 self.asset_action_list[asset_info_id] = ScrapeStrategy.ACTION_ASSET_LOCAL_ASSET
             # Local artwork + Scrapers.
             elif self.scraper_settings.scrape_assets_policy == constants.SCRAPE_POLICY_LOCAL_AND_SCRAPE:
@@ -775,7 +786,7 @@ class ScrapeStrategy(object):
     def _scrap_ROM_asset(self, asset_info_id: str, local_asset_path: io.FileName, rom: ROMObj):
         # --- Cached frequent used things ---
         asset_dir_FN = rom.get_asset_path(asset_info_id)
-        asset_path_noext_FN = asset_dir_FN + rom.get_identifier()
+        asset_path_noext_FN = asset_dir_FN + text.str_to_filename_str(rom.get_identifier())
         asset_name = asset_info_id.capitalize()
        
         t = 'Scraping {} with scraper {} ------------------------------'
@@ -995,27 +1006,29 @@ class ScrapeStrategy(object):
     #
     def _get_local_assets(self, rom: ROMObj, asset_info_ids: list):
         self.logger.debug('_get_local_assets() Searching for ROM local assets...')
-        rom_identifier = rom.get_identifier()
+        rom_identifier = text.str_to_filename_str(rom.get_identifier())
         local_assets = {}
         for asset_info_id in asset_info_ids:
             
             asset_exts = constants.IMAGE_EXTENSION_LIST
-            if asset_info_id == constants.ASSET_MANUAL_ID: asset_exts = constants.MANUAL_EXTENSION_LIST
-            if asset_info_id == constants.ASSET_TRAILER_ID: asset_exts = constants.TRAILER_EXTENSION_LIST
+            if asset_info_id == constants.ASSET_MANUAL_ID:
+                asset_exts = constants.MANUAL_EXTENSION_LIST
+            if asset_info_id == constants.ASSET_TRAILER_ID:
+                asset_exts = constants.TRAILER_EXTENSION_LIST
             search_exts = io.get_filesearch_extension_list(asset_exts)
             
             asset_path = rom.get_asset_path(asset_info_id)
             if asset_path is None:
                 local_assets[asset_info_id] = None
-                self.logger.warning('_get_local_assets() Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_identifier, asset_info_id))
+                self.logger.warning('Asset Path not defined for ROM {0} asset {1:<9}'.format(rom_identifier, asset_info_id))
             else:
                 local_asset = io.misc_search_file_cache(asset_path, rom_identifier, search_exts)
                 if local_asset:
                     local_assets[asset_info_id] = local_asset
-                    self.logger.debug('_get_local_assets() Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
+                    self.logger.debug('Found    {0:<9} "{1}"'.format(asset_info_id, local_asset))
                 else:
                     local_assets[asset_info_id] = None
-                    self.logger.debug('_get_local_assets() Missing  {0:<9}'.format(asset_info_id))
+                    self.logger.debug('Missing  {0:<9}'.format(asset_info_id))
 
         return local_assets
 

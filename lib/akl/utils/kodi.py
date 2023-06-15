@@ -277,6 +277,9 @@ def get_addon_id() -> str:
 def get_addon_version() -> str:
     return xbmcaddon.Addon().getAddonInfo('version')
 
+def get_addon_path() -> str:
+    return xbmcaddon.Addon().getAddonInfo('path')
+
 def toggle_fullscreen():
     jsonrpc_query('Input.ExecuteAction', {'action' : 'togglefullscreen'})
 
