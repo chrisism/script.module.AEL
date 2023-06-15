@@ -127,15 +127,22 @@ def download_img(img_url, file_path:io.FileName):
 #          HTTP status code as integer or None if network error/exception.
 def get_URL(url:str, url_log:str = None, headers:dict = None, 
             verify_ssl=None, cert=None, encoding=None, 
-            content_type:ContentType=ContentType.STRING) -> typing.Union[typing.Tuple[str,int],typing.Tuple[any,int]]:
+            content_type:ContentType=ContentType.STRING,
+            session: requests.Session = None) -> typing.Union[typing.Tuple[str,int],typing.Tuple[any,int]]:
     try:
-        if url_log is None: logger.debug(f'get_URL() GET URL "{url}"')
-        else: logger.debug(f'get_URL() GET URL "{url_log}"')
+        if url_log is None:
+            logger.debug(f'get_URL() GET URL "{url}"')
+        else:
+            logger.debug(f'get_URL() GET URL "{url_log}"')
 
-        if headers is None: headers = {}
+        if headers is None:
+            headers = {}
         headers["User-Agent"] = USER_AGENT
 
-        response:requests.Response = requests.get(
+        if session is None:
+            session = requests.Session()
+
+        response:requests.Response = session.get(
             url,
             headers=headers, 
             timeout=120, 
@@ -204,13 +211,17 @@ def get_URL_as_json(url, url_log = None, headers:dict = None, verify_ssl=None, e
 #          a Unicode string or None if network error/exception. Second tuple element is the 
 #          HTTP status code as integer or hardcoded 500 if network error/exception.
 def post_URL(url:str, data:dict, headers:dict = None, verify_ssl=None, 
-             cert=None, encoding=None, content_type:ContentType=ContentType.STRING) -> typing.Union[typing.Tuple[str, int],typing.Tuple[any, int]]:
+             cert=None, encoding=None, content_type:ContentType=ContentType.STRING,
+             session: requests.Session = None) -> typing.Union[typing.Tuple[str, int],typing.Tuple[any, int]]:
     try:
         logger.debug(f"post_URL() POST URL '{url}'")
         if headers is None: headers = {}
         headers["User-Agent"] = USER_AGENT
 
-        response:requests.Response = requests.post(
+        if session is None:
+            session = requests.Session()
+
+        response:requests.Response = session.post(
             url,
             data=data,
             headers=headers, 
@@ -318,3 +329,7 @@ def post_JSON_URL(url, json_obj: any, headers:dict = None,
     except Exception as ex:
         logger.exception('(General exception) In post_JSON_URL()')
         return None, 500
+
+
+def start_http_session():
+    return requests.Session()

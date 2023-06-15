@@ -22,18 +22,20 @@ from akl import constants
 # -------------------------------------------------------------------------------------------------
 # New platform engine
 # -------------------------------------------------------------------------------------------------
-DAT_MAME     = 'MAME'
-DAT_NOINTRO  = 'No-Intro'
-DAT_REDUMP   = 'Redump'
+DAT_MAME = 'MAME'
+DAT_NOINTRO = 'No-Intro'
+DAT_REDUMP = 'Redump'
 DAT_LIBRETRO = 'Libretro'
-DAT_NONE     = None
-DEFAULT_PLAT_GAMEFAQS      = '0'
-PLATFORM_MAME_LONG    = 'MAME'
-PLATFORM_MAME_SHORT   = 'arcade-mame'
+DAT_NONE = None
+DEFAULT_PLAT_GAMEFAQS = '0'
+PLATFORM_MAME_LONG = 'MAME'
+PLATFORM_MAME_SHORT = 'arcade-mame'
 PLATFORM_MAME_COMPACT = 'mame'
-PLATFORM_UNKNOWN_LONG    = 'Unknown'
-PLATFORM_UNKNOWN_SHORT   = 'unknown'
+PLATFORM_UNKNOWN_LONG = 'Unknown'
+PLATFORM_UNKNOWN_SHORT = 'unknown'
 PLATFORM_UNKNOWN_COMPACT = 'unknown'
+
+
 class Platform:
     def __init__(self, name, shortname, compactname, aliasof = None,
         TGDB_plat = None, MG_plat = None, SS_plat = None, GF_plat = None,

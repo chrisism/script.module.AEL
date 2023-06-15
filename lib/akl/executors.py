@@ -250,6 +250,7 @@ class AndroidActivityExecutor(ExecutorABC):
 
         logger.debug("AndroidActivityExecutor::execute() function ENDS")
 
+
 class OSXExecutor(ExecutorABC):
 
     def execute(self, application: str, *args, **kwargs):
@@ -270,13 +271,15 @@ class OSXExecutor(ExecutorABC):
         logger.info('Process retcode = {0}'.format(retcode))
         logger.debug('OSXExecutor::execute() function ENDS')
 
+
 class WindowsLnkFileExecutor(ExecutorABC):
 
     def execute(self, application: str, *args, **kwargs):
         logger.debug('WindowsLnkFileExecutor::execute() Starting ...')
-        retcode = subprocess.call('start "AKL" /b "{0}"'.format(application).encode('utf-8'), shell = True)
+        retcode = subprocess.call(f'start "AKL" /b "{application}"', shell=True)
         logger.info('LNK app retcode = {0}'.format(retcode))
         logger.debug('WindowsLnkFileExecutor::execute() function ENDS')
+
 
 #
 # CMD/BAT files in Windows
@@ -316,9 +319,10 @@ class WindowsBatchFileExecutor(ExecutorABC):
         info = subprocess.STARTUPINFO()
         info.dwFlags = 1
         info.wShowWindow = 5 if self.show_batch_window else 0
-        retcode = subprocess.call(command, cwd = apppath.encode('utf-8'), close_fds = True, startupinfo = info)
+        retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True, startupinfo=info)
         logger.info('Executor (Windows BatchFile) Process BAR retcode = {0}'.format(retcode))
         logger.debug('WindowsBatchFileExecutor::execute() function ENDS')
+
 
 #
 # --- Windoze ---
@@ -376,10 +380,10 @@ class WindowsExecutor(ExecutorABC):
         # >> Note that on Windows, you cannot set close_fds to true and also redirect the 
         # >> standard handles by setting stdin, stdout or stderr.
         if self.windows_cd_apppath and self.windows_close_fds:
-            retcode = subprocess.call(command, cwd = apppath.encode('utf-8'), close_fds = True)
+            retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True)
         elif self.windows_cd_apppath and not self.windows_close_fds:
             with open(self.logFile.getPathTranslated(), 'w') as f:
-                retcode = subprocess.call(command, cwd = apppath.encode('utf-8'), close_fds = False,
+                retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=False,
                                             stdout = f, stderr = subprocess.STDOUT)
         elif not self.windows_cd_apppath and self.windows_close_fds:
             retcode = subprocess.call(command, close_fds = True)
