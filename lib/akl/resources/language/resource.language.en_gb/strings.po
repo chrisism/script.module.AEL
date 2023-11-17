@@ -1,0 +1,43 @@
+# Kodi Media Center language file
+# Addon Name: Advanced Kodi Launcher
+# Addon id: script.module.akl
+
+# strings 30000 thru 30999 reserved for plugins and plugin settings
+# strings 31000 thru 31999 reserved for skins
+# strings 32000 thru 32999 reserved for scripts
+# strings 33000 thru 33999 reserved for common strings used in add-ons
+
+msgid ""
+msgstr ""
+
+############################
+# Object names
+############################
+
+msgctxt "#42501"
+msgid "Category"
+msgstr "domain"
+
+msgctxt "#42502"
+msgid "Virtual Category"
+msgstr "domain"
+
+msgctxt "#42503"
+msgid "ROM Collection"
+msgstr "domain"
+
+msgctxt "#42504"
+msgid "Virtual Collection"
+msgstr "domain"
+
+msgctxt "#42505"
+msgid "ROM"
+msgstr "domain"
+
+msgctxt "#42506"
+msgid "Library"
+msgstr "domain"
+
+msgctxt "#42507"
+msgid "No Type"
+msgstr "domain"
