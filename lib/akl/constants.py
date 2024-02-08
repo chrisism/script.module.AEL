@@ -442,16 +442,16 @@ MAPPABLE_ROM_ASSET_ID_LIST = [
     ASSET_POSTER_ID
 ]
 
-BOX_SIZE_POSTER     = 'poster'
-BOX_SIZE_DVD        = 'dvd'
-BOX_SIZE_BLURAY     = 'bluray'
-BOX_SIZE_CD         = 'cd'
-BOX_SIZE_WIDE       = 'widebox'
-BOX_SIZE_SLIM       = 'slimbox'
-BOX_SIZE_SQUARE     = 'squarebox'
-BOX_SIZE_3DS        = '3dsbox'
-BOX_SIZE_STEAM      = 'steambanner'
-BOX_SIZE_SCREEN     = 'screenshot'
+BOX_SIZE_POSTER = 'poster'
+BOX_SIZE_DVD = 'dvd'
+BOX_SIZE_BLURAY = 'bluray'
+BOX_SIZE_CD = 'cd'
+BOX_SIZE_WIDE = 'widebox'
+BOX_SIZE_SLIM = 'slimbox'
+BOX_SIZE_SQUARE = 'squarebox'
+BOX_SIZE_3DS = '3dsbox'
+BOX_SIZE_STEAM = 'steambanner'
+BOX_SIZE_SCREEN = 'screenshot'
 
 BOX_SIZES = [
     BOX_SIZE_POSTER,
@@ -468,8 +468,8 @@ BOX_SIZES = [
 
 # --- Addon will search these file extensions for assets ---
 # Check http://kodi.wiki/view/advancedsettings.xml#videoextensions
-IMAGE_EXTENSION_LIST   = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tif', 'tiff']
-MANUAL_EXTENSION_LIST  = ['pdf', 'cbz', 'cbr']
+IMAGE_EXTENSION_LIST = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tif', 'tiff']
+MANUAL_EXTENSION_LIST = ['pdf', 'cbz', 'cbr']
 TRAILER_EXTENSION_LIST = ['mov', 'divx', 'xvid', 'wmv', 'avi', 'mpg', 'mpeg', 'mp4', 'mkv', 'avc']
 
 # --- Scrapers -----------------------------------------------------------------------------------
@@ -477,19 +477,19 @@ TRAILER_EXTENSION_LIST = ['mov', 'divx', 'xvid', 'wmv', 'avi', 'mpg', 'mpeg', 'm
 # Use True only for development.
 SCRAPER_CACHE_HUMAN_JSON = True
 
-SCRAPE_ACTION_NONE             = 20000
-SCRAPE_POLICY_TITLE_ONLY       = 20010
-SCRAPE_POLICY_LOCAL_ONLY       = 20030
+SCRAPE_ACTION_NONE = 20000
+SCRAPE_POLICY_TITLE_ONLY = 20010
+SCRAPE_POLICY_LOCAL_ONLY = 20030
 SCRAPE_POLICY_LOCAL_AND_SCRAPE = 20050
-SCRAPE_POLICY_SCRAPE_ONLY      = 20060
+SCRAPE_POLICY_SCRAPE_ONLY = 20060
 
-SCRAPE_MANUAL    = 20510
+SCRAPE_MANUAL = 20510
 SCRAPE_AUTOMATIC = 20520
 
-## Addon type Enum
+
+# Addon type Enum
 class AddonType(Enum):
-    UNKNOWN  = 'UNKNOWN',
+    UNKNOWN = 'UNKNOWN',
     LAUNCHER = 'LAUNCHER',
-    SCRAPER  = 'SCRAPER',
-    SCANNER  = 'SCANNER'
-    
+    SCRAPER = 'SCRAPER',
+    SCANNER = 'SCANNER'

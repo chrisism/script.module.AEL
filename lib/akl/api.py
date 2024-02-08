@@ -41,14 +41,14 @@ VERBOSE = False
 ###############################################################
 def client_get_rom(host: str, port: int, rom_id: str) -> ROMObj:
     uri = f'http://{host}:{port}/query/rom/?id={rom_id}'
-    rom_data = net.get_URL_as_json(uri)    
+    rom_data = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(rom_data)
     return ROMObj(rom_data)
 
 
-def client_get_roms_in_collection(host: str, port: int, rom_collection_id: str) -> typing.List[ROMObj]:
-    uri = f'http://{host}:{port}/query/romcollection/roms/?id={rom_collection_id}'
+def client_get_roms_in_library(host: str, port: int, library_id: str) -> typing.List[ROMObj]:
+    uri = f'http://{host}:{port}/query/library/roms/?id={library_id}'
     rom_data = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(rom_data)
@@ -56,6 +56,14 @@ def client_get_roms_in_collection(host: str, port: int, rom_collection_id: str) 
     for rom_entry in rom_data:
         roms.append(ROMObj(rom_entry))
     return roms
+
+
+def client_get_library_launchers(host: str, port: int, library_id: str) -> dict:
+    uri = f'http://{host}:{port}/query/library/launchers/?id={library_id}'
+    launchers = net.get_URL_as_json(uri)
+    if VERBOSE:
+        logger.debug(launchers)
+    return launchers
 
 
 def client_get_collection_launchers(host: str, port: int, rom_collection_id: str) -> dict:
@@ -82,8 +90,8 @@ def client_get_collection_launcher_settings(host: str, port: int, rom_collection
     return launcher_settings
 
 
-def client_get_collection_scanner_settings(host: str, port: int, rom_collection_id: str, scanner_id: str) -> dict:
-    uri = f'http://{host}:{port}/query/romcollection/scanner/settings/?id={rom_collection_id}&scanner_id={scanner_id}'
+def client_get_library_scanner_settings(host: str, port: int, library_id: str) -> dict:
+    uri = f'http://{host}:{port}/query/library/scanner/settings/?id={library_id}'
     scanner_settings = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(VERBOSE)
