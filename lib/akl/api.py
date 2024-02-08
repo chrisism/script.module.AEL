@@ -58,6 +58,17 @@ def client_get_roms_in_library(host: str, port: int, library_id: str) -> typing.
     return roms
 
 
+def client_get_roms_in_collection(host: str, port: int, rom_collection_id: str) -> typing.List[ROMObj]:
+    uri = f'http://{host}:{port}/query/romcollection/roms/?id={rom_collection_id}'
+    rom_data = net.get_URL_as_json(uri)
+    if VERBOSE:
+        logger.debug(rom_data)
+    roms = []
+    for rom_entry in rom_data:
+        roms.append(ROMObj(rom_entry))
+    return roms
+
+
 def client_get_library_launchers(host: str, port: int, library_id: str) -> dict:
     uri = f'http://{host}:{port}/query/library/launchers/?id={library_id}'
     launchers = net.get_URL_as_json(uri)
@@ -262,7 +273,7 @@ class ROMObj(MetaDataObj):
         if identifier:
             return identifier
         if name:
-            return name        
+            return name
         return f'ROM_{self.get_id()}'
 
     def get_scanned_by(self) -> str:

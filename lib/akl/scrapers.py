@@ -128,7 +128,7 @@ class ScraperSettings(object):
         
         self.overwrite_existing_meta = False
         self.overwrite_existing_assets = False
-        # deprecated 
+        # deprecated
         self.overwrite_existing = self.overwrite_existing_assets
 
         self.ignore_scrap_title = False
@@ -141,7 +141,7 @@ class ScraperSettings(object):
             
     @staticmethod
     def from_addon_settings():
-        scraper_settings = ScraperSettings()   
+        scraper_settings = ScraperSettings()
                                         
         scraper_settings.scrape_metadata_policy = settings.getSettingAsInt('scrape_metadata_policy')
         scraper_settings.scrape_assets_policy = settings.getSettingAsInt('scrape_assets_policy')
@@ -247,27 +247,28 @@ class FilterROM(object):
 # Main scraping logic.
 #
 class ScrapeStrategy(object):
+    
     # --- Class variables ------------------------------------------------------------------------
     # --- Metadata actions ---
-    ACTION_META_NONE       = 0
+    ACTION_META_NONE = 0
     ACTION_META_TITLE_ONLY = 100
-    ACTION_META_NFO_FILE   = 200
-    ACTION_META_SCRAPER    = 300
+    ACTION_META_NFO_FILE = 200
+    ACTION_META_SCRAPER = 300
 
     # --- Asset actions ---
-    ACTION_ASSET_NONE        = 0
+    ACTION_ASSET_NONE = 0
     ACTION_ASSET_LOCAL_ASSET = 100
-    ACTION_ASSET_SCRAPER     = 200
+    ACTION_ASSET_SCRAPER = 200
 
-    SCRAPE_ROM      = 'ROM'
+    SCRAPE_ROM = 'ROM'
     SCRAPE_LAUNCHER = 'Launcher'
 
     # --- Constructor ----------------------------------------------------------------------------
     # @param settings: [dict] Addon settings.
-    def __init__(self, 
-                 webservice_host:str,
-                 webservice_port:int,
-                 scraper_settings: ScraperSettings, 
+    def __init__(self,
+                 webservice_host: str,
+                 webservice_port: int,
+                 scraper_settings: ScraperSettings,
                  scraper: Scraper,
                  progress_dialog: kodi.ProgressDialog):
         
@@ -279,22 +280,22 @@ class ScrapeStrategy(object):
         self.scraper_settings = scraper_settings
                 
         # default set to given scraper so that reference exists
-        self.meta_scraper_obj:Scraper   = scraper
-        self.asset_scraper_obj:Scraper  = scraper
+        self.meta_scraper_obj: Scraper = scraper
+        self.asset_scraper_obj: Scraper = scraper
         
         # Check if scraper is ready for operation (missing API keys, etc.). If not disable scraper.
         # Display error reported in status_dic as Kodi dialogs.
         status_dic = kodi.new_status_dic('No error')
         if scraper is not None:
             scraper.check_before_scraping(status_dic)
-            if not status_dic['status']: 
+            if not status_dic['status']:
                 kodi.dialog_OK(status_dic['msg'])
                 self.scraper_settings.scrape_metadata_policy = constants.SCRAPE_ACTION_NONE
-                self.scraper_settings.scrape_assets_policy   = constants.SCRAPE_ACTION_NONE
+                self.scraper_settings.scrape_assets_policy = constants.SCRAPE_ACTION_NONE
         
         if self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_TITLE_ONLY or \
             self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_POLICY_LOCAL_ONLY or \
-            self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_ACTION_NONE:
+                self.scraper_settings.scrape_metadata_policy == constants.SCRAPE_ACTION_NONE:
             self.meta_scraper_obj = Null_Scraper()
         if self.scraper_settings.scrape_assets_policy == constants.SCRAPE_ACTION_NONE:
             self.asset_scraper_obj = Null_Scraper()
@@ -318,30 +319,34 @@ class ScrapeStrategy(object):
         self.logger.debug('Update NFO files:     {}'.format('Yes' if scraper_settings.update_nfo_files else 'No'))
         self.logger.debug('==============================================================================')
  
-    def process_collection(self, romcollection_id) -> typing.List[ROMObj]:       
+    def process_roms(self, entity_type, entity_id) -> typing.List[ROMObj]:
         try:
-            roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, romcollection_id)
-        except Exception as ex:
-            self.logger.exception('Failure while retrieving ROMs from collection')
+            if entity_type == constants.OBJ_ROMCOLLECTION:
+                roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, entity_id)
+            else:
+                roms = api.client_get_roms_in_library(self.webservice_host, self.webservice_port, entity_id)
+        except Exception:
+            self.logger.exception('Failure while retrieving ROMs from database')
             return
         
         num_items = len(roms)
         num_items_checked = 0
-        self.pdialog.startProgress('Scraping ROMs in launcher', num_items)
+        self.pdialog.startProgress('Scraping multiple ROMs', num_items)
         self.logger.debug('============================== Scraping ROMs ==============================')
         
         all_paths = []
-        for rom in roms: all_paths.extend(rom.get_all_asset_paths())
+        for rom in roms:
+            all_paths.extend(rom.get_all_asset_paths())
         self._cache_assets(all_paths)
         
         for rom in roms:
             self.pdialog.updateProgress(num_items_checked)
             num_items_checked = num_items_checked + 1
-            ROM_name = rom.get_identifier()            
-            self.pdialog.updateMessage('Scraping ROM {}...'.format(ROM_name))
+            ROM_name = rom.get_identifier()
+            self.pdialog.updateMessage(f'Scraping ROM {ROM_name}...')
             try:
                 self._process_ROM(rom)
-            except Exception as ex:
+            except Exception:
                 self.logger.exception(f'Could not scrape "{ROM_name}"')
                 kodi.notify_warn(f'Could not scrape "{ROM_name}"')
             
@@ -360,17 +365,17 @@ class ScrapeStrategy(object):
         self.logger.debug('ScrapeStrategy.process_single_rom() Load and scrape a single ROM...')
         try:
             rom = api.client_get_rom(self.webservice_host, self.webservice_port, rom_id)
-        except Exception as ex:
-            self.logger.exception('Failure while retrieving ROMs from collection')
+        except Exception:
+            self.logger.exception('Failure while retrieving ROM from database')
             return
         
-        ROM_name = rom.get_identifier()            
+        ROM_name = rom.get_identifier()
         msg = 'Scraping ROM {}...'.format(ROM_name)
         self.pdialog.startProgress(msg)
         self._cache_assets(rom.get_all_asset_paths())
         try:
             self._process_ROM(rom)
-        except Exception as ex:
+        except Exception:
             self.logger.exception(f'Could not scrape "{ROM_name}"')
             kodi.notify_warn(f'Could not scrape "{ROM_name}"')
             return None
@@ -523,8 +528,8 @@ class ScrapeStrategy(object):
         
         # --- Determine metadata action ----------------------------------------------------------
         # --- Test if NFO file exists ---  
-        ROM_path = rom.get_scanned_data_element_as_file('file')  
-        if ROM_path: 
+        ROM_path = rom.get_scanned_data_element_as_file('file')
+        if ROM_path:
             self.NFO_file = io.FileName(ROM_path.getPathNoExt() + '.nfo')
         else:
             self.NFO_file = io.FileName(rom.get_identifier() + '.nfo')
@@ -573,7 +578,7 @@ class ScrapeStrategy(object):
         
         if self.asset_scraper_obj is None:
             self.logger.debug('No asset scraper set, disabling asset scraping.')
-            self.asset_action_list = { asset_id:ScrapeStrategy.ACTION_ASSET_NONE for asset_id in self.scraper_settings.asset_IDs_to_scrape }
+            self.asset_action_list = {asset_id: ScrapeStrategy.ACTION_ASSET_NONE for asset_id in self.scraper_settings.asset_IDs_to_scrape}
             return
         
         # --- Determine Asset action -------------------------------------------------------------
@@ -844,9 +849,9 @@ class ScrapeStrategy(object):
             local_asset_in_list_flag = False
             if local_asset_path:
                 local_asset = {
-                    'asset_ID'     : asset_info_id,
-                    'display_name' : 'Current local image',
-                    'url_thumb'    : local_asset_path.getPath(),
+                    'asset_ID': asset_info_id,
+                    'display_name': 'Current local image',
+                    'url_thumb': local_asset_path.getPath(),
                 }
                 assetdata_list.insert(0, local_asset)
                 local_asset_in_list_flag = True
@@ -1046,7 +1051,7 @@ class ScrapeStrategy(object):
             duplicates.append(path_str)
 
     def store_scraped_rom(self, scraper_id: str, rom_id: str, rom: ROMObj):
-        if rom is None: 
+        if rom is None:
             self.logger.warning('Skipping store action. No ROM data provided.')
             return
         
@@ -1055,15 +1060,16 @@ class ScrapeStrategy(object):
             'akl_addon_id': scraper_id,
             'rom': rom.get_data_dic(),
             'applied_settings': self.scraper_settings.get_data_dic()
-        }      
+        }
         is_stored = api.client_post_scraped_rom(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
             kodi.notify_error('Failed to store scraped ROM')
   
-    def store_scraped_roms(self, scraper_id: str, romcollection_id: str, scraped_roms: typing.List[ROMObj]):
+    def store_scraped_roms(self, scraper_id: str, entity_type, entity_id: str, scraped_roms: typing.List[ROMObj]):
         roms = [*(r.get_data_dic() for r in scraped_roms)]
         post_data = {
-            'romcollection_id': romcollection_id,
+            'entity_type': entity_type,
+            'entity_id': entity_id,
             'akl_addon_id': scraper_id,
             'roms': roms,
             'applied_settings': self.scraper_settings.get_data_dic()
@@ -1110,9 +1116,9 @@ class Scraper(object):
 
     # Disk cache types. These string will be part of the cache file names.
     CACHE_CANDIDATES = 'candidates'
-    CACHE_METADATA   = 'metadata'
-    CACHE_ASSETS     = 'assets'
-    CACHE_INTERNAL   = 'internal'
+    CACHE_METADATA = 'metadata'
+    CACHE_ASSETS = 'assets'
+    CACHE_INTERNAL = 'internal'
     CACHE_LIST = [
         CACHE_CANDIDATES, CACHE_METADATA, CACHE_ASSETS, CACHE_INTERNAL,
     ]
@@ -1123,11 +1129,11 @@ class Scraper(object):
 
     # --- Constructor ----------------------------------------------------------------------------
     # @param cache_dir: [io.FileName] Path to scraper cache dir.
-    def __init__(self, cache_dir:io.FileName):
+    def __init__(self, cache_dir: io.FileName):
         self.logger = logging.getLogger(__name__)
         self.verbose_flag = False
-        self.dump_file_flag = False # Dump DEBUG files only if this is true.
-        self.dump_dir = None # Directory to dump DEBUG files.
+        self.dump_file_flag = False  # Dump DEBUG files only if this is true.
+        self.dump_dir = None  # Directory to dump DEBUG files.
         self.debug_checksums_flag = False
         # Record the number of network error/exceptions. If this number is bigger than a
         # threshold disable the scraper.
