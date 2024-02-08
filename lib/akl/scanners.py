@@ -32,23 +32,27 @@ from akl.api import ROMObj
 
 logger = logging.getLogger(__name__)
 
+
 class ROMCandidateABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def get_ROM(self) -> ROMObj: return None
+    def get_ROM(self) -> ROMObj:
+        return None
     
     @abc.abstractmethod
-    def get_sort_value(self) -> str: return None
-    
+    def get_sort_value(self) -> str:
+        return None
+
+
 class MultiDiscInfo:
     def __init__(self, ROM_FN: io.FileName):
-        self.ROM_FN      = ROM_FN
+        self.ROM_FN = ROM_FN
         self.isMultiDisc = False
-        self.setName     = ''
-        self.discName    = ROM_FN.getBase()
-        self.extension   = ROM_FN.getExt()
-        self.order       = 0
+        self.setName = ''
+        self.discName = ROM_FN.getBase()
+        self.extension = ROM_FN.getExt()
+        self.order = 0
 
     @staticmethod
     def get_multidisc_info(ROM_FN: io.FileName) -> MultiDiscInfo:
@@ -103,6 +107,7 @@ class MultiDiscInfo:
 
         return MDSet
 
+
 # #################################################################################################
 # #################################################################################################
 # ROM scanners
@@ -111,11 +116,11 @@ class MultiDiscInfo:
 class ScannerStrategyABC(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, 
+    def __init__(self,
                  scanner_id: str,
                  romcollection_id: str,
-                 webservice_host:str,
-                 webservice_port:int,
+                 webservice_host: str,
+                 webservice_port: int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.scanner_settings = {}
@@ -124,7 +129,7 @@ class ScannerStrategyABC(object):
         self.scanned_roms: typing.List[ROMObj] = []
         self.marked_dead_roms: typing.List[ROMObj] = []
         
-        self.scanner_id       = scanner_id
+        self.scanner_id = scanner_id
         self.romcollection_id = romcollection_id
         
         self.webservice_host = webservice_host
@@ -138,12 +143,15 @@ class ScannerStrategyABC(object):
     # Core methods
     # --------------------------------------------------------------------------------------------
     @abc.abstractmethod
-    def get_name(self) -> str: return ''
+    def get_name(self) -> str:
+        return ''
     
     @abc.abstractmethod
-    def get_scanner_addon_id(self) -> str: return ''
+    def get_scanner_addon_id(self) -> str:
+        return ''
 
-    def get_scanner_settings(self) -> dict: return self.scanner_settings
+    def get_scanner_settings(self) -> dict:
+        return self.scanner_settings
     
     def amount_of_scanned_roms(self) -> int:
         return len(self.scanned_roms)
@@ -155,36 +163,40 @@ class ScannerStrategyABC(object):
     # Configure this scanner.
     #
     @abc.abstractmethod
-    def configure(self) -> bool: return True
+    def configure(self) -> bool:
+        return True
 
     #
     # Scans for new roms based on the type of launcher.
     #
     @abc.abstractmethod
-    def scan(self):  pass
+    def scan(self):
+        pass
 
     #
     # Cleans up ROM collection.
     # Remove Remove dead/missing ROMs ROMs
     #
     @abc.abstractmethod
-    def cleanup(self): pass
+    def cleanup(self):
+        pass
         
     #
     # This method will call the AKL webservice to retrieve previously stored scanner settings for a 
     # specific romcollection in the database.
     #
     def load_settings(self):
-        if self.scanner_id is None: return        
+        if self.scanner_id is None:
+            return
         try:
             scanner_settings = api.client_get_collection_scanner_settings(
-                    self.webservice_host, 
-                    self.webservice_port, 
-                    self.romcollection_id, 
-                    self.scanner_id)
+                self.webservice_host,
+                self.webservice_port,
+                self.romcollection_id,
+                self.scanner_id)
             
             self.scanner_settings = scanner_settings
-        except Exception as ex:
+        except Exception:
             logger.exception('Failure while loading scanner settings')
             self.scanner_settings = {}
         
@@ -242,11 +254,11 @@ class RomScannerStrategy(ScannerStrategyABC):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, 
-                 reports_dir: io.FileName, 
+                 reports_dir: io.FileName,
                  scanner_id: str,
                  romcollection_id: str,
-                 webservice_host:str,
-                 webservice_port:int,
+                 webservice_host: str,
+                 webservice_port: int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
@@ -265,7 +277,8 @@ class RomScannerStrategy(ScannerStrategyABC):
         logger.debug('RomScannerStrategy::build() Starting ...')
                 
         # --- Call hook before wizard ---
-        if not self._configure_pre_wizard_hook(): return False
+        if not self._configure_pre_wizard_hook():
+            return False
 
         if self.scanner_id is None:
             # --- Scanner configuration code ---
@@ -274,10 +287,13 @@ class RomScannerStrategy(ScannerStrategyABC):
             wizard = self._configure_get_wizard(wizard)
             # >> Run wizard
             self.scanner_settings = wizard.runWizard(self.scanner_settings)
-            if not self.scanner_settings: return False
+            if not self.scanner_settings:
+                return False
         else:
-            if not self.edit(): return False
-            if not kodi.dialog_yesno('Save scanner changes?'): return False
+            if not self.edit():
+                return False
+            if not kodi.dialog_yesno('Save scanner changes?'):
+                return False
 
         # --- Call hook after wizard ---
         if not self._configure_post_wizard_hook(): return False
