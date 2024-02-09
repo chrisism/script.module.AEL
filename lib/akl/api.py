@@ -85,16 +85,8 @@ def client_get_collection_launchers(host: str, port: int, rom_collection_id: str
     return launchers
 
 
-def client_get_rom_launcher_settings(host: str, port: int, rom_id: str, launcher_id: str) -> dict:
-    uri = f'http://{host}:{port}/query/rom/launcher/settings/?id={rom_id}&launcher_id={launcher_id}'
-    launcher_settings = net.get_URL_as_json(uri)
-    if VERBOSE:
-        logger.debug(launcher_settings)
-    return launcher_settings
-
-
-def client_get_collection_launcher_settings(host: str, port: int, rom_collection_id: str, launcher_id: str) -> dict:
-    uri = f'http://{host}:{port}/query/romcollection/launcher/settings/?id={rom_collection_id}&launcher_id={launcher_id}'
+def client_get_launcher_settings(host: str, port: int, launcher_id: str) -> dict:
+    uri = f'http://{host}:{port}/query/launcher/settings/?launcher_id={launcher_id}'
     launcher_settings = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(launcher_settings)

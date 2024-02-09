@@ -219,6 +219,7 @@ def dialog_keyboard(title, text='') -> str:
 # "local"  list local drives
 # ""       list local drives and network shares
 
+
 # Returns a directory.
 def dialog_get_directory(d_heading, d_dir = '', shares = ''):
     if d_dir:
@@ -227,23 +228,34 @@ def dialog_get_directory(d_heading, d_dir = '', shares = ''):
         ret =  xbmcgui.Dialog().browse(0, d_heading, shares)
     return ret
 
+
 def dialog_get_file(heading, d_dir = '', shares = ''):
     if d_dir:
         ret = xbmcgui.Dialog().browse(1, heading, shares, defaultt = d_dir)
     else:
-        ret =  xbmcgui.Dialog().browse(1, heading, shares)
+        ret = xbmcgui.Dialog().browse(1, heading, shares)
     return ret
+
+
+def get_listitem(label: str, label2: str, path: str = "", art: dict = {}):
+    li = xbmcgui.ListItem(label=label, label2=label2, path=path)
+    li.setArt(art)
+    return li
+
 
 def refresh_container():
     logger.debug('refresh_container()')
     xbmc.executebuiltin('Container.Refresh')
-    
+
+
 def get_current_window_id():
     return xbmcgui.getCurrentWindowId()
+
 
 def set_windowprop(key, value, window_id=10000):
     window = xbmcgui.Window(window_id)
     window.setProperty(key, value)
+
 
 def dict_to_windowprops(data=None, prefix="", window_id=10000):
     window = xbmcgui.Window(window_id)
@@ -251,6 +263,7 @@ def dict_to_windowprops(data=None, prefix="", window_id=10000):
         return None
     for (key, value) in data.items():
         window.setProperty('%s%s' % (prefix, key), str(value))
+
 
 def clear_windowprops(keys=None, prefix="", window_id=10000):
     window = xbmcgui.Window(window_id)

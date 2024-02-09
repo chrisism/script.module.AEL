@@ -41,3 +41,7 @@ msgstr "domain"
 msgctxt "#42507"
 msgid "No Type"
 msgstr "domain"
+
+msgctxt "#42508"
+msgid "Launcher"
+msgstr "domain"
