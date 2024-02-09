@@ -76,7 +76,9 @@ class LauncherABC(object):
                  executorFactory: ExecutorFactoryABC = None,
                  execution_settings: ExecutionSettings = None):
         
-        self.launcher_settings = {}
+        self.launcher_settings = {
+            'name': self.get_name()
+        }
         
         self.launcher_id = launcher_id
         self.rom_id = rom_id
@@ -129,6 +131,7 @@ class LauncherABC(object):
         if self.launcher_id is None:
             # --- Launcher build code (ask user about launcher stuff) ---
             wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_launcher_addon_id())
+            wizard = kodi.WizardDialog_Keyboard(wizard, 'name', 'Launcher name')
             wizard = self._builder_get_wizard(wizard)
             # >> Run wizard
             self.launcher_args = wizard.runWizard(self.launcher_settings)
@@ -200,6 +203,7 @@ class LauncherABC(object):
     #
     def load_settings(self):
         if self.launcher_id is None:
+            self.launcher_settings = {}
             return
         try:
             self.launcher_settings = api.client_get_launcher_settings(self.webservice_host, self.webservice_port, self.launcher_id)
@@ -215,7 +219,7 @@ class LauncherABC(object):
     def store_settings(self):
         launcher_settings = self.get_launcher_settings()
         post_data = {
-            'akl_addon_id': self.launcher_id,
+            'launcher_id': self.launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings
         }
