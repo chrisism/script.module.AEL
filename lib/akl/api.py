@@ -47,8 +47,8 @@ def client_get_rom(host: str, port: int, rom_id: str) -> ROMObj:
     return ROMObj(rom_data)
 
 
-def client_get_roms_in_library(host: str, port: int, library_id: str) -> typing.List[ROMObj]:
-    uri = f'http://{host}:{port}/query/library/roms/?id={library_id}'
+def client_get_roms_in_source(host: str, port: int, source_id: str) -> typing.List[ROMObj]:
+    uri = f'http://{host}:{port}/query/source/roms/?id={source_id}'
     rom_data = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(rom_data)
@@ -69,8 +69,8 @@ def client_get_roms_in_collection(host: str, port: int, rom_collection_id: str) 
     return roms
 
 
-def client_get_library_launchers(host: str, port: int, library_id: str) -> dict:
-    uri = f'http://{host}:{port}/query/library/launchers/?id={library_id}'
+def client_get_source_launchers(host: str, port: int, source_id: str) -> dict:
+    uri = f'http://{host}:{port}/query/source/launchers/?id={source_id}'
     launchers = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(launchers)
@@ -93,8 +93,8 @@ def client_get_launcher_settings(host: str, port: int, launcher_id: str) -> dict
     return launcher_settings
 
 
-def client_get_library_scanner_settings(host: str, port: int, library_id: str) -> dict:
-    uri = f'http://{host}:{port}/query/library/scanner/settings/?id={library_id}'
+def client_get_source_scanner_settings(host: str, port: int, source_id: str) -> dict:
+    uri = f'http://{host}:{port}/query/source/scanner/settings/?id={source_id}'
     scanner_settings = net.get_URL_as_json(uri)
     if VERBOSE:
         logger.debug(VERBOSE)

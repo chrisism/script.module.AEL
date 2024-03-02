@@ -35,7 +35,7 @@ msgid "ROM"
 msgstr "domain"
 
 msgctxt "#42506"
-msgid "Library"
+msgid "Source"
 msgstr "domain"
 
 msgctxt "#42507"

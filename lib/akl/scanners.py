@@ -117,7 +117,7 @@ class ScannerStrategyABC(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self,
-                 library_id: str,
+                 source_id: str,
                  webservice_host: str,
                  webservice_port: int,
                  progress_dialog: kodi.ProgressDialog):
@@ -128,7 +128,7 @@ class ScannerStrategyABC(object):
         self.scanned_roms: typing.List[ROMObj] = []
         self.marked_dead_roms: typing.List[ROMObj] = []
         
-        self.library_id = library_id
+        self.source_id = source_id
         
         self.webservice_host = webservice_host
         self.webservice_port = webservice_port
@@ -172,7 +172,7 @@ class ScannerStrategyABC(object):
         pass
 
     #
-    # Cleans up ROM library.
+    # Cleans up ROM source.
     # Remove Remove dead/missing ROMs ROMs
     #
     @abc.abstractmethod
@@ -181,16 +181,16 @@ class ScannerStrategyABC(object):
         
     #
     # This method will call the AKL webservice to retrieve previously stored scanner settings for a
-    # specific library in the database.
+    # specific source in the database.
     #
     def load_settings(self):
-        if self.library_id is None:
+        if self.source_id is None:
             return
         try:
-            scanner_settings = api.client_get_library_scanner_settings(
+            scanner_settings = api.client_get_source_scanner_settings(
                 self.webservice_host,
                 self.webservice_port,
-                self.library_id)
+                self.source_id)
             
             self.scanner_settings = scanner_settings
         except Exception:
@@ -199,12 +199,12 @@ class ScannerStrategyABC(object):
         
     #
     # This method will call the AKL webservice to store scanner settings for a
-    # specific library in the database.
+    # specific source in the database.
     #
     def store_settings(self):
         scanner_settings = self.get_scanner_settings()
         post_data = {
-            'library_id': self.library_id,
+            'source_id': self.source_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
         }
@@ -215,7 +215,7 @@ class ScannerStrategyABC(object):
     def store_scanned_roms(self):
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
         post_data = {
-            'library_id': self.library_id,
+            'source_id': self.source_id,
             'roms': roms
         }
         is_stored = api.client_post_scanned_roms(self.webservice_host, self.webservice_port, post_data)
@@ -225,7 +225,7 @@ class ScannerStrategyABC(object):
     def remove_dead_roms(self):
         dead_rom_ids = [*(r.get_id() for r in self.marked_dead_roms)]
         post_data = {
-            'library_id': self.library_id,
+            'source_id': self.source_id,
             'rom_ids': dead_rom_ids
         }
         is_removed = api.client_post_dead_roms(self.webservice_host, self.webservice_port, post_data)
@@ -256,13 +256,13 @@ class RomScannerStrategy(ScannerStrategyABC):
 
     def __init__(self,
                  reports_dir: io.FileName,
-                 library_id: str,
+                 source_id: str,
                  webservice_host: str,
                  webservice_port: int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
-        super(RomScannerStrategy, self).__init__(library_id, webservice_host, webservice_port, progress_dialog)
+        super(RomScannerStrategy, self).__init__(source_id, webservice_host, webservice_port, progress_dialog)
 
     # --------------------------------------------------------------------------------------------
     # Scanner configuration wizard methods
@@ -328,13 +328,13 @@ class RomScannerStrategy(ScannerStrategyABC):
         # >> Check if we already have existing ROMs
         launcher_report.write('Loading existing ROMs ...')
         try:
-            roms = api.client_get_roms_in_library(self.webservice_host, self.webservice_port, self.library_id)
+            roms = api.client_get_roms_in_source(self.webservice_host, self.webservice_port, self.source_id)
         except Exception:
             logger.exception('Failure retrieving existing ROMs')
             roms = []
         
         num_roms = len(roms)
-        launcher_report.write(f'{num_roms} ROMs currently in database for this library.')
+        launcher_report.write(f'{num_roms} ROMs currently in database for this source.')
         
         launcher_report.write('Collecting candidates ...')
         candidates = self._getCandidates(launcher_report)
@@ -391,7 +391,7 @@ class RomScannerStrategy(ScannerStrategyABC):
         launcher_report.write('Dead ROM Cleaning operation')
         
         try:
-            roms = api.client_get_roms_in_library(self.webservice_host, self.webservice_port, self.library_id)
+            roms = api.client_get_roms_in_source(self.webservice_host, self.webservice_port, self.source_id)
         except Exception:
             logger.exception('Failure retrieving existing ROMs')
             roms = []
@@ -402,7 +402,7 @@ class RomScannerStrategy(ScannerStrategyABC):
             return {}
               
         num_roms = len(roms)
-        launcher_report.write(f'{num_roms} ROMs currently in database for this library.')
+        launcher_report.write(f'{num_roms} ROMs currently in database for this source.')
         
         launcher_report.write('Collecting candidates ...')
         candidates = self._getCandidates(launcher_report)
@@ -472,9 +472,9 @@ class RomScannerStrategy(ScannerStrategyABC):
         if extensions != '':
             return extensions
         
-        if self.library_id:
+        if self.source_id:
             extensions_by_launchers = []
-            launchers = api.client_get_library_launchers(self.webservice_host, self.webservice_port, self.library_id)
+            launchers = api.client_get_source_launchers(self.webservice_host, self.webservice_port, self.source_id)
             for key, launcher_settings in launchers.items():
                 if 'application' in launcher_settings:
                     app = launcher_settings['application']

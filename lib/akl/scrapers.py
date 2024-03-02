@@ -324,7 +324,7 @@ class ScrapeStrategy(object):
             if entity_type == constants.OBJ_ROMCOLLECTION:
                 roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, entity_id)
             else:
-                roms = api.client_get_roms_in_library(self.webservice_host, self.webservice_port, entity_id)
+                roms = api.client_get_roms_in_source(self.webservice_host, self.webservice_port, entity_id)
         except Exception:
             self.logger.exception('Failure while retrieving ROMs from database')
             return
