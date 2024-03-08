@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import abc
+import collections
 import logging
 import shlex
 import typing
@@ -174,7 +175,9 @@ class LauncherABC(object):
 
     @abc.abstractmethod
     def _builder_get_edit_options(self) -> dict:
-        pass
+        options = collections.OrderedDict()
+        options[self._change_name] = 'Change name ({})'.format(self.launcher_settings['name'])
+        return options
 
     @abc.abstractmethod
     def _build_pre_wizard_hook(self):
@@ -191,6 +194,13 @@ class LauncherABC(object):
                 return '.jar'
 
         return '.bat|.exe|.cmd|.lnk' if io.is_windows() else ''
+
+    def _change_name(self):
+        current_name = self.launcher_settings['name']
+        new_name = kodi.dialog_keyboard("Launcher name", current_name)
+        if not new_name:
+            return
+        self.launcher_settings['name'] = new_name
 
     #
     # Wizard helper, when a user wants to set a custom value instead of the predefined list items.

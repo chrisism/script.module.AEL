@@ -379,21 +379,33 @@ class WindowsExecutor(ExecutorABC):
 
         # >> Note that on Windows, you cannot set close_fds to true and also redirect the 
         # >> standard handles by setting stdin, stdout or stderr.
+        process = None
         if self.windows_cd_apppath and self.windows_close_fds:
-            retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True)
+            #retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True)
+            process = subprocess.Popen(command, cwd=apppath.encode('utf-8'), close_fds=True, shell=True)
         elif self.windows_cd_apppath and not self.windows_close_fds:
             with open(self.logFile.getPathTranslated(), 'w') as f:
-                retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=False,
-                                            stdout = f, stderr = subprocess.STDOUT)
+                process = subprocess.Popen(command, cwd=apppath.encode('utf-8'), close_fds=False,
+                                           stdout=f, stderr=subprocess.STDOUT, shell=True)
+                # retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=False,
+                #                             stdout = f, stderr = subprocess.STDOUT)
         elif not self.windows_cd_apppath and self.windows_close_fds:
-            retcode = subprocess.call(command, close_fds = True)
+            # retcode = subprocess.call(command, close_fds = True)
+            process = subprocess.Popen(command, close_fds=True, shell=True)
         elif not self.windows_cd_apppath and not self.windows_close_fds:
             with open(self.logFile.getPathTranslated(), 'w') as f:
-                retcode = subprocess.call(command, close_fds = False, stdout = f, stderr = subprocess.STDOUT)
+                # retcode = subprocess.call(command, close_fds = False, stdout = f, stderr = subprocess.STDOUT)
+                process = subprocess.Popen(command, close_fds=False, stdout=f, stderr=subprocess.STDOUT, shell=True)
         else:
             raise Exception('Logical error')
+
+        retcode = process.wait()
+        #retcode = process.returncode
+        
         logger.info(f'Process retcode = {retcode}')
         logger.debug('WindowsExecutor::execute() function ENDS')
+
+
 
 class WebBrowserExecutor(ExecutorABC):
 
