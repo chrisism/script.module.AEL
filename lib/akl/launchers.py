@@ -99,6 +99,11 @@ class LauncherABC(object):
     def get_name(self) -> str:
         return ''
     
+    def get_instance_name(self) -> str:
+        if not self.launcher_settings:
+            return ''
+        return self.launcher_settings['name'] if 'name' in self.launcher_settings else ''
+    
     @abc.abstractmethod
     def get_launcher_addon_id(self) -> str:
         return ''
@@ -176,7 +181,7 @@ class LauncherABC(object):
     @abc.abstractmethod
     def _builder_get_edit_options(self) -> dict:
         options = collections.OrderedDict()
-        options[self._change_name] = 'Change name ({})'.format(self.launcher_settings['name'])
+        options[self._change_name] = f'Change display name ({self.get_instance_name()})'
         return options
 
     @abc.abstractmethod
@@ -250,8 +255,10 @@ class LauncherABC(object):
         name = self.get_name()
         application = self.get_application()
         args, kwargs = self.get_arguments()
+        inst_name = self.get_instance_name()
 
         logger.debug(f'Name         = "{name}"')
+        logger.debug(f'Instance     = "{inst_name}"')
         logger.debug(f'Application  = "{application}"')
         logger.debug(f'Arguments    = "{args}"')
         logger.debug(f'Keyword Args = "{kwargs}"')
