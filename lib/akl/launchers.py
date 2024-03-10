@@ -201,7 +201,7 @@ class LauncherABC(object):
         return '.bat|.exe|.cmd|.lnk' if io.is_windows() else ''
 
     def _change_name(self):
-        current_name = self.launcher_settings['name']
+        current_name = self.get_instance_name()
         new_name = kodi.dialog_keyboard("Launcher name", current_name)
         if not new_name:
             return
