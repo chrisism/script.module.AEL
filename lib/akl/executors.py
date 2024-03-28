@@ -372,8 +372,9 @@ class WindowsExecutor(ExecutorABC):
                 new_command[i] = '\\' + command[i]
                 logger.debug(f'WindowsExecutor: Before arg #{i} = "{command[i]}"')
                 logger.debug(f'WindowsExecutor: Now    arg #{i} = "{new_command[i]}"')
-        command = list(new_command)
-        command = ' '.join(command)
+            command = list(new_command)
+        
+        #command = ' '.join(command)
         logger.debug(f'WindowsExecutor: command = {command}')
 
         # >> cwd = apppath.encode('utf-8') fails if application path has Unicode on Windows
@@ -385,22 +386,22 @@ class WindowsExecutor(ExecutorABC):
         logger.debug(f'apppath            = {apppath}')
         logger.debug(f'logfile path       = {self.logFile.getPathTranslated()}')
 
-        # >> Note that on Windows, you cannot set close_fds to true and also redirect the 
+        # >> Note that on Windows, you cannot set close_fds to true and also redirect the
         # >> standard handles by setting stdin, stdout or stderr.
         if self.windows_cd_apppath:
             if self.windows_close_fds:
-                retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True, shell=True)
+                retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True)
             else:
                 with open(self.logFile.getPathTranslated(), 'w') as f:
                     retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=False,
-                                              stdout=f, stderr=subprocess.STDOUT, shell=True)
+                                              stdout=f, stderr=subprocess.STDOUT)
         else:
             if self.windows_close_fds:
-                retcode = subprocess.call(command, close_fds=True, shell=True)
+                retcode = subprocess.call(command, close_fds=True)
             else:
                 with open(self.logFile.getPathTranslated(), 'w') as f:
-                    retcode = subprocess.call(command, close_fds=False, stdout=f, stderr=subprocess.STDOUT, shell=True)
-        
+                    retcode = subprocess.call(command, close_fds=False, stdout=f, stderr=subprocess.STDOUT)
+                    
         logger.info(f'Process retcode = {retcode}')
         logger.debug('WindowsExecutor::execute() function ENDS')
 
