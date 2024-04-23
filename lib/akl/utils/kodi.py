@@ -180,7 +180,7 @@ def dialog_yesno_timer(text, timer_ms=30000, title='Advanced Kodi Launcher'):
 
 
 def browse(type=1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
-    return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple,)
+    return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple)
 
 
 def dialog_numeric(title: str, default: int = None):
