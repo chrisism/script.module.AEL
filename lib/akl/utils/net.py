@@ -39,11 +39,13 @@ logger = logging.getLogger(__name__)
 # USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/68.0'
 USER_AGENT = 'Mozilla/5.0 (X11; Linux i586; rv:31.0) Gecko/20100101 Firefox/68.0'
 
+
 class ContentType(Enum):
     RAW = 0
     STRING = 1
     BYTES = 2
     JSON = 3
+
 
 # Where did this user agent come from?
 # USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31';
@@ -52,14 +54,14 @@ class ContentType(Enum):
 def get_random_UserAgent():
     platform = random.choice(['Macintosh', 'Windows', 'X11'])
     if platform == 'Macintosh':
-        os_str  = random.choice(['68K', 'PPC'])
+        os_str = random.choice(['68K', 'PPC'])
     elif platform == 'Windows':
-        os_str  = random.choice([
+        os_str = random.choice([
             'Win3.11', 'WinNT3.51', 'WinNT4.0', 'Windows NT 5.0', 'Windows NT 5.1', 
             'Windows NT 5.2', 'Windows NT 6.0', 'Windows NT 6.1', 'Windows NT 6.2', 
             'Win95', 'Win98', 'Win 9x 4.90', 'WindowsCE'])
     elif platform == 'X11':
-        os_str  = random.choice(['Linux i686', 'Linux x86_64'])
+        os_str = random.choice(['Linux i686', 'Linux x86_64'])
     browser = random.choice(['chrome', 'firefox', 'ie'])
     if browser == 'chrome':
         webkit = str(random.randint(500, 599))
@@ -88,13 +90,14 @@ def get_random_UserAgent():
         version = str(random.randint(1, 10)) + '.0'
         engine = str(random.randint(1, 5)) + '.0'
         option = random.choice([True, False])
-        if option == True:
+        if option:
             token = random.choice(['.NET CLR', 'SV1', 'Tablet PC', 'Win64; IA64', 'Win64; x64', 'WOW64']) + '; '
-        elif option == False:
+        else:
             token = ''
         return 'Mozilla/5.0 (compatible; MSIE ' + version + '; ' + os_str + '; ' + token + 'Trident/' + engine + ')'
 
-def download_img(img_url, file_path:io.FileName):
+
+def download_img(img_url, file_path: io.FileName):
     # --- Download image to a buffer in memory ---
     # If an exception happens here no file is created (avoid creating files with 0 bytes).
     file_data, http_code = get_URL(img_url, verify_ssl=False, content_type=ContentType.BYTES)
@@ -107,9 +110,9 @@ def download_img(img_url, file_path:io.FileName):
         f = file_path.open('wb')
         f.write(file_data)
         f.close()
-    except IOError as ex:
+    except IOError:
         logger.exception('(IOError) In download_img(), disk code.')
-    except Exception as ex:
+    except Exception:
         logger.exception('(Exception) In download_img(), disk code.')
 
 #
@@ -142,7 +145,7 @@ def get_URL(url:str, url_log:str = None, headers:dict = None,
         if session is None:
             session = requests.Session()
 
-        response:requests.Response = session.get(
+        response: requests.Response = session.get(
             url,
             headers=headers, 
             timeout=120, 
@@ -258,12 +261,13 @@ def post_URL(url:str, data:dict, headers:dict = None, verify_ssl=None,
         logger.exception('(HTTPError) In post_URL()')
         logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
-    except IOError as ex:
+    except IOError:
         logger.exception('(IOError exception) In post_URL()')
         return None, 500
-    except Exception as ex:
+    except Exception:
         logger.exception('(General exception) In post_URL()')
         return None, 500
+
 
 # POST JSON content to an url.
 # If an exception happens return empty data (None).
@@ -283,10 +287,11 @@ def post_JSON_URL(url, json_obj: any, headers:dict = None,
                 content_type:ContentType=ContentType.STRING) -> typing.Union[typing.Tuple[str, int],typing.Tuple[any, int]]:
     try:
         logger.debug(f"post_JSON_URL() POST URL '{url}'")
-        if headers is None: headers = {}
+        if headers is None:
+            headers = {}
         headers["User-Agent"] = USER_AGENT
 
-        response:requests.Response = requests.post(
+        response: requests.Response = requests.post(
             url,
             json=json_obj,
             headers=headers, 
@@ -318,15 +323,15 @@ def post_JSON_URL(url, json_obj: any, headers:dict = None,
         try:
             page_bytes = ex.read()
             ex.close()
-        except:
+        except Exception:
             page_bytes = str(ex.reason)
         logger.exception('(HTTPError) In post_JSON_URL()')
         logger.error(f'(HTTPError) Code {http_code}')
         return page_bytes, http_code
-    except IOError as ex:
+    except IOError:
         logger.exception('(IOError exception) In post_JSON_URL()')
         return None, 500
-    except Exception as ex:
+    except Exception:
         logger.exception('(General exception) In post_JSON_URL()')
         return None, 500
 
