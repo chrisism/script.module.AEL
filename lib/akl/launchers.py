@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import abc
+import collections
 import logging
 import shlex
 import typing
@@ -32,29 +33,32 @@ from akl.executors import ExecutorSettings, ExecutorFactory, ExecutorFactoryABC,
 
 logger = logging.getLogger(__name__)
 
+
 # -------------------------------------------------------------------------------------------------
 # Helper methods
 # -------------------------------------------------------------------------------------------------
-def get_executor_factory(report_file_path:io.FileName) -> ExecutorFactoryABC:
-    executorSettings                    = ExecutorSettings()
-    executorSettings.lirc_state         = settings.getSettingAsBool('lirc_state')
-    executorSettings.show_batch_window  = settings.getSettingAsBool('show_batch_window')
+def get_executor_factory(report_file_path: io.FileName) -> ExecutorFactoryABC:
+    executorSettings = ExecutorSettings()
+    executorSettings.lirc_state = settings.getSettingAsBool('lirc_state')
+    executorSettings.show_batch_window = settings.getSettingAsBool('show_batch_window')
     executorSettings.windows_cd_apppath = settings.getSettingAsBool('windows_cd_apppath')
-    executorSettings.windows_close_fds  = settings.getSettingAsBool('windows_close_fds')
+    executorSettings.windows_close_fds = settings.getSettingAsBool('windows_close_fds')
     
     executorFactory = ExecutorFactory(report_file_path, executorSettings)
     return executorFactory
+
 
 class ExecutionSettings(object):
     is_non_blocking = True
     toggle_window = False
     display_launcher_notify = True
-    media_state_action = 0 # id="media_state_action" default="0" values="Stop|Pause|Let Play"
+    media_state_action = 0  # id="media_state_action" default="0" values="Stop|Pause|Let Play"
     suspend_audio_engine = False
     suspend_screensaver = True
     suspend_joystick_engine = False
     delay_tempo = 1000
-        
+
+
 # -------------------------------------------------------------------------------------------------
 # Abstract base class for launching anything that is supported.
 # Implement classes that inherit this base class to support new ways of launching.
@@ -65,45 +69,52 @@ class LauncherABC(object):
     #
     # In an abstract class launcher_data is mandatory.
     #
-    def __init__(self, 
-        launcher_id: str,
-        romcollection_id: str,
-        rom_id: str,
-        webservice_host:str,
-        webservice_port:int,
-        executorFactory: ExecutorFactoryABC = None, 
-        execution_settings: ExecutionSettings = None):
+    def __init__(self,
+                 launcher_id: str,
+                 rom_id: str,
+                 webservice_host: str,
+                 webservice_port: int,
+                 executorFactory: ExecutorFactoryABC = None,
+                 execution_settings: ExecutionSettings = None):
         
-        self.launcher_settings  = {}
+        self.launcher_settings = {
+            'name': self.get_name()
+        }
         
         self.launcher_id = launcher_id
-        self.romcollection_id = romcollection_id
         self.rom_id = rom_id
         
         self.webservice_host = webservice_host
         self.webservice_port = webservice_port
 
-        self.executorFactory    = executorFactory
+        self.executorFactory = executorFactory
         self.execution_settings = execution_settings
         
         self.load_settings()
         
     # --------------------------------------------------------------------------------------------
     # Core methods
-    # --------------------------------------------------------------------------------------------    
+    # --------------------------------------------------------------------------------------------
     @abc.abstractmethod
-    def get_name(self) -> str: return ''
+    def get_name(self) -> str:
+        return ''
+    
+    def get_instance_name(self) -> str:
+        if not self.launcher_settings:
+            return ''
+        return self.launcher_settings['name'] if 'name' in self.launcher_settings else ''
     
     @abc.abstractmethod
-    def get_launcher_addon_id(self) -> str: return ''
+    def get_launcher_addon_id(self) -> str:
+        return ''
 
     def get_launcher_settings(self) -> dict:
         return self.launcher_settings
 
-    def configure_executor(self, 
-        executorFactory: ExecutorFactoryABC, 
-        execution_settings: ExecutionSettings):
-        self.executorFactory    = executorFactory
+    def configure_executor(self,
+                           executorFactory: ExecutorFactoryABC,
+                           execution_settings: ExecutionSettings):
+        self.executorFactory = executorFactory
         self.execution_settings = execution_settings
 
     # --------------------------------------------------------------------------------------------
@@ -119,52 +130,67 @@ class LauncherABC(object):
         logger.debug('LauncherABC::build() Starting ...')
                 
         # --- Call hook before wizard ---
-        if not self._build_pre_wizard_hook(): return False
+        if not self._build_pre_wizard_hook():
+            return False
 
         # >> Call Child class wizard builder method
         if self.launcher_id is None:
             # --- Launcher build code (ask user about launcher stuff) ---
             wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_launcher_addon_id())
-            wizard = self._builder_get_wizard(wizard) 
+            wizard = kodi.WizardDialog_Keyboard(wizard, 'name', 'Launcher name')
+            wizard = self._builder_get_wizard(wizard)
             # >> Run wizard
             self.launcher_args = wizard.runWizard(self.launcher_settings)
-            if not self.launcher_settings: return False
+            if not self.launcher_settings:
+                return False
         else:
-            if not self.edit(): return False
-            if not kodi.dialog_yesno('Save launcher changes?'): return False
+            if not self.edit():
+                return False
+            if not kodi.dialog_yesno('Save launcher changes?'):
+                return False
         
         # --- Call hook after wizard ---
-        if not self._build_post_wizard_hook(): return False
+        if not self._build_post_wizard_hook():
+            return False
         return True
 
     def edit(self) -> bool:
         # Edit mode. Show options dialog
         edit_options = self._builder_get_edit_options()
-        if edit_options == None: return False
+        if edit_options is None:
+            return False
 
         edit_dialog = kodi.OrdDictionaryDialog()
         t = f'Edit {self.get_name()} settings'
         selected_option = edit_dialog.select(t, edit_options)
         
-        if selected_option is None: return True # short circuit
+        if selected_option is None:
+            return True
         
-        selected_option() # execute
-        return self.edit() # recursive call
+        selected_option()  # execute
+        return self.edit()  # recursive call
+    
     #
     # Creates a new launcher using a wizard of dialogs.
     # Child concrete classes must implement this method.
     #
     @abc.abstractmethod
-    def _builder_get_wizard(self, wizard) -> kodi.WizardDialog: pass
+    def _builder_get_wizard(self, wizard) -> kodi.WizardDialog:
+        pass
 
     @abc.abstractmethod
-    def _builder_get_edit_options(self) -> dict: pass
+    def _builder_get_edit_options(self) -> dict:
+        options = collections.OrderedDict()
+        options[self._change_name] = f'Change display name ({self.get_instance_name()})'
+        return options
 
     @abc.abstractmethod
-    def _build_pre_wizard_hook(self): return True
+    def _build_pre_wizard_hook(self):
+        return True
 
     @abc.abstractmethod
-    def _build_post_wizard_hook(self): return True
+    def _build_post_wizard_hook(self):
+        return True
 
     def _builder_get_appbrowser_filter(self, item_key, launcher):
         if item_key in launcher:
@@ -174,6 +200,13 @@ class LauncherABC(object):
 
         return '.bat|.exe|.cmd|.lnk' if io.is_windows() else ''
 
+    def _change_name(self):
+        current_name = self.get_instance_name()
+        new_name = kodi.dialog_keyboard("Launcher name", current_name)
+        if not new_name:
+            return
+        self.launcher_settings['name'] = new_name
+
     #
     # Wizard helper, when a user wants to set a custom value instead of the predefined list items.
     #
@@ -181,39 +214,29 @@ class LauncherABC(object):
         return launcher[item_key] == 'BROWSE'
     
     #
-    # This method will call the AKL webservice to retrieve previously stored launcher settings for a 
-    # specific romcollection or rom in the database depending which id is specified.
-    # If ROM id is specified, it will choose that above the collection id.
+    # This method will call the AKL webservice to retrieve previously stored launcher settings.
     #
     def load_settings(self):
-        if self.launcher_id is None: return        
+        if self.launcher_id is None:
+            return
         try:
-            launcher_settings = None
-            if self.rom_id is not None:
-                launcher_settings = api.client_get_rom_launcher_settings(self.webservice_host, self.webservice_port, 
-                                                                        self.rom_id, self.launcher_id)
-            else:
-                launcher_settings = api.client_get_collection_launcher_settings(self.webservice_host, self.webservice_port, 
-                                                                                self.romcollection_id, self.launcher_id)
-            self.launcher_settings = launcher_settings
-        except Exception as ex:
+            self.launcher_settings = api.client_get_launcher_settings(self.webservice_host, self.webservice_port, self.launcher_id)
+        except Exception:
             logger.exception('Failure while loading launcher settings')
             self.launcher_settings = {}
         
     #
-    # This method will call the AKL webservice to store launcher settings for a 
-    # specific romcollection or rom in the database depending which id is specified.
-    # If ROM id is specified, it will choose that above the collection id.
+    # This method will call the AKL webservice to store launcher settings
+    # in the database with the given launcher id. If no launcher id specified
+    # it will create a new instance.
     #
     def store_settings(self):
         launcher_settings = self.get_launcher_settings()
         post_data = {
-            'romcollection_id': self.romcollection_id,
-            'rom_id': self.rom_id,
-            'akl_addon_id': self.launcher_id,
+            'launcher_id': self.launcher_id,
             'addon_id': self.get_launcher_addon_id(),
             'settings': launcher_settings
-        }        
+        }
         is_stored = api.client_post_launcher_settings(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
             kodi.notify_error('Failed to store launchers settings')
@@ -229,11 +252,13 @@ class LauncherABC(object):
     def launch(self):
         logger.debug('LauncherABC::launch() Starting ...')
 
-        name         = self.get_name()
-        application  = self.get_application()
+        name = self.get_name()
+        application = self.get_application()
         args, kwargs = self.get_arguments()
+        inst_name = self.get_instance_name()
 
         logger.debug(f'Name         = "{name}"')
+        logger.debug(f'Instance     = "{inst_name}"')
         logger.debug(f'Application  = "{application}"')
         logger.debug(f'Arguments    = "{args}"')
         logger.debug(f'Keyword Args = "{kwargs}"')
@@ -272,20 +297,20 @@ class LauncherABC(object):
     def get_arguments(self, *args, **kwargs) -> typing.Tuple[list, dict]:
         """
         Combines given arguments and arguments from the launcher_settings dictionary and
-        returns them as a list or dictionary in case of keyworded arguments. 
+        returns them as a list or dictionary in case of keyworded arguments.
         Goes through all the argument and replaces any tokenized (e.g. $<token>$)
         with a corresponding value.
         """
-        raw_args      = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
-        application   = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
+        raw_args = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
+        application = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
         
         logger.info(f'get_arguments(): Launcher          "{self.get_name()}"')
         logger.info(f'get_arguments(): raw arguments     "{raw_args}"')
         
-        arguments = shlex.split(raw_args, posix = True)
+        arguments = shlex.split(raw_args, posix=True)
         arguments = arguments + list(args)
 
-        #Application based arguments replacements
+        # Application based arguments replacements
         if application:
             app = io.FileName(application)
             apppath = app.getDir()
@@ -310,8 +335,8 @@ class LauncherABC(object):
                 logger.info("get_arguments(): Escaping ROMFileName ' and \"")
                 rom_file.escapeQuotes()
 
-            rompath       = rom_file.getDir()
-            rombase       = rom_file.getBase()
+            rompath = rom_file.getDir()
+            rombase = rom_file.getBase()
             rombase_noext = rom_file.getBaseNoExt()
 
             logger.info(f'get_arguments(): romfile      "{rom_file.getPath()}"')
@@ -319,16 +344,16 @@ class LauncherABC(object):
             logger.info(f'get_arguments(): rombase      "{rombase}"')
             logger.info(f'get_arguments(): rombasenoext "{rombase_noext}"')
 
-            arguments = self._replace_in_args(arguments, '$rom$',          rom_file.getPath())
-            arguments = self._replace_in_args(arguments, '$romfile$',      rom_file.getPath())
-            arguments = self._replace_in_args(arguments, '$rompath$',      rompath)
-            arguments = self._replace_in_args(arguments, '$rombase$',      rombase)
+            arguments = self._replace_in_args(arguments, '$rom$', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$romfile$', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$rompath$', rompath)
+            arguments = self._replace_in_args(arguments, '$rombase$', rombase)
             arguments = self._replace_in_args(arguments, '$rombasenoext$', rombase_noext)
 
-            kwargs = self._replace_in_kwargs(kwargs, '$rom$',          rom_file.getPath())
-            kwargs = self._replace_in_kwargs(kwargs, '$romfile$',      rom_file.getPath())
-            kwargs = self._replace_in_kwargs(kwargs, '$rompath$',      rompath)
-            kwargs = self._replace_in_kwargs(kwargs, '$rombase$',      rombase)
+            kwargs = self._replace_in_kwargs(kwargs, '$rom$', rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '$romfile$', rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '$rompath$', rompath)
+            kwargs = self._replace_in_kwargs(kwargs, '$rombase$', rombase)
             kwargs = self._replace_in_kwargs(kwargs, '$rombasenoext$', rombase_noext)
 
             # >> Legacy names for argument substitution
@@ -348,30 +373,42 @@ class LauncherABC(object):
         # automatic substitution of rom values
         rom_data = rom.get_data_dic()
         for rom_key, rom_value in rom_data.items():
-            try: arguments = self._replace_in_args(arguments, f"${str(rom_key)}$", str(rom_value))
-            except: pass
-            try: kwargs = self._replace_in_kwargs(kwargs, f"${str(rom_key)}$", str(rom_value))
-            except: pass
+            try:
+                arguments = self._replace_in_args(arguments, f"${str(rom_key)}$", str(rom_value))
+            except Exception:
+                pass
+            try:
+                kwargs = self._replace_in_kwargs(kwargs, f"${str(rom_key)}$", str(rom_value))
+            except Exception:
+                pass
 
-        scanned_data = rom.get_scanned_data()                
+        scanned_data = rom.get_scanned_data()
         for scanned_key, scanned_value in scanned_data.items():
-            try: arguments = self._replace_in_args(arguments, f"${str(scanned_key)}$", str(scanned_value))
-            except: pass
-            try: kwargs = self._replace_in_kwargs(kwargs, f"${str(scanned_key)}$", str(scanned_value))
-            except: pass
+            try:
+                arguments = self._replace_in_args(arguments, f"${str(scanned_key)}$", str(scanned_value))
+            except Exception:
+                pass
+            try:
+                kwargs = self._replace_in_kwargs(kwargs, f"${str(scanned_key)}$", str(scanned_value))
+            except Exception:
+                pass
                 
         # automatic substitution of launcher setting values
         for launcher_key, launcher_value in self.launcher_settings.items():
-            try: arguments = self._replace_in_args(arguments, f"${str(launcher_key)}$", str(launcher_value))
-            except: pass
-            try: kwargs = self._replace_in_kwargs(kwargs, f"${str(launcher_key)}$", str(launcher_value))
-            except: pass
+            try:
+                arguments = self._replace_in_args(arguments, f"${str(launcher_key)}$", str(launcher_value))
+            except Exception:
+                pass
+            try:
+                kwargs = self._replace_in_kwargs(kwargs, f"${str(launcher_key)}$", str(launcher_value))
+            except Exception:
+                pass
 
         if not self.execution_settings.is_non_blocking:
             kwargs["non_blocking"] = self.execution_settings.is_non_blocking
         
-        logger.debug(f'get_arguments(): final arguments "{arguments}"')        
-        logger.debug(f'get_arguments(): final keyworded arguments "{kwargs}"')   
+        logger.debug(f'get_arguments(): final arguments "{arguments}"')
+        logger.debug(f'get_arguments(): final keyworded arguments "{kwargs}"')
         return (arguments, kwargs)
         
     #
@@ -423,7 +460,7 @@ class LauncherABC(object):
         self.kodi_joystick_suspended = False
         if self.execution_settings.suspend_joystick_engine:
             logger.debug('_launch_pre_exec() Suspending Kodi joystick engine')
-            response = kodi.jsonrpc_query("Settings.SetSettingValue", {"setting":"input.enablejoystick","value":False})
+            response = kodi.jsonrpc_query("Settings.SetSettingValue", {"setting": "input.enablejoystick", "value": False})
             logger.debug(f"Response  '{response}'")
             self.kodi_joystick_suspended = True
             logger.error('_launch_pre_exec() Suspending Kodi joystick engine not supported on Kodi Krypton!')
@@ -483,7 +520,7 @@ class LauncherABC(object):
         if self.kodi_joystick_suspended:
             logger.debug('_launch_post_exec() Kodi joystick engine was suspended before launching')
             logger.debug('_launch_post_exec() Resuming Kodi joystick engine')
-            response = kodi.jsonrpc_query("Settings.SetSettingValue", {"setting":"input.enablejoystick","value":True})
+            response = kodi.jsonrpc_query("Settings.SetSettingValue", {"setting": "input.enablejoystick", "value": True})
             logger.debug(f"Response  '{response}'")
             logger.debug('_launch_post_exec() Not supported on Kodi Krypton!')
         else:
@@ -506,10 +543,10 @@ class LauncherABC(object):
             xbmc.Player().play()
         logger.debug('LauncherABC::_launch_post_exec() function ENDS')
 
-    def _replace_in_args(self, args:typing.List[str], to_be_replaced:str, replace_with:str) -> list:
+    def _replace_in_args(self, args: typing.List[str], to_be_replaced: str, replace_with: str) -> list:
         result = [arg.replace(to_be_replaced, replace_with) for arg in args]
         return result
 
-    def _replace_in_kwargs(self, kwargs:typing.Dict[str, str],to_be_replaced:str, replace_with:str) -> dict:
-        result = { key: val.replace(to_be_replaced, replace_with) for key, val in kwargs.items() }
+    def _replace_in_kwargs(self, kwargs: typing.Dict[str, str], to_be_replaced: str, replace_with: str) -> dict:
+        result = {key: val.replace(to_be_replaced, replace_with) for key, val in kwargs.items()}
         return result

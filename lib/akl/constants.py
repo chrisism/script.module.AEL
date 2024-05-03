@@ -79,12 +79,6 @@ LOG_INFO = 2
 LOG_VERB = 3
 LOG_DEBUG = 4
 
-# --- Kind of assets (for edit context menus and scrapers) ---
-KIND_ASSET_CATEGORY = 1
-KIND_ASSET_COLLECTION = 2
-KIND_ASSET_LAUNCHER = 3
-KIND_ASSET_ROM = 4
-
 # --- Special Cateogry/Launcher IDs ---
 VCATEGORY_ADDONROOT_ID = 'root_category'
 VCATEGORY_CATEGORY_ID = 'vcategory_category'
@@ -126,10 +120,15 @@ VCATEGORIES = [
 ]
 
 # --- AEL/AKL OBJECT TYPES ---
-OBJ_CATEGORY = 'CATEGORY'
-OBJ_CATEGORY_VIRTUAL = 'VIRTUAL_CATEGORY'
-OBJ_ROMCOLLECTION = 'ROMCOLLECTION'
-OBJ_COLLECTION_VIRTUAL = 'VIRTUAL_COLLECTION'
+OBJ_CATEGORY = 42501
+OBJ_CATEGORY_VIRTUAL = 42502
+OBJ_ROMCOLLECTION = 42503
+OBJ_COLLECTION_VIRTUAL = 42504
+OBJ_SOURCE = 42506
+OBJ_ROM = 42505
+OBJ_LAUNCHER = 42608
+OBJ_NONE = 42507
+
 OBJ_LAUNCHER_STANDALONE = 'STANDALONE_LAUNCHER'
 OBJ_LAUNCHER_COLLECTION = 'COLLECTION_LAUNCHER'
 OBJ_LAUNCHER_VIRTUAL = 'VIRTUAL_LAUNCHER'
@@ -140,9 +139,7 @@ OBJ_LAUNCHER_LNK = 'WINLNK_LAUNCHER'
 OBJ_LAUNCHER_STEAM = 'STEAM_LAUNCHER'
 OBJ_LAUNCHER_NVGAMESTREAM = 'NVIDIASTREAM_LAUNCHER'
 OBJ_LAUNCHER_KODI_FAVOURITES = 'KODIFAVOURITES_LAUNCHER'
-OBJ_ROM = 'ROM'
 OBJ_FAVOURITE_ROM = 'FAVOURITE_ROM'
-OBJ_NONE = ''
 
 OBJ_VIRTUAL_TYPES = [
     OBJ_CATEGORY_VIRTUAL,
@@ -155,7 +152,7 @@ AKL_CONTENT_LABEL = 'AEL_Content'
 AKL_CONTENT_VALUE_LAUNCHERS = 'launchers'
 AKL_CONTENT_VALUE_ROMS = 'roms'
 AKL_CONTENT_VALUE_CATEGORY = 'category'
-AKL_CONTENT_VALUE_ROMCOLLECTION= 'romcollection'
+AKL_CONTENT_VALUE_ROMCOLLECTION = 'romcollection'
 AKL_CONTENT_VALUE_STD_LAUNCHER = 'std_launcher'
 AKL_CONTENT_VALUE_ROM_LAUNCHER = 'rom_launcher'
 AKL_CONTENT_VALUE_ROM = 'rom'
@@ -209,13 +206,13 @@ AUDIT_STATE_LIST = [
 ]
 
 # launcher['audit_display_mode'] values default NOINTRO_DMODE_ALL
-AUDIT_DMODE_ALL       = 'All ROMs'
-AUDIT_DMODE_HAVE      = 'Have ROMs'
-AUDIT_DMODE_HAVE_UNK  = 'Have or Unknown ROMs'
+AUDIT_DMODE_ALL = 'All ROMs'
+AUDIT_DMODE_HAVE = 'Have ROMs'
+AUDIT_DMODE_HAVE_UNK = 'Have or Unknown ROMs'
 AUDIT_DMODE_HAVE_MISS = 'Have or Missing ROMs'
-AUDIT_DMODE_MISS      = 'Missing ROMs'
-AUDIT_DMODE_MISS_UNK  = 'Missing or Unknown ROMs'
-AUDIT_DMODE_UNK       = 'Unknown ROMs'
+AUDIT_DMODE_MISS = 'Missing ROMs'
+AUDIT_DMODE_MISS_UNK = 'Missing or Unknown ROMs'
+AUDIT_DMODE_UNK = 'Unknown ROMs'
 AUDIT_DMODE_LIST = [
     AUDIT_DMODE_ALL,
     AUDIT_DMODE_HAVE,
@@ -227,7 +224,7 @@ AUDIT_DMODE_LIST = [
 ]
 
 # launcher['display_mode'] default value LAUNCHER_DMODE_FLAT
-LAUNCHER_DMODE_FLAT   = 'Flat mode'
+LAUNCHER_DMODE_FLAT = 'Flat mode'
 LAUNCHER_DMODE_PCLONE = 'Parent/Clone mode'
 LAUNCHER_DMODE_LIST = [
     LAUNCHER_DMODE_FLAT,
@@ -235,11 +232,11 @@ LAUNCHER_DMODE_LIST = [
 ]
 
 # rom['nointro_status'] values default AUDIT_STATUS_NONE
-AUDIT_STATUS_HAVE    = 'Have'
-AUDIT_STATUS_MISS    = 'Miss'
+AUDIT_STATUS_HAVE = 'Have'
+AUDIT_STATUS_MISS = 'Miss'
 AUDIT_STATUS_UNKNOWN = 'Unknown'
-AUDIT_STATUS_EXTRA   = 'Extra'
-AUDIT_STATUS_NONE    = 'None'
+AUDIT_STATUS_EXTRA = 'Extra'
+AUDIT_STATUS_NONE = 'None'
 AUDIT_STATUS_LIST = [
     AUDIT_STATUS_HAVE,
     AUDIT_STATUS_MISS,
@@ -378,9 +375,7 @@ ASSET_MAP_ID = 'map'
 ASSET_MANUAL_ID = 'manual'
 ASSET_CONTROLLER_ID = 'controller'
 
-#
-# The order of this list must match order in dialog.select() in the GUI, or bad things will happen.
-#
+
 CATEGORY_ASSET_ID_LIST = [
     ASSET_ICON_ID,
     ASSET_FANART_ID,
@@ -442,16 +437,16 @@ MAPPABLE_ROM_ASSET_ID_LIST = [
     ASSET_POSTER_ID
 ]
 
-BOX_SIZE_POSTER     = 'poster'
-BOX_SIZE_DVD        = 'dvd'
-BOX_SIZE_BLURAY     = 'bluray'
-BOX_SIZE_CD         = 'cd'
-BOX_SIZE_WIDE       = 'widebox'
-BOX_SIZE_SLIM       = 'slimbox'
-BOX_SIZE_SQUARE     = 'squarebox'
-BOX_SIZE_3DS        = '3dsbox'
-BOX_SIZE_STEAM      = 'steambanner'
-BOX_SIZE_SCREEN     = 'screenshot'
+BOX_SIZE_POSTER = 'poster'
+BOX_SIZE_DVD = 'dvd'
+BOX_SIZE_BLURAY = 'bluray'
+BOX_SIZE_CD = 'cd'
+BOX_SIZE_WIDE = 'widebox'
+BOX_SIZE_SLIM = 'slimbox'
+BOX_SIZE_SQUARE = 'squarebox'
+BOX_SIZE_3DS = '3dsbox'
+BOX_SIZE_STEAM = 'steambanner'
+BOX_SIZE_SCREEN = 'screenshot'
 
 BOX_SIZES = [
     BOX_SIZE_POSTER,
@@ -468,8 +463,8 @@ BOX_SIZES = [
 
 # --- Addon will search these file extensions for assets ---
 # Check http://kodi.wiki/view/advancedsettings.xml#videoextensions
-IMAGE_EXTENSION_LIST   = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tif', 'tiff']
-MANUAL_EXTENSION_LIST  = ['pdf', 'cbz', 'cbr']
+IMAGE_EXTENSION_LIST = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tif', 'tiff']
+MANUAL_EXTENSION_LIST = ['pdf', 'cbz', 'cbr']
 TRAILER_EXTENSION_LIST = ['mov', 'divx', 'xvid', 'wmv', 'avi', 'mpg', 'mpeg', 'mp4', 'mkv', 'avc']
 
 # --- Scrapers -----------------------------------------------------------------------------------
@@ -477,19 +472,19 @@ TRAILER_EXTENSION_LIST = ['mov', 'divx', 'xvid', 'wmv', 'avi', 'mpg', 'mpeg', 'm
 # Use True only for development.
 SCRAPER_CACHE_HUMAN_JSON = True
 
-SCRAPE_ACTION_NONE             = 20000
-SCRAPE_POLICY_TITLE_ONLY       = 20010
-SCRAPE_POLICY_LOCAL_ONLY       = 20030
+SCRAPE_ACTION_NONE = 20000
+SCRAPE_POLICY_TITLE_ONLY = 20010
+SCRAPE_POLICY_LOCAL_ONLY = 20030
 SCRAPE_POLICY_LOCAL_AND_SCRAPE = 20050
-SCRAPE_POLICY_SCRAPE_ONLY      = 20060
+SCRAPE_POLICY_SCRAPE_ONLY = 20060
 
-SCRAPE_MANUAL    = 20510
+SCRAPE_MANUAL = 20510
 SCRAPE_AUTOMATIC = 20520
 
-## Addon type Enum
+
+# Addon type Enum
 class AddonType(Enum):
-    UNKNOWN  = 'UNKNOWN',
+    UNKNOWN = 'UNKNOWN',
     LAUNCHER = 'LAUNCHER',
-    SCRAPER  = 'SCRAPER',
-    SCANNER  = 'SCANNER'
-    
+    SCRAPER = 'SCRAPER',
+    SCANNER = 'SCANNER'

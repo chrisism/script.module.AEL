@@ -22,6 +22,7 @@ import xbmcaddon
 from akl import settings
 from akl.constants import LOG_DEBUG
 
+
 class KodiLogHandler(logging.StreamHandler):
 
     def __init__(self):
@@ -52,6 +53,7 @@ class KodiLogHandler(logging.StreamHandler):
 
     def flush(self):
         pass
+
 
 def config():
     logger = logging.getLogger()

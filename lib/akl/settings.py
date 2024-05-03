@@ -6,17 +6,22 @@ from akl.utils import io
 # read settings
 __addon__ = xbmcaddon.Addon()
 
+
 def showSettings():
     __addon__.openSettings()
+
 
 def getSetting(setting):
     return __addon__.getSetting(setting).strip()
 
+
 def setSetting(setting, value):
     __addon__.setSetting(setting, str(value))
 
+
 def getSettingAsBool(setting):
     return getSetting(setting).lower() == "true"
+
 
 def getSettingAsFloat(setting):
     try:
@@ -24,14 +29,18 @@ def getSettingAsFloat(setting):
     except ValueError:
         return 0
 
+
 def getSettingAsInt(setting):
     try:
         return int(getSettingAsFloat(setting))
     except ValueError:
         return 0
 
-def getSettingAsFilePath(setting) -> io.FileName:
+
+def getSettingAsFilePath(setting, isdir=False, fallback: io.FileName = None) -> io.FileName:
     str_value = __addon__.getSetting(setting).strip()
-    if str_value is None or len(str_value) == 0: 
+    if str_value is None or len(str_value) == 0:
+        if fallback:
+            return fallback
         return None
-    return io.FileName(str_value)
+    return io.FileName(str_value, isdir)

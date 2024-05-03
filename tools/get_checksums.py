@@ -10,8 +10,7 @@
 
 # --- Python standard library ---
 from __future__ import unicode_literals
-import copy
-import os
+
 import pprint
 import sys
 import logging
@@ -20,8 +19,8 @@ import logging
 from lib.akl.utils import io
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
-                datefmt = '%m/%d/%Y %I:%M:%S %p', level = logging.DEBUG) 
+logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s: %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
 # --- main ----------------------------------------------------------------------------------------
 if len(sys.argv) < 2:

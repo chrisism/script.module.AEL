@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 import io
 import os
-import sys
 
 import xml.etree.ElementTree as ET
 

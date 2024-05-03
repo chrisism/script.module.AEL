@@ -32,23 +32,27 @@ from akl.api import ROMObj
 
 logger = logging.getLogger(__name__)
 
+
 class ROMCandidateABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def get_ROM(self) -> ROMObj: return None
+    def get_ROM(self) -> ROMObj:
+        return None
     
     @abc.abstractmethod
-    def get_sort_value(self) -> str: return None
-    
+    def get_sort_value(self) -> str:
+        return None
+
+
 class MultiDiscInfo:
     def __init__(self, ROM_FN: io.FileName):
-        self.ROM_FN      = ROM_FN
+        self.ROM_FN = ROM_FN
         self.isMultiDisc = False
-        self.setName     = ''
-        self.discName    = ROM_FN.getBase()
-        self.extension   = ROM_FN.getExt()
-        self.order       = 0
+        self.setName = ''
+        self.discName = ROM_FN.getBase()
+        self.extension = ROM_FN.getExt()
+        self.order = 0
 
     @staticmethod
     def get_multidisc_info(ROM_FN: io.FileName) -> MultiDiscInfo:
@@ -103,6 +107,7 @@ class MultiDiscInfo:
 
         return MDSet
 
+
 # #################################################################################################
 # #################################################################################################
 # ROM scanners
@@ -111,11 +116,10 @@ class MultiDiscInfo:
 class ScannerStrategyABC(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, 
-                 scanner_id: str,
-                 romcollection_id: str,
-                 webservice_host:str,
-                 webservice_port:int,
+    def __init__(self,
+                 source_id: str,
+                 webservice_host: str,
+                 webservice_port: int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.scanner_settings = {}
@@ -124,8 +128,7 @@ class ScannerStrategyABC(object):
         self.scanned_roms: typing.List[ROMObj] = []
         self.marked_dead_roms: typing.List[ROMObj] = []
         
-        self.scanner_id       = scanner_id
-        self.romcollection_id = romcollection_id
+        self.source_id = source_id
         
         self.webservice_host = webservice_host
         self.webservice_port = webservice_port
@@ -138,12 +141,15 @@ class ScannerStrategyABC(object):
     # Core methods
     # --------------------------------------------------------------------------------------------
     @abc.abstractmethod
-    def get_name(self) -> str: return ''
+    def get_name(self) -> str:
+        return ''
     
     @abc.abstractmethod
-    def get_scanner_addon_id(self) -> str: return ''
+    def get_scanner_addon_id(self) -> str:
+        return ''
 
-    def get_scanner_settings(self) -> dict: return self.scanner_settings
+    def get_scanner_settings(self) -> dict:
+        return self.scanner_settings
     
     def amount_of_scanned_roms(self) -> int:
         return len(self.scanned_roms)
@@ -155,62 +161,63 @@ class ScannerStrategyABC(object):
     # Configure this scanner.
     #
     @abc.abstractmethod
-    def configure(self) -> bool: return True
+    def configure(self) -> bool:
+        return True
 
     #
     # Scans for new roms based on the type of launcher.
     #
     @abc.abstractmethod
-    def scan(self):  pass
+    def scan(self):
+        pass
 
     #
-    # Cleans up ROM collection.
+    # Cleans up ROM source.
     # Remove Remove dead/missing ROMs ROMs
     #
     @abc.abstractmethod
-    def cleanup(self): pass
+    def cleanup(self):
+        pass
         
     #
-    # This method will call the AKL webservice to retrieve previously stored scanner settings for a 
-    # specific romcollection in the database.
+    # This method will call the AKL webservice to retrieve previously stored scanner settings for a
+    # specific source in the database.
     #
     def load_settings(self):
-        if self.scanner_id is None: return        
+        if self.source_id is None:
+            return
         try:
-            scanner_settings = api.client_get_collection_scanner_settings(
-                    self.webservice_host, 
-                    self.webservice_port, 
-                    self.romcollection_id, 
-                    self.scanner_id)
+            scanner_settings = api.client_get_source_scanner_settings(
+                self.webservice_host,
+                self.webservice_port,
+                self.source_id)
             
             self.scanner_settings = scanner_settings
-        except Exception as ex:
+        except Exception:
             logger.exception('Failure while loading scanner settings')
             self.scanner_settings = {}
         
     #
-    # This method will call the AKL webservice to store scanner settings for a 
-    # specific romcollection in the database.
+    # This method will call the AKL webservice to store scanner settings for a
+    # specific source in the database.
     #
-    def store_settings(self):        
+    def store_settings(self):
         scanner_settings = self.get_scanner_settings()
         post_data = {
-            'romcollection_id': self.romcollection_id,
-            'akl_addon_id': self.scanner_id,
+            'source_id': self.source_id,
             'addon_id': self.get_scanner_addon_id(),
             'settings': scanner_settings
-        }        
+        }
         is_stored = api.client_post_scanner_settings(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
             kodi.notify_error('Failed to store scanner settings')
      
-    def store_scanned_roms(self): 
+    def store_scanned_roms(self):
         roms = [*(r.get_data_dic() for r in self.scanned_roms)]
         post_data = {
-            'romcollection_id': self.romcollection_id,
-            'akl_addon_id': self.scanner_id,
+            'source_id': self.source_id,
             'roms': roms
-        }      
+        }
         is_stored = api.client_post_scanned_roms(self.webservice_host, self.webservice_port, post_data)
         if not is_stored:
             kodi.notify_error('Failed to store scanned ROMs')
@@ -218,39 +225,44 @@ class ScannerStrategyABC(object):
     def remove_dead_roms(self):
         dead_rom_ids = [*(r.get_id() for r in self.marked_dead_roms)]
         post_data = {
-            'romcollection_id': self.romcollection_id,
-            'akl_addon_id': self.scanner_id,
+            'source_id': self.source_id,
             'rom_ids': dead_rom_ids
-        }      
+        }
         is_removed = api.client_post_dead_roms(self.webservice_host, self.webservice_port, post_data)
         if not is_removed:
-            kodi.notify_error('Failed to remove dead ROMs')        
+            kodi.notify_error('Failed to remove dead ROMs')
+
 
 class NullScanner(ScannerStrategyABC):
     
-    def get_name(self) -> str: return 'NULL'
+    def get_name(self) -> str:
+        return 'NULL'
     
-    def get_scanner_addon_id(self) -> str: return ''
+    def get_scanner_addon_id(self) -> str:
+        return ''
     
-    def configure(self): return True
+    def configure(self):
+        return True
     
-    def scan(self): pass
+    def scan(self):
+        pass
 
-    def cleanup(self): pass
+    def cleanup(self):
+        pass
+
 
 class RomScannerStrategy(ScannerStrategyABC):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, 
-                 reports_dir: io.FileName, 
-                 scanner_id: str,
-                 romcollection_id: str,
-                 webservice_host:str,
-                 webservice_port:int,
+    def __init__(self,
+                 reports_dir: io.FileName,
+                 source_id: str,
+                 webservice_host: str,
+                 webservice_port: int,
                  progress_dialog: kodi.ProgressDialog):
         
         self.reports_dir = reports_dir
-        super(RomScannerStrategy, self).__init__(scanner_id, romcollection_id, webservice_host, webservice_port, progress_dialog)
+        super(RomScannerStrategy, self).__init__(source_id, webservice_host, webservice_port, progress_dialog)
 
     # --------------------------------------------------------------------------------------------
     # Scanner configuration wizard methods
@@ -265,40 +277,47 @@ class RomScannerStrategy(ScannerStrategyABC):
         logger.debug('RomScannerStrategy::build() Starting ...')
                 
         # --- Call hook before wizard ---
-        if not self._configure_pre_wizard_hook(): return False
+        if not self._configure_pre_wizard_hook():
+            return False
 
-        if self.scanner_id is None:
+        # Empty scanner settings, then start new config wizard
+        if not self.scanner_settings:
             # --- Scanner configuration code ---
             wizard = kodi.WizardDialog_Dummy(None, 'addon_id', self.get_scanner_addon_id())
             # >> Call Child class wizard builder method
             wizard = self._configure_get_wizard(wizard)
             # >> Run wizard
             self.scanner_settings = wizard.runWizard(self.scanner_settings)
-            if not self.scanner_settings: return False
+            if not self.scanner_settings:
+                return False
         else:
-            if not self.edit(): return False
-            if not kodi.dialog_yesno('Save scanner changes?'): return False
+            if not self.edit():
+                return False
+            if not kodi.dialog_yesno('Save scanner changes?'):
+                return False
 
         # --- Call hook after wizard ---
-        if not self._configure_post_wizard_hook(): return False
+        if not self._configure_post_wizard_hook():
+            return False
 
         return True
 
     def edit(self) -> bool:
         # Edit mode. Show options dialog
         edit_options = self._configure_get_edit_options()
-        if edit_options == None:
+        if edit_options is None:
             logger.debug('No edit options. Cancelling')
             return False
 
         edit_dialog = kodi.OrdDictionaryDialog()
-        t = 'Edit {} settings'.format(self.get_name())
+        t = f'Edit {self.get_name()} settings'
         selected_option = edit_dialog.select(t, edit_options)
         
-        if selected_option is None: return True# short circuit
+        if selected_option is None:
+            return True  # short circuit
         
-        selected_option() # execute
-        return self.edit() # recursive call
+        selected_option()  # execute
+        return self.edit()  # recursive call
         
     def scan(self):
                
@@ -309,31 +328,26 @@ class RomScannerStrategy(ScannerStrategyABC):
         # >> Check if we already have existing ROMs
         launcher_report.write('Loading existing ROMs ...')
         try:
-            roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
-        except Exception as ex:
+            roms = api.client_get_roms_in_source(self.webservice_host, self.webservice_port, self.source_id)
+        except Exception:
             logger.exception('Failure retrieving existing ROMs')
             roms = []
         
-        roms_by_scanner = [rom for rom in roms if rom.get_scanned_by() == self.scanner_id]
-
         num_roms = len(roms)
-        num_roms_by_scanner = len(roms_by_scanner)
-
-        launcher_report.write('{} ROMs currently in database'.format(num_roms))
-        launcher_report.write('{} ROMs previously scanned by this scanner'.format(num_roms_by_scanner))
+        launcher_report.write(f'{num_roms} ROMs currently in database for this source.')
         
         launcher_report.write('Collecting candidates ...')
         candidates = self._getCandidates(launcher_report)
         num_candidates = len(candidates) if candidates else 0
-        launcher_report.write('{} candidates found'.format(num_candidates))
+        launcher_report.write(f'{num_candidates} candidates found')
         
-        launcher_report.write('Checking for dead ROMs ...') 
-        dead_roms = self._getDeadRoms(candidates, roms_by_scanner)
-        num_dead_roms = len(dead_roms) 
+        launcher_report.write('Checking for dead ROMs ...')
+        dead_roms = self._getDeadRoms(candidates, roms)
+        num_dead_roms = len(dead_roms)
 
         if num_dead_roms > 0:
-            kodi.notify('{0} dead ROMs found'.format(num_dead_roms))
-            logger.info('{0} dead ROMs found'.format(num_dead_roms))
+            kodi.notify(f'{num_dead_roms} dead ROMs found')
+            logger.info(f'{num_dead_roms} dead ROMs found')
         else:
             logger.info('No dead ROMs found')
         
@@ -342,7 +356,7 @@ class RomScannerStrategy(ScannerStrategyABC):
         # --- Prepare list of candidates to be processed ----------------------------------------------
         # List has candidates. List already sorted alphabetically.
         candidates = sorted(candidates, key=lambda c: c.get_sort_value())
-        new_roms = self._processFoundItems(candidates, roms_by_scanner, launcher_report)
+        new_roms = self._processFoundItems(candidates, roms, launcher_report)
         
         if not new_roms and not dead_roms:
             return
@@ -363,9 +377,9 @@ class RomScannerStrategy(ScannerStrategyABC):
             return
         
         if num_new_roms == 0:
-            kodi.notify('Added no new ROMs. ROM set has {0} ROMs'.format(len(roms)))
+            kodi.notify(f'Added no new ROMs. ROM set has {len(roms)} ROMs')
         else:
-            kodi.notify('Added {0} new ROMs'.format(num_new_roms))
+            kodi.notify(f'Added {num_new_roms} new ROMs')
 
         # --- Close ROM scanner report file ---
         launcher_report.write('*** END of the ROM scanner report ***')
@@ -377,8 +391,8 @@ class RomScannerStrategy(ScannerStrategyABC):
         launcher_report.write('Dead ROM Cleaning operation')
         
         try:
-            roms = api.client_get_roms_in_collection(self.webservice_host, self.webservice_port, self.romcollection_id)
-        except Exception as ex:
+            roms = api.client_get_roms_in_source(self.webservice_host, self.webservice_port, self.source_id)
+        except Exception:
             logger.exception('Failure retrieving existing ROMs')
             roms = []
         
@@ -386,30 +400,22 @@ class RomScannerStrategy(ScannerStrategyABC):
             launcher_report.close()
             logger.info('No roms available to cleanup')
             return {}
-        
-        roms_by_scanner = [rom for rom in roms if rom.get_scanned_by() == self.scanner_id]
-        if roms_by_scanner is None:
-            launcher_report.close()
-            logger.info('No roms for this scanner available to cleanup')
-            return {}
-        
+              
         num_roms = len(roms)
-        num_roms_by_scanner = len(roms_by_scanner)
-        launcher_report.write('{0} ROMs currently in database'.format(num_roms))
-        launcher_report.write('{0} ROMs currently in database associated with this scanner'.format(num_roms_by_scanner))
+        launcher_report.write(f'{num_roms} ROMs currently in database for this source.')
         
         launcher_report.write('Collecting candidates ...')
         candidates = self._getCandidates(launcher_report)
         num_candidates = len(candidates)
-        logger.info('{0} candidates found'.format(num_candidates))
+        logger.info(f'{num_candidates} candidates found')
 
         launcher_report.write('Checking for dead ROMs ...')
-        dead_roms = self._getDeadRoms(candidates, roms_by_scanner)
+        dead_roms = self._getDeadRoms(candidates, roms)
         num_dead_roms = len(dead_roms)
 
         if num_dead_roms > 0:
-            kodi.notify('{0} dead ROMs found'.format(num_dead_roms))
-            logger.info('{0} dead ROMs found'.format(num_dead_roms))
+            kodi.notify(f'{num_dead_roms} dead ROMs found')
+            logger.info(f'{num_dead_roms} dead ROMs found')
         else:
             logger.info('No dead ROMs found')
 
@@ -422,21 +428,25 @@ class RomScannerStrategy(ScannerStrategyABC):
     # Child concrete classes must implement this method.
     #
     @abc.abstractmethod
-    def _configure_get_wizard(self, wizard) -> kodi.WizardDialog: pass
+    def _configure_get_wizard(self, wizard) -> kodi.WizardDialog:
+        pass
 
     @abc.abstractmethod
-    def _configure_get_edit_options(self) -> dict: pass
+    def _configure_get_edit_options(self) -> dict:
+        pass
     
     # ~~~ Pre & Post configuration hooks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod
-    def _configure_pre_wizard_hook(self): return True
+    def _configure_pre_wizard_hook(self):
+        return True
 
     @abc.abstractmethod
-    def _configure_post_wizard_hook(self): return True
+    def _configure_post_wizard_hook(self):
+        return True
 
     # ---------------------------------------------------------------------------------------------
     # Execution methods
-    # --------------------------------------------------------------------------------------------- 
+    # ---------------------------------------------------------------------------------------------
     # ~~~ Scan for new files (*.*) and put them in a list ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod
     def _getCandidates(self, launcher_report: report.Reporter) -> typing.List[ROMCandidateABC]:
@@ -444,25 +454,30 @@ class RomScannerStrategy(ScannerStrategyABC):
 
     # --- Get dead entries -----------------------------------------------------------------
     @abc.abstractmethod
-    def _getDeadRoms(self, candidates:typing.List[ROMCandidateABC], roms: typing.List[ROMObj]) -> typing.List[ROMObj]:
+    def _getDeadRoms(self, candidates: typing.List[ROMCandidateABC], roms: typing.List[ROMObj]) -> typing.List[ROMObj]:
         return []
 
     # ~~~ Now go processing item by item ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     @abc.abstractmethod
-    def _processFoundItems(self, candidates:typing.List[ROMCandidateABC], roms:typing.List[ROMObj], launcher_report: report.Reporter) -> typing.List[ROMObj]:
+    def _processFoundItems(self,
+                           candidates: typing.List[ROMCandidateABC],
+                           roms: typing.List[ROMObj],
+                           launcher_report: report.Reporter) -> typing.List[ROMObj]:
         return []
 
     def configuration_get_extensions_from_launchers(self, input, item_key, scanner_settings):
-        if input: return input
+        if input:
+            return input
         extensions = scanner_settings[item_key] if item_key in scanner_settings else ''
-        if extensions != '': return extensions
+        if extensions != '':
+            return extensions
         
-        if self.romcollection_id:
+        if self.source_id:
             extensions_by_launchers = []
-            launchers = api.client_get_collection_launchers(self.webservice_host, self.webservice_port, self.romcollection_id)
+            launchers = api.client_get_source_launchers(self.webservice_host, self.webservice_port, self.source_id)
             for key, launcher_settings in launchers.items():
-                if 'application' in launcher_settings:    
-                    app = launcher_settings['application'] 
+                if 'application' in launcher_settings:
+                    app = launcher_settings['application']
                     appPath = io.FileName(app)
                     launcher_extensions = platforms.emudata_get_program_extensions(appPath.getBase())
                     if launcher_extensions != '':
