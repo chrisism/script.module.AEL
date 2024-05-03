@@ -21,8 +21,7 @@ import abc
 import subprocess
 import webbrowser
 import logging
-import re 
-import logging 
+import re
 import json
 
 import xbmc
@@ -39,6 +38,7 @@ DEFAULT_KEYWORDS = [
     NON_BLOCKING_KEYWORD,
     SEPARATOR_KEYWORD
 ]
+
 
 # #################################################################################################
 # #################################################################################################
@@ -65,6 +65,7 @@ class ExecutorABC():
         """
         pass
 
+
 class XbmcExecutor(ExecutorABC):
     """
     Execute Kodi built-in functions.
@@ -81,9 +82,10 @@ class XbmcExecutor(ExecutorABC):
 
         if len(arguments) > 0:
             args_string = ", ".join(arguments)
-            xbmc.executebuiltin(f'{application}({args_string})', wait = not non_blocking)
+            xbmc.executebuiltin(f'{application}({args_string})', wait=not non_blocking)
         else:
-            xbmc.executebuiltin(application, wait= not non_blocking)
+            xbmc.executebuiltin(application, wait=not non_blocking)
+
 
 #
 # --- Linux ---
@@ -94,10 +96,9 @@ class XbmcExecutor(ExecutorABC):
 # the cause is that the socket is kept open by the wrapper script.
 #
 class LinuxExecutor(ExecutorABC):
-    def __init__(self, logFile: io.FileName, lirc_state:bool):
+    def __init__(self, logFile: io.FileName, lirc_state: bool):
         self.lirc_state = lirc_state
         super(LinuxExecutor, self).__init__(logFile)
-
 
     def execute(self, application: str, *args, **kwargs):
         logger.debug('LinuxExecutor::execute() Starting ...')
@@ -114,15 +115,18 @@ class LinuxExecutor(ExecutorABC):
         if non_blocking:
             # >> In a non-blocking launch stdout/stderr of child process cannot be recorded.
             logger.info('Launching non-blocking process subprocess.Popen()')
-            p = subprocess.Popen(command, close_fds = True)
+            p = subprocess.Popen(command, close_fds=True)
         else:
-            if self.lirc_state: xbmc.executebuiltin('LIRC.stop')
+            if self.lirc_state:
+                xbmc.executebuiltin('LIRC.stop')
             with open(self.logFile.getPathTranslated(), 'w') as f:
                 retcode = subprocess.call(
-                    command, stdout = f, stderr = subprocess.STDOUT, close_fds = True)
+                    command, stdout=f, stderr=subprocess.STDOUT, close_fds=True)
             logger.info(f'Process retcode = {retcode}')
-            if self.lirc_state: xbmc.executebuiltin('LIRC.start')
+            if self.lirc_state:
+                xbmc.executebuiltin('LIRC.start')
         logger.debug('LinuxExecutor::execute() function ENDS')
+
 
 class AndroidExecutor(ExecutorABC):
     """
@@ -198,9 +202,10 @@ class AndroidExecutor(ExecutorABC):
         
         #retcode = os.system(cmd)
         with open(self.logFile.getPathTranslated(), 'w') as f:
-            retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
+            retcode = subprocess.call(command, stdout=f, stderr=subprocess.STDOUT)
         logger.info(f"Process retcode = {retcode}")
         logger.debug("AndroidExecutor::execute() function ENDS")
+
 
 class AndroidActivityExecutor(ExecutorABC):
     """
@@ -267,7 +272,7 @@ class OSXExecutor(ExecutorABC):
 
         # >> New way.
         with open(self.logFile.getPathTranslated(), 'w') as f:
-            retcode = subprocess.call(command, stdout = f, stderr = subprocess.STDOUT)
+            retcode = subprocess.call(command, stdout=f, stderr=subprocess.STDOUT)
         logger.info('Process retcode = {0}'.format(retcode))
         logger.debug('OSXExecutor::execute() function ENDS')
 
@@ -342,9 +347,9 @@ class WindowsBatchFileExecutor(ExecutorABC):
 # be redirected to a file.
 #
 class WindowsExecutor(ExecutorABC):
-    def __init__(self, logFile, cd_apppath:bool, close_fds:bool):
+    def __init__(self, logFile, cd_apppath: bool, close_fds: bool):
         self.windows_cd_apppath = cd_apppath
-        self.windows_close_fds  = close_fds
+        self.windows_close_fds = close_fds
         super(WindowsExecutor, self).__init__(logFile)
 
     def execute(self, application: str, *args, **kwargs):
@@ -367,7 +372,9 @@ class WindowsExecutor(ExecutorABC):
                 new_command[i] = '\\' + command[i]
                 logger.debug(f'WindowsExecutor: Before arg #{i} = "{command[i]}"')
                 logger.debug(f'WindowsExecutor: Now    arg #{i} = "{new_command[i]}"')
-        command = list(new_command)
+            command = list(new_command)
+        
+        #command = ' '.join(command)
         logger.debug(f'WindowsExecutor: command = {command}')
 
         # >> cwd = apppath.encode('utf-8') fails if application path has Unicode on Windows
@@ -376,24 +383,28 @@ class WindowsExecutor(ExecutorABC):
         logger.debug('Launching regular application')
         logger.debug(f'windows_cd_apppath = {self.windows_cd_apppath}')
         logger.debug(f'windows_close_fds  = {self.windows_close_fds}')
+        logger.debug(f'apppath            = {apppath}')
+        logger.debug(f'logfile path       = {self.logFile.getPathTranslated()}')
 
-        # >> Note that on Windows, you cannot set close_fds to true and also redirect the 
+        # >> Note that on Windows, you cannot set close_fds to true and also redirect the
         # >> standard handles by setting stdin, stdout or stderr.
-        if self.windows_cd_apppath and self.windows_close_fds:
-            retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True)
-        elif self.windows_cd_apppath and not self.windows_close_fds:
-            with open(self.logFile.getPathTranslated(), 'w') as f:
-                retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=False,
-                                            stdout = f, stderr = subprocess.STDOUT)
-        elif not self.windows_cd_apppath and self.windows_close_fds:
-            retcode = subprocess.call(command, close_fds = True)
-        elif not self.windows_cd_apppath and not self.windows_close_fds:
-            with open(self.logFile.getPathTranslated(), 'w') as f:
-                retcode = subprocess.call(command, close_fds = False, stdout = f, stderr = subprocess.STDOUT)
+        if self.windows_cd_apppath:
+            if self.windows_close_fds:
+                retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=True)
+            else:
+                with open(self.logFile.getPathTranslated(), 'w') as f:
+                    retcode = subprocess.call(command, cwd=apppath.encode('utf-8'), close_fds=False,
+                                              stdout=f, stderr=subprocess.STDOUT)
         else:
-            raise Exception('Logical error')
+            if self.windows_close_fds:
+                retcode = subprocess.call(command, close_fds=True)
+            else:
+                with open(self.logFile.getPathTranslated(), 'w') as f:
+                    retcode = subprocess.call(command, close_fds=False, stdout=f, stderr=subprocess.STDOUT)
+                    
         logger.info(f'Process retcode = {retcode}')
         logger.debug('WindowsExecutor::execute() function ENDS')
+
 
 class WebBrowserExecutor(ExecutorABC):
 
@@ -411,11 +422,13 @@ class WebBrowserExecutor(ExecutorABC):
         webbrowser.open(url)
         logger.debug('WebBrowserExecutor::execute() function ENDS')
 
+
 class ExecutorSettings(object):
     show_batch_window = False
     lirc_state = False
     windows_cd_apppath = False
     windows_close_fds = False
+
 
 class ExecutorFactoryABC(object):
     __metaclass__ = abc.ABCMeta
@@ -432,17 +445,18 @@ class ExecutorFactoryABC(object):
             xbmc = True             : Directly choose the XbmcExecutor
             android_builtin = True  : Directly choose the Kodi built-in startactivity for Android (if os=android)
             browser = True          : Directly choose the webbrowser executor
-        """    
+        """
         pass
+
 
 # -------------------------------------------------------------------------------------------------
 # Abstract Factory Pattern
 # See https://www.oreilly.com/library/view/head-first-design/0596007124/ch04.html
 # -------------------------------------------------------------------------------------------------
 class ExecutorFactory(ExecutorFactoryABC):
-    def __init__(self, reportFilePath:io.FileName = None, settings: ExecutorSettings = ExecutorSettings()):
+    def __init__(self, reportFilePath: io.FileName = None, settings: ExecutorSettings = ExecutorSettings()):
         self.settings = settings
-        self.logFile  = reportFilePath
+        self.logFile = reportFilePath
         super(ExecutorFactory).__init__()
 
     def create(self, application_str: str, **kwargs) -> ExecutorABC:
@@ -453,7 +467,7 @@ class ExecutorFactory(ExecutorFactoryABC):
         use_browser = kwargs.get("browser", False)
 
         if use_xbmc \
-            or application.getBase().lower().replace('.exe' , '') == 'xbmc' \
+            or application.getBase().lower().replace('.exe', '') == 'xbmc' \
             or 'xbmc-fav-' in application.getPath() \
             or 'xbmc-sea-' in application.getPath():
             return XbmcExecutor(self.logFile)
@@ -463,15 +477,16 @@ class ExecutorFactory(ExecutorFactoryABC):
 
         elif io.is_windows():
             # >> BAT/CMD file.
-            if application.getExt().lower() == '.bat' or application.getExt().lower() == '.cmd' :
+            if application.getExt().lower() == '.bat' or application.getExt().lower() == '.cmd':
                 return WindowsBatchFileExecutor(self.logFile, self.settings.show_batch_window)
             # >> Standalone launcher where application is a LNK file
-            elif application.getExt().lower() == '.lnk': 
+            elif application.getExt().lower() == '.lnk':
                 return WindowsLnkFileExecutor(self.logFile)
 
             # >> Standard Windows executor
             return WindowsExecutor(self.logFile,
-                self.settings.windows_cd_apppath, self.settings.windows_close_fds)
+                                   self.settings.windows_cd_apppath,
+                                   self.settings.windows_close_fds)
 
         elif io.is_android():
             if use_android_builtin:
@@ -488,4 +503,4 @@ class ExecutorFactory(ExecutorFactoryABC):
             logger.error('ExecutorFactory::create() Cannot determine the running platform')
             kodi.notify_warn('Cannot determine the running platform')
 
-        return None
+        return

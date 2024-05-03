@@ -5,7 +5,9 @@ import json
 import pprint
 import abc
 import collections
-import os, sys, shutil
+import os
+import sys
+import shutil
 from urllib.parse import urlencode
 
 import xbmc
@@ -15,6 +17,7 @@ import xbmcaddon
 from akl.utils import text, io
 
 logger = logging.getLogger(__name__)
+
 
 #
 # Access Kodi JSON-RPC interface in an easy way.
@@ -47,7 +50,7 @@ logger = logging.getLogger(__name__)
 #     "error" : { "code":-32700, "message" : "Parse error."}
 # }
 #
-def jsonrpc_query(method=None, params=None, verbose = False):
+def jsonrpc_query(method=None, params=None, verbose=False):
     if not method:
         return {}
     query = {
@@ -67,6 +70,7 @@ def jsonrpc_query(method=None, params=None, verbose = False):
         response = {}    
     return response
 
+
 def event(sender=None, command='test', data=None):
 
     if not sender:
@@ -84,25 +88,30 @@ def event(sender=None, command='test', data=None):
     jsonrpc_query('JSONRPC.NotifyAll', event_params)
     #xbmc.executebuiltin('NotifyAll({}, {}, {})'.format(sender, method, data))
 
+
 def execute(cmd):
     xbmc.executebuiltin(cmd)
 
-def execute_uri(uri, args:dict=None):
+
+def execute_uri(uri, args: dict = None):
     if args is not None:    
         uri = '{}?{}'.format(uri, urlencode(args))
     logger.debug('Executing RunPlugin(%s)...', uri)
     xbmc.executebuiltin('RunPlugin({})'.format(uri))
 
-def update_uri(uri, args:dict=None, reset_history=False):
+
+def update_uri(uri, args: dict = None, reset_history=False):
     if args is not None:    
         uri = f'{uri}?{urlencode(args)}'
     logger.debug('Executing Container.Update(%s)...', uri)
     cmd = f'Container.Update({uri}, replace)' if reset_history else f'Container.Update({uri})'
     execute(cmd)
-        
-def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
+
+
+def run_script(script: str, args: dict = None, wait_for_execution: bool = False):
     script_cmd = None
-    if args is None: script_cmd = 'RunScript({})'.format(script)
+    if args is None:
+        script_cmd = 'RunScript({})'.format(script)
     else:
         args_list = []
         for key, value in args.items():
@@ -114,9 +123,10 @@ def run_script(script: str, args:dict=None, wait_for_execution:bool=False):
     logger.debug('Executing {}...'.format(script_cmd))
     xbmc.executebuiltin(script_cmd, wait_for_execution)
 
-def play_item(item_label:str, path:str, type:str, info: dict):
+
+def play_item(item_label: str, path: str, type: str, info: dict):
     
-    listitem = xbmcgui.ListItem(label = item_label, label2 = item_label)
+    listitem = xbmcgui.ListItem(label=item_label, label2=item_label)
     listitem.setInfo(type, info)
     
     logger.debug('Calling xbmc.Player().play() ...')
@@ -180,7 +190,7 @@ def dialog_yesno_timer(text, timer_ms=30000, title='Advanced Kodi Launcher'):
 
 
 def browse(type=1, text='Choose files', shares='files', mask='', preselected_path=None, useThumbs=False, multiple=False):
-    return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple,)
+    return xbmcgui.Dialog().browse(type, text, shares, mask, useThumbs, False, preselected_path, enableMultiple=multiple)
 
 
 def dialog_numeric(title: str, default: int = None):
@@ -221,17 +231,17 @@ def dialog_keyboard(title, text='') -> str:
 
 
 # Returns a directory.
-def dialog_get_directory(d_heading, d_dir = '', shares = ''):
+def dialog_get_directory(d_heading, d_dir='', shares=''):
     if d_dir:
-        ret = xbmcgui.Dialog().browse(0, d_heading, shares, defaultt = d_dir)
+        ret = xbmcgui.Dialog().browse(0, d_heading, shares, defaultt=d_dir)
     else:
-        ret =  xbmcgui.Dialog().browse(0, d_heading, shares)
+        ret = xbmcgui.Dialog().browse(0, d_heading, shares)
     return ret
 
 
-def dialog_get_file(heading, d_dir = '', shares = ''):
+def dialog_get_file(heading, d_dir='', shares=''):
     if d_dir:
-        ret = xbmcgui.Dialog().browse(1, heading, shares, defaultt = d_dir)
+        ret = xbmcgui.Dialog().browse(1, heading, shares, defaultt=d_dir)
     else:
         ret = xbmcgui.Dialog().browse(1, heading, shares)
     return ret
@@ -272,46 +282,58 @@ def clear_windowprops(keys=None, prefix="", window_id=10000):
     for key in keys:
         window.clearProperty('%s%s' % (prefix, key))
 
+
 def get_info_label(name):
     return xbmc.getInfoLabel(name)
 
+
 def translate(id):
     return xbmcaddon.Addon().getLocalizedString(int(id))
+
 
 def getAddonDir() -> io.FileName:
     addon_id = xbmcaddon.Addon().getAddonInfo('id')
     addon_data_dir = io.FileName('special://profile/addon_data/{}'.format(addon_id))
     return addon_data_dir
 
+
 def get_addon_id() -> str:
     addon_id = xbmcaddon.Addon().getAddonInfo('id')
     return addon_id
 
+
 def get_addon_version() -> str:
     return xbmcaddon.Addon().getAddonInfo('version')
+
 
 def get_addon_path() -> str:
     return xbmcaddon.Addon().getAddonInfo('path')
 
+
 def toggle_fullscreen():
-    jsonrpc_query('Input.ExecuteAction', {'action' : 'togglefullscreen'})
+    jsonrpc_query('Input.ExecuteAction', {'action': 'togglefullscreen'})
+
 
 def get_screensaver_mode():
-    r_dic = jsonrpc_query('Settings.getSettingValue', {'setting' : 'screensaver.mode'})
+    r_dic = jsonrpc_query('Settings.getSettingValue', {'setting': 'screensaver.mode'})
     screensaver_mode = r_dic['result']['value'] if 'result' in r_dic else None
     return screensaver_mode
 
-g_screensaver_mode = None # Global variable to store screensaver status.
+
+g_screensaver_mode = None  # Global variable to store screensaver status.
+
+
 def disable_screensaver():
     global g_screensaver_mode
     g_screensaver_mode = get_screensaver_mode()
     logger.debug('kodi.disable_screensaver() g_screensaver_mode "{}"'.format(g_screensaver_mode))
     p_dic = {
-        'setting' : 'screensaver.mode',
-        'value' : '',
+        'setting': 'screensaver.mode',
+        'value': '',
     }
     jsonrpc_query('Settings.setSettingValue', p_dic)
     logger.debug('kodi_disable_screensaver() Screensaver disabled.')
+
 
 # kodi_disable_screensaver() must be called before this function or bad things will happen.
 def restore_screensaver():
@@ -320,11 +342,12 @@ def restore_screensaver():
         raise RuntimeError
     logger.debug('kodi_restore_screensaver() Screensaver mode "{}"'.format(g_screensaver_mode))
     p_dic = {
-        'setting' : 'screensaver.mode',
-        'value' : g_screensaver_mode,
+        'setting': 'screensaver.mode',
+        'value': g_screensaver_mode,
     }
     jsonrpc_query('Settings.setSettingValue', p_dic)
     logger.debug('kodi_restore_screensaver() Restored previous screensaver status.')
+
 
 #
 # See https://kodi.wiki/view/JSON-RPC_API/v8#Textures
@@ -337,7 +360,7 @@ def delete_cache_texture(database_path_str):
     # --- Query texture database ---
     json_fname_str = text.escape_JSON(database_path_str)
     parameters = {
-        "properties" : [ "url", "cachedurl", "lasthashcheck", "imagehash", "sizes"], 
+        "properties": ["url", "cachedurl", "lasthashcheck", "imagehash", "sizes"],
         "filter": {
             "field": "url",
             "operator": "is",
@@ -345,7 +368,7 @@ def delete_cache_texture(database_path_str):
         }
     }
     
-    r_dic = jsonrpc_query('Textures.GetTextures', json.dumps(parameters), verbose = True)
+    r_dic = jsonrpc_query('Textures.GetTextures', json.dumps(parameters), verbose=True)
     # --- Delete cached texture ---
     num_textures = len(r_dic['textures'])
     logger.debug('kodi_delete_cache_texture() Returned list with {0} textures'.format(num_textures))
@@ -353,9 +376,10 @@ def delete_cache_texture(database_path_str):
         textureid = r_dic['textures'][0]['textureid']
         logger.debug('kodi_delete_cache_texture() Deleting texture with id {0}'.format(textureid))
         prop_str = '{{ "textureid" : {0} }}'.format(textureid)
-        r_dic = jsonrpc_query('Textures.RemoveTexture', prop_str, verbose = False)
+        r_dic = jsonrpc_query('Textures.RemoveTexture', prop_str, verbose=False)
     else:
         logger.warning('kodi_delete_cache_texture() Number of textures different from 1. No texture deleted from cache')
+
 
 def print_texture_info(database_path_str):
     logger.debug('kodi_print_texture_info() File "{0}"'.format(database_path_str))
@@ -368,7 +392,7 @@ def print_texture_info(database_path_str):
         '"filter" : {{ "field" : "url", "operator" : "is", "value" : "{0}" }}'.format(json_fname_str) +
         '}'
     )
-    r_dic = jsonrpc_query('Textures.GetTextures', prop_str, verbose = False)
+    r_dic = jsonrpc_query('Textures.GetTextures', prop_str, verbose=False)
 
     # --- Delete cached texture ---
     num_textures = len(r_dic['textures'])
@@ -380,6 +404,7 @@ def print_texture_info(database_path_str):
         logger.debug('Texture ID  {0}'.format(r_dic['textures'][0]['textureid']))
         logger.debug('Texture URL {0}'.format(r_dic['textures'][0]['url']))
 
+
 #
 # Kodi dialog with select box based on a list.
 # preselect is int
@@ -389,11 +414,13 @@ class ListDialog(object):
     def __init__(self):
         self.dialog = xbmcgui.Dialog()
 
-    def select(self, title, options_list, preselect_idx = 0, use_details = False):
+    def select(self, title, options_list, preselect_idx=0, use_details=False):
         # --- Execute select dialog menu logic ---
-        selection = self.dialog.select(title, options_list, useDetails = use_details, preselect = preselect_idx)
-        if selection < 0: return None
+        selection = self.dialog.select(title, options_list, useDetails=use_details, preselect=preselect_idx)
+        if selection < 0:
+            return None
         return selection
+
 
 #
 # Kodi dialog with select box based on a dictionary
@@ -402,18 +429,21 @@ class OrdDictionaryDialog(object):
     def __init__(self):
         self.dialog = xbmcgui.Dialog()
 
-    def select(self, title: str, options_odict: collections.OrderedDict, preselect = None, use_details: bool = False):
+    def select(self, title: str, options_odict: collections.OrderedDict, preselect=None, use_details: bool = False):
         preselected_index = -1
         if preselect is not None:
             preselected_value = options_odict[preselect]
             preselected_index = list(options_odict.values()).index(preselected_value)
             
         # --- Execute select dialog menu logic ---
-        selection = self.dialog.select(title, [v for v in options_odict.values()], useDetails = use_details, preselect = preselected_index)       
-        if selection < 0: return None
+        selection = self.dialog.select(title, [v for v in options_odict.values()], useDetails=use_details, preselect=preselected_index)       
+        if selection < 0:
+            return None
         key = list(options_odict.keys())[selection]
 
         return key
+
+
 #
 # Kodi dialog with multiselect
 #
@@ -421,7 +451,7 @@ class MultiSelectDialog(object):
     def __init__(self):
         self.dialog = xbmcgui.Dialog()
 
-    def select(self, title: str, options_odict: collections.OrderedDict, preselected = [], use_details: bool = False):
+    def select(self, title: str, options_odict: collections.OrderedDict, preselected=[], use_details: bool = False):
         preselected_indices = None
         if preselected is not None and len(preselected) > 0:
             preselected_indices = []
@@ -430,15 +460,20 @@ class MultiSelectDialog(object):
                 preselected_indices.append(list(options_odict.values()).index(preselected_value))
             
         # --- Execute select dialog menu logic ---
-        selection = self.dialog.multiselect(title, [v for v in options_odict.values()], useDetails = use_details, preselect = preselected_indices)       
-        if selection is None: return None
-        if len(selection) == 0: return []
+        selection = self.dialog.multiselect(title, [v for v in options_odict.values()],
+                                            useDetails=use_details,
+                                            preselect=preselected_indices)
+        if selection is None:
+            return None
+        if len(selection) == 0:
+            return []
         
         selected_keys = []
         for selected in selection:
             selected_keys.append(list(options_odict.keys())[selected])
 
         return selected_keys
+
 
 # Progress dialog that can be closed and reopened.
 # If the dialog is canceled this class remembers it forever.
@@ -451,7 +486,7 @@ class ProgressDialog(object):
         self.dialog_active = False
         self.progressDialog = xbmcgui.DialogProgress()
 
-    def startProgress(self, message, num_steps = 100):
+    def startProgress(self, message, num_steps=100):
         self.num_steps = num_steps
         self.progress = 0
         self.progress_step = 0
@@ -465,12 +500,12 @@ class ProgressDialog(object):
         self.progress = 0
         self.progress_step = 0
 
-    def incrementStep(self, message = None):
+    def incrementStep(self, message=None):
         self.updateProgress(self.progress_step + 1, message)
         
     # Update progress and optionally update messages as well.
     # If not messages specified then keep current message/s
-    def updateProgress(self, step_index, message = None):
+    def updateProgress(self, step_index, message=None):
         self.progress_step = step_index
         self.progress = int((self.progress_step * 100) / self.num_steps)
         # Update both messages
@@ -502,14 +537,16 @@ class ProgressDialog(object):
     def close(self):
         # Before closing the dialog check if the user pressed the Cancel button and remember
         # the user decision.
-        if self.progressDialog.iscanceled(): self.flag_dialog_canceled = True
+        if self.progressDialog.iscanceled():
+            self.flag_dialog_canceled = True
         self.progressDialog.close()
         self.dialog_active = False
 
     def endProgress(self):
         # Before closing the dialog check if the user pressed the Cancel button and remember
         # the user decision.
-        if self.progressDialog.iscanceled(): self.flag_dialog_canceled = True
+        if self.progressDialog.iscanceled():
+            self.flag_dialog_canceled = True
         self.progressDialog.update(100)
         self.progressDialog.close()
         self.dialog_active = False
@@ -520,7 +557,8 @@ class ProgressDialog(object):
         self.progressDialog.create(self.title, self.message)
         self.progressDialog.update(self.progress)
         self.dialog_active = True
-        
+
+
 # -------------------------------------------------------------------------------------------------
 # Kodi Wizards (by Chrisism)
 # -------------------------------------------------------------------------------------------------
@@ -545,12 +583,14 @@ class WizardDialogABC(object):
     __metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
-    def executeDialog(self, properties:dict): pass
-        
+    def executeDialog(self, properties: dict):
+        pass
+
+
 class WizardDialog(WizardDialogABC):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, decoratorDialog:WizardDialogABC, property_key:str, title:str, customFunction = None, conditionalFunction = None):
+    def __init__(self, decoratorDialog: WizardDialogABC, property_key: str, title: str, customFunction=None, conditionalFunction=None):
         self.decoratorDialog = decoratorDialog
         self.property_key = property_key
         self.title = title
@@ -578,7 +618,8 @@ class WizardDialog(WizardDialogABC):
                 return True
 
         output = self.show(properties)
-        if self.cancelled: return False
+        if self.cancelled:
+            return False
 
         if self.customFunction is not None:
             output = self.customFunction(output, self.property_key, properties)
@@ -590,32 +631,36 @@ class WizardDialog(WizardDialogABC):
         return True
 
     @abc.abstractmethod
-    def show(self, properties): return True
+    def show(self, properties):
+        return True
 
-    def _cancel(self): self.cancelled = True
+    def _cancel(self):
+        self.cancelled = True
+
 
 #
 # Wizard dialog which accepts a keyboard user input.
-# 
+#
 class WizardDialog_Keyboard(WizardDialog):
     def show(self, properties):
         logger.debug('Executing keyboard wizard dialog for key: {0}'.format(self.property_key))
         originalText = properties[self.property_key] if self.property_key in properties else ''
         textInput = xbmc.Keyboard(originalText, self.title)
         textInput.doModal()
-        if not textInput.isConfirmed(): 
+        if not textInput.isConfirmed():
             self._cancel()
             return None
         output = textInput.getText()
 
         return output
 
+
 #
 # Wizard dialog which shows a list of options to select from.
 #
 class WizardDialog_Selection(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, options,
-                 customFunction = None, conditionalFunction = None):
+                 customFunction=None, conditionalFunction=None):
         self.options = options
         super(WizardDialog_Selection, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction)
@@ -630,6 +675,7 @@ class WizardDialog_Selection(WizardDialog):
 
         return output
 
+
 #
 # Wizard dialog which shows a list of options to select from.
 # In comparison with the normal SelectionWizardDialog, this version allows a dictionary or key/value
@@ -637,7 +683,7 @@ class WizardDialog_Selection(WizardDialog):
 # 
 class WizardDialog_DictionarySelection(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, options,
-                 customFunction = None, conditionalFunction = None):
+                 customFunction=None, conditionalFunction=None):
         self.options = options
         super(WizardDialog_DictionarySelection, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction)
@@ -654,12 +700,13 @@ class WizardDialog_DictionarySelection(WizardDialog):
 
         return output
 
+
 #
 # Wizard dialog which shows a filebrowser.
 #
 class WizardDialog_FileBrowse(WizardDialog):
-    def __init__(self, decoratorDialog, property_key, title, browseType, filter, shares = 'files',
-                 customFunction = None, conditionalFunction = None):
+    def __init__(self, decoratorDialog, property_key, title, browseType, filter, shares='files',
+                 customFunction=None, conditionalFunction=None):
         self.browseType = browseType
         self.filter = filter
         self.shares = shares
@@ -681,6 +728,7 @@ class WizardDialog_FileBrowse(WizardDialog):
        
         return output
 
+
 #
 # Wizard dialog which shows an input for one of the following types:
 #    - xbmcgui.INPUT_ALPHANUM (standard keyboard)
@@ -692,7 +740,7 @@ class WizardDialog_FileBrowse(WizardDialog):
 #
 class WizardDialog_Input(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, inputType,
-                 customFunction = None, conditionalFunction = None):
+                 customFunction=None, conditionalFunction=None):
         self.inputType = inputType
         super(WizardDialog_Input, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction)
@@ -707,10 +755,11 @@ class WizardDialog_Input(WizardDialog):
 
         return output
 
+
 # YesNo Dialog
 class WizardDialog_YesNo(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, message, yes_label='Yes', no_label='No',
-                 customFunction = None, conditionalFunction = None):
+                 customFunction=None, conditionalFunction=None):
         self.message = message
         self.yes_label = yes_label
         self.no_label = no_label
@@ -721,6 +770,8 @@ class WizardDialog_YesNo(WizardDialog):
         logger.debug('WizardDialog_YesNo::show() key = {}'.format(self.property_key))
         output = xbmcgui.Dialog().yesno(self.title, self.message, self.no_label, self.yes_label)
         return output
+
+
 #
 # Wizard dialog which shows you a message formatted with a value from the dictionary.
 #
@@ -733,7 +784,7 @@ class WizardDialog_YesNo(WizardDialog):
 #
 class WizardDialog_FormattedMessage(WizardDialog):
     def __init__(self, decoratorDialog, property_key, title, text,
-                 customFunction = None, conditionalFunction = None):
+                 customFunction=None, conditionalFunction=None):
         self.text = text
         super(WizardDialog_FormattedMessage, self).__init__(
             decoratorDialog, property_key, title, customFunction, conditionalFunction)
@@ -750,13 +801,14 @@ class WizardDialog_FormattedMessage(WizardDialog):
 
         return output
 
+
 #
 # Wizard dialog which does nothing or shows anything.
 # It only sets a certain property with the predefined value.
 #
 class WizardDialog_Dummy(WizardDialog):
     def __init__(self, decoratorDialog, property_key, predefinedValue,
-                 customFunction = None, conditionalFunction = None):
+                 customFunction=None, conditionalFunction=None):
         self.predefinedValue = predefinedValue
         super(WizardDialog_Dummy, self).__init__(
             decoratorDialog, property_key, None, customFunction, conditionalFunction)
@@ -765,6 +817,7 @@ class WizardDialog_Dummy(WizardDialog):
         logger.debug('WizardDialog_Dummy::show() {0} key = {0}'.format(self.property_key))
 
         return self.predefinedValue
+
 
 # -------------------------------------------------------------------------------------------------
 # Kodi useful definition
@@ -800,22 +853,23 @@ KODI_ICON_OVERLAY_HD = 6
 #     kodi_set_error_status(st_dic, 'Message') # Or change st_dic manually.
 #     return
 # -------------------------------------------------------------------------------------------------
-KODI_MESSAGE_NONE        = 100
+KODI_MESSAGE_NONE = 100
 # Kodi notifications must be short.
-KODI_MESSAGE_NOTIFY      = 200
+KODI_MESSAGE_NOTIFY = 200
 KODI_MESSAGE_NOTIFY_WARN = 300
 # Kodi OK dialog to display a message.
-KODI_MESSAGE_DIALOG      = 400
+KODI_MESSAGE_DIALOG = 400
 # Kodi notification to cancel current progress
-KODI_MESSAGE_CANCEL      = 500
+KODI_MESSAGE_CANCEL = 500
+
 
 # If status_dic['status'] is True then everything is OK. If status_dic['status'] is False,
 # then display the notification.
 def new_status_dic(message):
     return {
-        'status' : True,
-        'dialog' : KODI_MESSAGE_NOTIFY,
-        'msg'    : message,
+        'status': True,
+        'dialog': KODI_MESSAGE_NOTIFY,
+        'msg': message,
     }
 
 
@@ -840,19 +894,24 @@ def display_status_message(st_dic):
 
     return st_dic['abort']
 
-def kodi_is_error_status(st_dic): return st_dic['abort']
+
+def kodi_is_error_status(st_dic):
+    return st_dic['abort']
+
 
 # Utility function to write more compact code.
 # By default error messages are shown in modal OK dialogs.
-def kodi_set_error_status(st_dic, msg, dialog = KODI_MESSAGE_DIALOG):
+def kodi_set_error_status(st_dic, msg, dialog=KODI_MESSAGE_DIALOG):
     st_dic['abort'] = True
     st_dic['msg'] = msg
     st_dic['dialog'] = dialog
+
 
 def kodi_reset_status(st_dic):
     st_dic['abort'] = False
     st_dic['msg'] = ''
     st_dic['dialog'] = KODI_MESSAGE_NONE
+
 
 # -------------------------------------------------------------------------------------------------
 # Alternative Kodi GUI error reporting.
@@ -871,12 +930,13 @@ def kodi_reset_status(st_dic):
 # def function_that_may_fail():
 #     raise KodiAddonError(msg, dialog)
 class KodiAddonError(Exception):
-    def __init__(self, msg, dialog = KODI_MESSAGE_DIALOG):
+    def __init__(self, msg, dialog=KODI_MESSAGE_DIALOG):
         self.dialog = dialog
         self.msg = msg
 
     def __str__(self):
         return self.msg
+
 
 def kodi_display_exception(ex):
     st_dic = new_status_dic()
@@ -900,6 +960,7 @@ def kodi_display_exception(ex):
 # large images are scaled down to the default values shown below, but they can be sized
 # even smaller to save additional space.
 
+
 # Gets where in Kodi image cache an image is located.
 # image_path is a Unicode string.
 # cache_file_path is a Unicode string.
@@ -909,6 +970,7 @@ def get_cached_image_FN(image_path):
     base_name = xbmc.getCacheThumbName(image_path)
     cache_file_path = os.path.join(THUMBS_CACHE_PATH, base_name[0], base_name)
     return cache_file_path
+
 
 # *** Experimental code not used for releases ***
 # Updates Kodi image cache for the image provided in img_path.
