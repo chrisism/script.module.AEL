@@ -315,7 +315,7 @@ class ScrapeStrategy(object):
         self.logger.debug('Update NFO files:     {}'.format('Yes' if scraper_settings.update_nfo_files else 'No'))
         self.logger.debug('==============================================================================')
  
-    def process_roms(self, entity_type, entity_id) -> typing.List[ROMObj]:
+    def process_roms(self, entity_type: int, entity_id) -> typing.List[ROMObj]:
         try:
             if entity_type == constants.OBJ_SOURCE:
                 roms = api.client_get_roms_in_source(self.webservice_host, self.webservice_port, entity_id)
@@ -1062,10 +1062,10 @@ class ScrapeStrategy(object):
         if not is_stored:
             kodi.notify_error('Failed to store scraped ROM')
   
-    def store_scraped_roms(self, scraper_id: str, entity_type, entity_id: str, scraped_roms: typing.List[ROMObj]):
+    def store_scraped_roms(self, scraper_id: str, entity_type: int, entity_id: str, scraped_roms: typing.List[ROMObj]):
         roms = [*(r.get_data_dic() for r in scraped_roms)]
         post_data = {
-            'entity_type': entity_type,
+            'entity_type': int(entity_type),
             'entity_id': entity_id,
             'akl_addon_id': scraper_id,
             'roms': roms,
