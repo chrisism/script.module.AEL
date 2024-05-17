@@ -24,6 +24,7 @@ import json
 
 # AKL libraries
 import constants
+import utils.io
 
 
 def argument_parsing_for_addons(addon_name):
@@ -72,6 +73,17 @@ def create_configure_scan_command(host: str, port: int, addon_id: str,
     return {
         '--cmd': 'configure',
         '--type': constants.AddonType.SCANNER.name,
+        **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
+    }
+
+
+def create_scraper_command(host: str, port: int, addon_id: str,
+                           entity_type: int, entity_id: str,
+                           settings) -> dict:
+    return {
+        '--cmd  ': 'scrape',
+        '--type': constants.AddonType.SCRAPER.name,
+        '--settings': utils.io.parse_to_json_arg(settings),
         **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
     }
 

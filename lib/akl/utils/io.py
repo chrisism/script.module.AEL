@@ -537,11 +537,11 @@ class FileName(FileType):
         file_contents = self.loadFileToStr()
         file_lines = file_contents.splitlines()
 
-        result={ }
+        result = {}
         reader = csv.reader(file_lines, delimiter=str('='), quotechar=str('"'), quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
         for row in reader:
             if len(row) < 2:
-               continue
+                continue
             
             key = row[0].strip()
             value = row[1].strip().lstrip('"').rstrip('"')
@@ -559,9 +559,9 @@ class FileName(FileType):
     # >> See https://docs.python.org/2.7/library/json.html#json.dumps
     # unicode(json_data) auto-decodes data to unicode if str
     # NOTE More compact JSON files (less blanks) load faster because size is smaller.
-    def writeJson(self, raw_data, JSON_indent = 1, JSON_separators = (',', ':')):
-        json_data = json.dumps(raw_data, ensure_ascii = False, sort_keys = True, 
-                                indent = JSON_indent, separators = JSON_separators)
+    def writeJson(self, raw_data, JSON_indent=1, JSON_separators=(',', ':')):
+        json_data = json.dumps(raw_data, ensure_ascii=False, sort_keys=True,
+                               indent=JSON_indent, separators=JSON_separators)
         self.saveStrToFile(json_data)
 
     def readXml(self) -> ET.Element:
@@ -576,7 +576,7 @@ class FileName(FileType):
         return tree
 
     # Opens file and writes xml. Give xml root element.
-    def writeXml(self, xml_root:ET.Element):
+    def writeXml(self, xml_root: ET.Element):
         data = ET.tostring(xml_root)
         self.saveStrToFile(data)
         
@@ -597,11 +597,13 @@ class FileName(FileType):
     def recursiveScanFilesInPath(self, mask = '*.*', progress_total_function=None, progress_function=None):
         files: typing.List[FileName] = []
         all_files = self.recursive_list()
-        if progress_total_function is not None: progress_total_function(len(all_files))
+        if progress_total_function is not None:
+            progress_total_function(len(all_files))
         
         for filename in fnmatch.filter(all_files, mask):
             files.append(self.pjoin(filename))
-            if progress_function is not None: progress_function()
+            if progress_function is not None:
+                progress_function()
             
         return files
 
@@ -666,8 +668,10 @@ is_linux_bool = cached_sys_platform.startswith('linux') and not is_android_bool
 def get_URL_extension(url) -> str:
     path = urlparse(url).path
     ext = os.path.splitext(path)[1]
-    if len(ext) == 0: return ext
-    if ext[0] == '.': ext = ext[1:] # Remove initial dot
+    if len(ext) == 0:
+        return ext
+    if ext[0] == '.':
+        ext = ext[1:]  # Remove initial dot
 
     return ext
 
@@ -704,10 +708,11 @@ def misc_add_file_cache(dir_FN:FileName):
     logger.debug('misc_add_file_cache() Adding {0} files to cache'.format(len(file_set)))
     file_cache[dir_FN.getPath()] = file_set
 
+
 #
 # See misc_look_for_file() documentation below.
 #
-def misc_search_file_cache(dir_path:FileName, filename_noext:str, file_exts):
+def misc_search_file_cache(dir_path: FileName, filename_noext: str, file_exts):
     # logger.debug('misc_search_file_cache() Searching in  "{0}"'.format(dir_str))
     dir_str = dir_path.getPath()
     if dir_str not in file_cache:
@@ -718,12 +723,13 @@ def misc_search_file_cache(dir_path:FileName, filename_noext:str, file_exts):
     for ext in file_exts:
         file_base = filename_noext + '.' + ext
         file_base_as_cached = file_base.lower()
-        #logger.debug('misc_search_file_cache() file_Base = "{0}"'.format(file_base))
+        # logger.debug('misc_search_file_cache() file_Base = "{0}"'.format(file_base))
         if file_base_as_cached in current_cache_set:
             # logger.debug('misc_search_file_cache() Found in cache')
             return dir_path.pjoin(file_base)
 
     return None
+
 
 # -------------------------------------------------------------------------------------------------
 # Misc stuff
@@ -747,6 +753,7 @@ def misc_look_for_file(rootPath, filename_noext, file_exts):
 
     return None
 
+
 #
 # Get extensions to search for files
 # Input : ['png', 'jpg']
@@ -759,10 +766,12 @@ def get_filesearch_extension_list(exts):
 
     return ext_list
 
+
 def parse_to_json_arg(obj) -> str:
     arg = '"{}"'.format(json.dumps(obj))
     arg = arg.replace('\\', '\\\\') #double encoding
     return arg
+
 
 #
 # Calculates CRC, MD5 and SHA1 of a file in an efficient way.
@@ -797,13 +806,14 @@ def misc_calculate_checksums(full_file_path: FileName):
         logger.debug('Returning None')
         return None
     checksums = {
-        'crc'  : crc_digest.upper(),
-        'md5'  : md5_digest.upper(),
-        'sha1' : sha1_digest.upper(),
-        'size' : size,
+        'crc': crc_digest.upper(),
+        'md5': md5_digest.upper(),
+        'sha1': sha1_digest.upper(),
+        'size': size,
     }
 
     return checksums
+
 
 def misc_calculate_stream_checksums(file_bytes):
     logger.debug('Computing checksums of bytes stream...'.format(len(file_bytes)))
@@ -833,13 +843,15 @@ def misc_calculate_stream_checksums(file_bytes):
 
     return checksums
 
+
 #
 # Lazy function (generator) to read a file piece by piece. Default chunk size: 8k.
 #
-def misc_read_file_in_chunks(file_object, chunk_size = 8192):
+def misc_read_file_in_chunks(file_object, chunk_size=8192):
     while True:
         data = file_object.read(chunk_size)
-        if not data: break
+        if not data:
+            break
         yield data
 
 # Supported image files in:
