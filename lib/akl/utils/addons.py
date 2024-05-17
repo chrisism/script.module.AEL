@@ -38,3 +38,50 @@ def argument_parsing_for_addons(addon_name):
     parser.add_argument('--entity_type', type=int, help="Entity Type (ROM|ROMCOLLECTION|SOURCE)")
     parser.add_argument('--akl_addon_id', type=str, help="Addon configuration ID")
     parser.add_argument('--settings', type=json.loads, help="Specific run setting")
+
+
+def create_launch_command(host: str, port: int, addon_id: str,
+                          entity_type: int, entity_id: str) -> dict:
+    return {
+        '--cmd': 'launch',
+        '--type': constants.AddonType.LAUNCHER.name,
+        **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
+    }
+
+
+def create_configure_launch_command(host: str, port: int, addon_id: str,
+                                    entity_type: int, entity_id: str) -> dict:
+    return {
+        '--cmd': 'configure',
+        '--type': constants.AddonType.LAUNCHER.name,
+        **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
+    }
+    
+
+def create_scan_command(host: str, port: int, addon_id: str,
+                        entity_type: int, entity_id: str) -> dict:
+    return {
+        '--cmd': 'scan',
+        '--type': constants.AddonType.SCANNER.name,
+        **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
+    }
+
+
+def create_configure_scan_command(host: str, port: int, addon_id: str,
+                                  entity_type: int, entity_id: str) -> dict:
+    return {
+        '--cmd': 'configure',
+        '--type': constants.AddonType.SCANNER.name,
+        **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
+    }
+
+
+def _default_command_parameters(host: str, port: int, addon_id: str,
+                                entity_type: int, entity_id: str) -> dict:
+    return {
+        '--server_host': host,
+        '--server_port': port,
+        '--akl_addon_id': addon_id,
+        '--entity_type': entity_type,
+        '--entity_id': entity_id
+    }
