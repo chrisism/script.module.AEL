@@ -362,7 +362,6 @@ class LauncherABC(object):
                 application = application.replace('$ROMPATH$', rompath)
                 application = application.replace('$ROMBASE$', rombase)
                 application = application.replace('$ROMBASENOEXT$', rombase_noext)
-                logger.info(f'get_arguments(): application      "{application}"')
                 self.launcher_settings['application'] = application
 
             # >> Legacy names for argument substitution
@@ -383,10 +382,14 @@ class LauncherABC(object):
 
             arguments = self._replace_in_args(arguments, '$apppath$', apppath)
             arguments = self._replace_in_args(arguments, '$appbase$', app.getBase())
-            
+            arguments = self._replace_in_args(arguments, '$APPPATH$', apppath)
+            arguments = self._replace_in_args(arguments, '$APPBASE$', app.getBase())
+
             kwargs = self._replace_in_kwargs(kwargs, '$apppath$', apppath)
             kwargs = self._replace_in_kwargs(kwargs, '$appbase$', app.getBase())
-
+            kwargs = self._replace_in_kwargs(kwargs, '$APPPATH$', apppath)
+            kwargs = self._replace_in_kwargs(kwargs, '$APPBASE$', app.getBase())
+        
         # Default arguments replacements
         arguments = self._replace_in_args(arguments, '$romID$', rom.get_id())
         arguments = self._replace_in_args(arguments, '$romtitle$', rom.get_name())
