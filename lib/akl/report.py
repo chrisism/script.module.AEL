@@ -29,6 +29,7 @@ from akl.utils import io
 
 logger = logging.getLogger(__name__)
 
+
 class Reporter(object):
     __metaclass__ = abc.ABCMeta
 

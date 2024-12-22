@@ -23,8 +23,8 @@ import argparse
 import json
 
 # AKL libraries
-import constants
-import utils.io
+from akl import constants
+from akl.utils import io
 
 
 def argument_parsing_for_addons(addon_name):
@@ -83,7 +83,7 @@ def create_scraper_command(host: str, port: int, addon_id: str,
     return {
         '--cmd  ': 'scrape',
         '--type': constants.AddonType.SCRAPER.name,
-        '--settings': utils.io.parse_to_json_arg(settings),
+        '--settings': io.parse_to_json_arg(settings),
         **_default_command_parameters(host, port, addon_id, entity_type, entity_id)
     }
 

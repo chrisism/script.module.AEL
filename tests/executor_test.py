@@ -2,7 +2,7 @@ import unittest, os
 from unittest.mock import Mock, patch, MagicMock
 
 import logging
-from akl.launchers import LauncherABC
+from lib.akl.launchers import LauncherABC
 
 from lib.akl.executors import AndroidActivityExecutor, ExecutorFactory, ExecutorSettings
 
