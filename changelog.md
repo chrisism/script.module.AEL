@@ -1,4 +1,7 @@
 ## Current
+- Fix Application launcher not launching the app (fixed by: mallexxx)
+- Cleanup log; case insensitive APPPATH, APPBASE
+- Addon command utilities
 - Windows LNK file execution fix
 - Added extras fields to scraped data
 - Use asset filenames that are allowed by system

@@ -253,8 +253,8 @@ class LauncherABC(object):
         logger.debug('LauncherABC::launch() Starting ...')
 
         name = self.get_name()
-        application = self.get_application()
         args, kwargs = self.get_arguments()
+        application = self.get_application()
         inst_name = self.get_instance_name()
 
         logger.debug(f'Name         = "{name}"')
@@ -302,28 +302,13 @@ class LauncherABC(object):
         with a corresponding value.
         """
         raw_args = self.launcher_settings['args'] if 'args' in self.launcher_settings else ''
-        application = self.launcher_settings['application'] if 'application' in self.launcher_settings else None
+        application = self.get_application()
         
         logger.info(f'get_arguments(): Launcher          "{self.get_name()}"')
         logger.info(f'get_arguments(): raw arguments     "{raw_args}"')
         
         arguments = shlex.split(raw_args, posix=True)
         arguments = arguments + list(args)
-
-        # Application based arguments replacements
-        if application:
-            app = io.FileName(application)
-            apppath = app.getDir()
-
-            logger.info('get_arguments(): application  "{0}"'.format(app.getPath()))
-            logger.info('get_arguments(): appbase      "{0}"'.format(app.getBase()))
-            logger.info('get_arguments(): apppath      "{0}"'.format(apppath))
-
-            arguments = self._replace_in_args(arguments, '$apppath$', apppath)
-            arguments = self._replace_in_args(arguments, '$appbase$', app.getBase())
-            
-            kwargs = self._replace_in_kwargs(kwargs, '$apppath$', apppath)
-            kwargs = self._replace_in_kwargs(kwargs, '$appbase$', app.getBase())
 
         # ROM based arguments replacements
         rom = api.client_get_rom(self.webservice_host, self.webservice_port, self.rom_id)
@@ -349,12 +334,35 @@ class LauncherABC(object):
             arguments = self._replace_in_args(arguments, '$rompath$', rompath)
             arguments = self._replace_in_args(arguments, '$rombase$', rombase)
             arguments = self._replace_in_args(arguments, '$rombasenoext$', rombase_noext)
+            arguments = self._replace_in_args(arguments, '$ROM$', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$ROMFILE$', rom_file.getPath())
+            arguments = self._replace_in_args(arguments, '$ROMPATH$', rompath)
+            arguments = self._replace_in_args(arguments, '$ROMBASE$', rombase)
+            arguments = self._replace_in_args(arguments, '$ROMBASENOEXT$', rombase_noext)
 
             kwargs = self._replace_in_kwargs(kwargs, '$rom$', rom_file.getPath())
             kwargs = self._replace_in_kwargs(kwargs, '$romfile$', rom_file.getPath())
             kwargs = self._replace_in_kwargs(kwargs, '$rompath$', rompath)
             kwargs = self._replace_in_kwargs(kwargs, '$rombase$', rombase)
             kwargs = self._replace_in_kwargs(kwargs, '$rombasenoext$', rombase_noext)
+            kwargs = self._replace_in_kwargs(kwargs, '$ROM$', rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '$ROMFILE$', rom_file.getPath())
+            kwargs = self._replace_in_kwargs(kwargs, '$ROMPATH$', rompath)
+            kwargs = self._replace_in_kwargs(kwargs, '$ROMBASE$', rombase)
+            kwargs = self._replace_in_kwargs(kwargs, '$ROMBASENOEXT$', rombase_noext)
+
+            if application:
+                application = application.replace('$rom$', rom_file.getPath())
+                application = application.replace('$romfile$', rom_file.getPath())
+                application = application.replace('$rompath$', rompath)
+                application = application.replace('$rombase$', rombase)
+                application = application.replace('$rombasenoext$', rombase_noext)
+                application = application.replace('$ROM$', rom_file.getPath())
+                application = application.replace('$ROMFILE$', rom_file.getPath())
+                application = application.replace('$ROMPATH$', rompath)
+                application = application.replace('$ROMBASE$', rombase)
+                application = application.replace('$ROMBASENOEXT$', rombase_noext)
+                self.launcher_settings['application'] = application
 
             # >> Legacy names for argument substitution
             arguments = self._replace_in_args(arguments, '%rom%', rom_file.getPath())
@@ -363,6 +371,25 @@ class LauncherABC(object):
             kwargs = self._replace_in_kwargs(kwargs, '%rom%', rom_file.getPath())
             kwargs = self._replace_in_kwargs(kwargs, '%ROM%', rom_file.getPath())
 
+        # Application based arguments replacements
+        if application:
+            app = io.FileName(application)
+            apppath = app.getDir()
+
+            logger.info('get_arguments(): application  "{0}"'.format(app.getPath()))
+            logger.info('get_arguments(): appbase      "{0}"'.format(app.getBase()))
+            logger.info('get_arguments(): apppath      "{0}"'.format(apppath))
+
+            arguments = self._replace_in_args(arguments, '$apppath$', apppath)
+            arguments = self._replace_in_args(arguments, '$appbase$', app.getBase())
+            arguments = self._replace_in_args(arguments, '$APPPATH$', apppath)
+            arguments = self._replace_in_args(arguments, '$APPBASE$', app.getBase())
+
+            kwargs = self._replace_in_kwargs(kwargs, '$apppath$', apppath)
+            kwargs = self._replace_in_kwargs(kwargs, '$appbase$', app.getBase())
+            kwargs = self._replace_in_kwargs(kwargs, '$APPPATH$', apppath)
+            kwargs = self._replace_in_kwargs(kwargs, '$APPBASE$', app.getBase())
+        
         # Default arguments replacements
         arguments = self._replace_in_args(arguments, '$romID$', rom.get_id())
         arguments = self._replace_in_args(arguments, '$romtitle$', rom.get_name())
