@@ -1,5 +1,5 @@
 ## Current
-- Fix Application launcher not launching the app
+- Fix Application launcher not launching the app (fixed by: mallexxx)
 - Cleanup log; case insensitive APPPATH, APPBASE
 - Addon command utilities
 - Windows LNK file execution fix
