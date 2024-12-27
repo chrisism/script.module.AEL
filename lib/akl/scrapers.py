@@ -787,6 +787,10 @@ class ScrapeStrategy(object):
     def _scrap_ROM_asset(self, asset_info_id: str, local_asset_path: io.FileName, rom: ROMObj):
         # --- Cached frequent used things ---
         asset_dir_FN = rom.get_asset_path(asset_info_id)
+        if not asset_dir_FN:
+            self.logger.warning(f'ROM is missing asset dir for asset#{asset_info_id}')
+            return None
+            
         asset_path_noext_FN = asset_dir_FN + text.str_to_filename_str(rom.get_identifier())
         asset_name = asset_info_id.capitalize()
        

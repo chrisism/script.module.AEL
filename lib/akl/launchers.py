@@ -571,9 +571,13 @@ class LauncherABC(object):
         logger.debug('LauncherABC::_launch_post_exec() function ENDS')
 
     def _replace_in_args(self, args: typing.List[str], to_be_replaced: str, replace_with: str) -> list:
+        if replace_with is None:
+            return args
         result = [arg.replace(to_be_replaced, replace_with) for arg in args]
         return result
 
     def _replace_in_kwargs(self, kwargs: typing.Dict[str, str], to_be_replaced: str, replace_with: str) -> dict:
+        if replace_with is None:
+            return kwargs
         result = {key: val.replace(to_be_replaced, replace_with) for key, val in kwargs.items()}
         return result

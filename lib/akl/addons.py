@@ -27,20 +27,6 @@ from akl import constants
 from akl.utils import io
 
 
-def argument_parsing_for_addons(addon_name):
-
-    parser = argparse.ArgumentParser(prog=addon_name)
-    parser.add_argument('--cmd', help="Command to execute", choices=['launch', 'scan', 'scrape', 'configure'])
-    parser.add_argument('--type', help="Plugin type", choices=['LAUNCHER', 'SCANNER', 'SCRAPER'], default=constants.AddonType.LAUNCHER.name)
-    parser.add_argument('--server_host', type=str, help="Host")
-    parser.add_argument('--server_port', type=int, help="Port")
-    parser.add_argument('--source_id', type=str, help="Source ID")
-    parser.add_argument('--entity_id', type=str, help="Entity ID")
-    parser.add_argument('--entity_type', type=int, help="Entity Type (ROM|ROMCOLLECTION|SOURCE)")
-    parser.add_argument('--akl_addon_id', type=str, help="Addon configuration ID")
-    parser.add_argument('--settings', type=json.loads, help="Specific run setting")
-
-
 def create_launch_command(host: str, port: int, addon_id: str,
                           entity_type: int, entity_id: str) -> dict:
     return {
@@ -97,3 +83,82 @@ def _default_command_parameters(host: str, port: int, addon_id: str,
         '--entity_type': entity_type,
         '--entity_id': entity_id
     }
+
+
+###############################################################
+# CLIENT OBJECTS
+###############################################################
+class AklAddonArguments(object):
+
+    LAUNCH = 0
+    SCAN = 1
+    SCRAPE = 2
+    CONFIGURE_LAUNCHER = 3
+    CONFIGURE_SCANNER = 4
+    
+    def __init__(self, addon_name: str):
+        self.addon_name = addon_name
+        
+        self.parser = argparse.ArgumentParser(prog=addon_name)
+        self.parser.add_argument('--cmd', help="Command to execute", choices=['launch', 'scan', 'scrape', 'configure'])
+        self.parser.add_argument('--type', help="Plugin type", choices=['LAUNCHER', 'SCANNER', 'SCRAPER'],
+                                 default=constants.AddonType.LAUNCHER.name)
+        self.parser.add_argument('--server_host', type=str, help="Host")
+        self.parser.add_argument('--server_port', type=int, help="Port")
+        self.parser.add_argument('--rom_id', type=str, help="ROM ID")
+        self.parser.add_argument('--source_id', type=str, help="Source ID")
+        self.parser.add_argument('--entity_id', type=str, help="Entity ID")
+        self.parser.add_argument('--entity_type', type=int, help="Entity Type (ROM|ROMCOLLECTION|SOURCE)")
+        self.parser.add_argument('--akl_addon_id', type=str, help="Addon configuration ID")
+        self.parser.add_argument('--settings', type=json.loads, help="Specific run setting")
+
+    def parse(self):
+        self.args = self.parser.parse_args()
+
+    def get_usage(self):
+        return self.parser.usage
+
+    def get_type(self):
+        return self.args.type
+
+    def get_command(self):
+        if self.args.type == constants.AddonType.LAUNCHER.name and self.args.cmd == 'launch':
+            return AklAddonArguments.LAUNCH
+        elif self.args.type == constants.AddonType.LAUNCHER.name and self.args.cmd == 'configure':
+            return AklAddonArguments.CONFIGURE_LAUNCHER
+        elif self.args.type == constants.AddonType.SCANNER.name and self.args.cmd == 'scan':
+            return AklAddonArguments.SCAN
+        elif self.args.type == constants.AddonType.SCANNER.name and self.args.cmd == 'configure':
+            AklAddonArguments.CONFIGURE_SCANNER
+        elif self.args.type == constants.AddonType.SCRAPER.name and self.args.cmd == 'scrape':
+            return AklAddonArguments.SCRAPE
+        return None
+    
+    def get_webserver_host(self):
+        return self.args.server_host
+    
+    def get_webserver_port(self):
+        return self.args.server_port
+    
+    def get_akl_addon_id(self):
+        return self.args.akl_addon_id
+    
+    def get_entity_id(self):
+        if self.args.rom_id:
+            return self.args.rom_id
+        if self.args.source_id:
+            return self.args.source_id
+        return self.args.entity_id
+    
+    def get_entity_type(self):
+        if self.args.rom_id:
+            return constants.OBJ_ROM
+        if self.args.source_id:
+            return constants.OBJ_SOURCE
+        return self.args.entity_type
+    
+    def get_settings(self):
+        return self.args.settings
+
+    def get_help(self):
+        return self.parser.format_help()

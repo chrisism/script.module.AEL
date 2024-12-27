@@ -5,6 +5,7 @@
 - Windows LNK file execution fix
 - Added extras fields to scraped data
 - Use asset filenames that are allowed by system
+- Generalized addon commands and parsing
 
 ## In previous releases
 - Don't download assets of extension type *url*
