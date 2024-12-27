@@ -148,3 +148,6 @@ class AklAddonArguments(object):
     
     def get_settings(self):
         return self.args.settings
+
+    def get_help(self):
+        return self.parser.format_help()
