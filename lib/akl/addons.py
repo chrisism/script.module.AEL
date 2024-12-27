@@ -101,9 +101,12 @@ class AklAddonArguments(object):
         
         self.parser = argparse.ArgumentParser(prog=addon_name)
         self.parser.add_argument('--cmd', help="Command to execute", choices=['launch', 'scan', 'scrape', 'configure'])
-        self.parser.add_argument('--type', help="Plugin type", choices=['LAUNCHER', 'SCANNER', 'SCRAPER'], default=constants.AddonType.LAUNCHER.name)
+        self.parser.add_argument('--type', help="Plugin type", choices=['LAUNCHER', 'SCANNER', 'SCRAPER'],
+                                 default=constants.AddonType.LAUNCHER.name)
         self.parser.add_argument('--server_host', type=str, help="Host")
         self.parser.add_argument('--server_port', type=int, help="Port")
+        self.parser.add_argument('--rom_id', type=str, help="ROM ID")
+        self.parser.add_argument('--source_id', type=str, help="Source ID")
         self.parser.add_argument('--entity_id', type=str, help="Entity ID")
         self.parser.add_argument('--entity_type', type=int, help="Entity Type (ROM|ROMCOLLECTION|SOURCE)")
         self.parser.add_argument('--akl_addon_id', type=str, help="Addon configuration ID")
@@ -141,9 +144,17 @@ class AklAddonArguments(object):
         return self.args.akl_addon_id
     
     def get_entity_id(self):
+        if self.args.rom_id:
+            return self.args.rom_id
+        if self.args.source_id:
+            return self.args.source_id
         return self.args.entity_id
     
     def get_entity_type(self):
+        if self.args.rom_id:
+            return constants.OBJ_ROM
+        if self.args.source_id:
+            return constants.OBJ_SOURCE
         return self.args.entity_type
     
     def get_settings(self):

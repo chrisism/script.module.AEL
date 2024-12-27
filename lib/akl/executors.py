@@ -52,15 +52,15 @@ class ExecutorABC():
         self.logFile = logFile
 
     @abc.abstractmethod
-    def execute(self, application: str, *args, **kwargs): 
+    def execute(self, application: str, *args, **kwargs):
         """
         Executes an application with this executor implementation.
-        For the kwargs by default we work with the keyword 'non_blocking' 
+        For the kwargs by default we work with the keyword 'non_blocking'
         to indicate if Kodi should wait/freeze for this executing application.
-        By default the application will be treated as non blocking. 
+        By default the application will be treated as non blocking.
         With the keyword 'separator' you can define the separator character
         to use when combining all keywords. By default we use a whitespace.
-        The other arguments (args and kwargs) will be processed as the 
+        The other arguments (args and kwargs) will be processed as the
         arguments for the execution.
         """
         pass
@@ -115,7 +115,7 @@ class LinuxExecutor(ExecutorABC):
         if non_blocking:
             # >> In a non-blocking launch stdout/stderr of child process cannot be recorded.
             logger.info('Launching non-blocking process subprocess.Popen()')
-            p = subprocess.Popen(command, close_fds=True)
+            subprocess.Popen(command, close_fds=True)
         else:
             if self.lirc_state:
                 xbmc.executebuiltin('LIRC.stop')
@@ -210,11 +210,11 @@ class AndroidExecutor(ExecutorABC):
 class AndroidActivityExecutor(ExecutorABC):
     """
     Launch an Android native app. Preferred solution above AndroidExecutor.
-    It will use StartAndroidActivity(package,[..]) with the given 
-    application name as the package. 
+    It will use StartAndroidActivity(package,[..]) with the given
+    application name as the package.
     The provided kwargs are: intent, dataType, dataURI, action, category,
-    className, flags and extras. 
-    example: 
+    className, flags and extras.
+    example:
       StartAndroidActivity(com.android.chrome,android.intent.action.VIEW,,http://kodi.tv/)
       application: com.android.chrome
       intent: android.intent.action.VIEW
@@ -338,9 +338,9 @@ class WindowsBatchFileExecutor(ExecutorABC):
 # See https://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx
 #
 # Same behaviour can be achieved in current version of subprocess with close_fds.
-# If close_fds is true, all file descriptors except 0, 1 and 2 will be closed before the 
-# child process is executed. (Unix only). Or, on Windows, if close_fds is true then no handles 
-# will be inherited by the child process. Note that on Windows, you cannot set close_fds to 
+# If close_fds is true, all file descriptors except 0, 1 and 2 will be closed before the
+# child process is executed. (Unix only). Or, on Windows, if close_fds is true then no handles
+# will be inherited by the child process. Note that on Windows, you cannot set close_fds to
 # true and also redirect the standard handles by setting stdin, stdout or stderr.
 #
 # If I keep old launcher behaviour in Windows (close_fds = True) then program output cannot
