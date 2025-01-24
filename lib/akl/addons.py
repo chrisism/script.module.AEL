@@ -129,7 +129,7 @@ class AklAddonArguments(object):
         elif self.args.type == constants.AddonType.SCANNER.name and self.args.cmd == 'scan':
             return AklAddonArguments.SCAN
         elif self.args.type == constants.AddonType.SCANNER.name and self.args.cmd == 'configure':
-            AklAddonArguments.CONFIGURE_SCANNER
+            return AklAddonArguments.CONFIGURE_SCANNER
         elif self.args.type == constants.AddonType.SCRAPER.name and self.args.cmd == 'scrape':
             return AklAddonArguments.SCRAPE
         return None
